@@ -15,9 +15,6 @@
 #include "sys/fcntl.h"
 #include "datastructures/metagenome/SequenceIndexDatabase.h"
 #include "FASTASequence.h"
-#if defined(__APPLE__)
-#include <unistd.h>
-#endif
 
 using namespace std;
 class FASTAReader {
