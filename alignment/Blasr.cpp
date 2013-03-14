@@ -420,13 +420,12 @@ void SetHelp(string &str) {
              << "   -clipping [none|hard|soft] (none)" << endl
              << "               Use no/hard/soft clipping for SAM output."<< endl
              << "   -out out (terminal)  " << endl
-             << "               Write output to 'out'" << endl
+             << "               Write output to 'out'." << endl
              << "   -unaligned file" << endl
              << "               Output reads that are not aligned to 'file'" << endl
              << "   -m t           " << endl
              << "               If not printing SAM, modify the output of the alignment." << endl
-             << "                t=" << StickPrint <<   " Print blast like output with |'s connecting " << endl
-             << "                  matched nucleotides." << endl 
+             << "                t=" << StickPrint <<   " Print blast like output with |'s connecting matched nucleotides." << endl 
              << "                  " << SummaryPrint << " Print only a summary: score and pos." << endl 
              << "                  " << CompareXML <<   " Print in Compare.xml format." << endl 
              << "                  " << Vulgar <<       " Print in vulgar format (deprecated)." << endl
@@ -453,35 +452,37 @@ void SetHelp(string &str) {
              << "   -minPctIdentity p (0)"<< endl
              << "               Only report alignments if they are greater than p percent identity."<<endl
              << "   -unaligned file" << endl
-             << "               Output reads that are not aligned to 'file'" << endl
+             << "               Output reads that are not aligned to 'file'." << endl
              << endl 
              << " Options for anchoring alignment regions. This will have the greatest effect on speed and sensitivity." << endl
              << "   -minMatch m (10) " << endl
              << "               Minimum seed length.  Higher minMatch will speed up alignment, " << endl
              << "               but decrease sensitivity." << endl
-             << "   -maxExpand M (1)" << endl
-             << "               Perform no more than M iterations of searches through the suffix " << endl
-             << "               array for matches. At each iteration, all matches of length LCPi-M" << endl
-             << "               are found, where LCPi is the length of the longest common prefix " << endl
-             << "               between the string at i and anywhere in the genome."<<endl
-             << "               The number of matches grows as M increases, and can become very large with M > 3." << endl
-             << "   -maxLCPLength l (inf)" << endl
+//             << "   -maxExpand M (1)" << endl
+//             << "               Perform no more than M iterations of searches through the suffix " << endl
+//             << "               array for matches. At each iteration, all matches of length LCPi-M" << endl
+//             << "               are found, where LCPi is the length of the longest common prefix " << endl
+//             << "               between the string at i and anywhere in the genome."<<endl
+//             << "               The number of matches grows as M increases, and can become very large with M > 3." << endl
+             << "   -maxMatch l (inf)" << endl
              << "               Stop mapping a read to the genome when the lcp length reaches l.  " << endl
              << "               This is useful when the query is part of the reference, for example when " <<endl
              << "               constructing pairwise alignments for de novo assembly."<<endl
+             << "   -maxLCPLength l (inf)" << endl
+             << "               The same as -maxMatch." << endl
              << "   -maxAnchorsPerPosition m (inf) " << endl
-             << "               Do not add anchors from a position if it matches to more than 'm' locations in the target" << endl
-             << "   -advanceHalf (false) " << endl
-             << "               A trick for speeding up alignments at the cost of sensitivity.  If " << endl
-             << "               a cluster of anchors of size n, (a1,...,an) is found, normally anchors " << endl
-             << "               (a2,...an) of size n-1 is also clustered to make sure a1 did not decrease the " << endl
-             << "               cluster score.  When advanceHalf is specified, clustering begins at a_(n/2)."<<endl<< endl
+             << "               Do not add anchors from a position if it matches to more than 'm' locations in the target." << endl
+//             << "   -advanceHalf (false) " << endl
+//             << "               A trick for speeding up alignments at the cost of sensitivity.  If " << endl
+//             << "               a cluster of anchors of size n, (a1,...,an) is found, normally anchors " << endl
+//             << "               (a2,...an) of size n-1 is also clustered to make sure a1 did not decrease the " << endl
+//             << "               cluster score.  When advanceHalf is specified, clustering begins at a_(n/2)."<<endl<< endl
              << "   -advanceExactMatches E (0)" << endl
              << "               Another trick for speeding up alignments with match - E fewer anchors.  Rather than" << endl 
              << "               finding anchors between the read and the genome at every position in the read, " <<endl
              << "               when an anchor is found at position i in a read of length L, the next position " << endl
              << "               in a read to find an anchor is at i+L-E." << endl
-             << "               Use this when alignining already assembled contigs." << endl << endl
+             << "               Use this when alignining already assembled contigs." << endl
              << "   -nCandidates n (10)" << endl 
              << "               Keep up to 'n' candidates for the best alignment.  A large value of n will slow mapping" << endl
              << "               because the slower dynamic programming steps are applied to more clusters of anchors" <<endl
@@ -491,12 +492,12 @@ void SetHelp(string &str) {
 //			 << "               read randomly at one of them.  The default is to place the read at the first." <<endl
              << endl
              << "  Options for Refining Hits." << endl
-             << "   -indelRate i (0.30)" << endl
-             << "               The approximate maximum rate to allow drifting from the diagonal." <<endl << endl
-             << "   -sdpTupleSize K (0.6)" << endl
+//             << "   -indelRate i (0.30)" << endl
+//             << "               The approximate maximum rate to allow drifting from the diagonal." <<endl << endl
+             << "   -sdpTupleSize K (11)" << endl
              << "               Use matches of length K to speed dynamic programming alignments.  This controls" <<endl
              << "               accuracy of assigning gaps in pairwise alignments once a mapping has been found,"<<endl
-             << "               rather than mapping sensitivity itself."<<endl<< endl
+             << "               rather than mapping sensitivity itself."<<endl
              << "   -scoreMatrix \"score matrix string\" " << endl
              << "               Specify an alternative score matrix for scoring fasta reads.  The matrix is " << endl
              << "               in the format " << endl
@@ -507,7 +508,9 @@ void SetHelp(string &str) {
              << "                T pqrst" << endl
              << "                N uvwxy" << " . The values a...y should be input as a quoted space separated " << endl
              << "               string: \"a b c ... y\". Lower scores are better, so matches should be less " << endl
-             << "               than mismatches e.g. a,g,m,s = -5 (match), mismatch = 6. " << endl << endl
+             << "               than mismatches e.g. a,g,m,s = -5 (match), mismatch = 6. " << endl
+             << "   -affineExtend a (5)" << endl
+             << "               Change affine (extension) gap penalty. Lower value allows more gaps." << endl << endl
              << " Options for overlap/dynamic programming alignments and pairwise overlap for de novo assembly. " << endl
              << "   -useQuality (false)" << endl
              << "               Use substitution/insertion/deletion/merge quality values to score gap and " << endl
@@ -517,13 +520,12 @@ void SetHelp(string &str) {
              << "               will then often miss substitution polymorphisms. This option should be " << endl
              << "               used when calling consensus using the Quiver method.  Furthermore, when " << endl
              << "               not using quality values to score alignments, there will be a lower consensus " << endl
-             << "               accuracy in homolymer regions." << endl << endl
+             << "               accuracy in homolymer regions." << endl
              << "   -affineAlign (false)" << endl
-             << "               Refine alignment using affine guided align." << endl 
+             << "               Refine alignment using affine guided align." << endl << endl
              << " Options for filtering reads." << endl
              << "   -minReadLength l(50)" << endl
-             << "               Skip reads that have a full length less than " << endl 
-             << "               l.  Subreads may be shorter." << endl
+             << "               Skip reads that have a full length less than l. Subreads may be shorter." << endl 
              << "   -minSubreadLength l(0)" << endl
              << "               Do not align subreads of length less than l." << endl
              << "   -maxScore m (0)" << endl
@@ -534,7 +536,7 @@ void SetHelp(string &str) {
              << "               tuple count table are shared."<<endl
              << "   -start S (0)" << endl
              << "               Index of the first read to begin aligning. This is useful when multiple instances " << endl
-             << "               are running on the same data, for example when on a multi-rack cluster."<<endl << endl
+             << "               are running on the same data, for example when on a multi-rack cluster."<<endl
              << "   -stride S (1)" << endl
              << "               Align one read every 'S' reads." << endl << endl
              << " Options for subsampling reads." << endl
@@ -616,13 +618,13 @@ void PrintDiscussion() {
        << "  Several methods may be used to speed up alignments, at the expense of" << endl
        << "  possibly decreasing sensitivity.  " << endl
        << "  " << endl
-       << "  If the genome is highly repetitive or divergent from the read" << endl
-       << "  sequences, the value of -maxExpand should be increased.  This option" << endl
-       << "  controls how much the search for anchors is expanded past a simple" << endl
-       << "  greedy search.  A value for -maxExpand of 1 is sufficent for" << endl
-       << "  non-repetitive genomes, and values of -maxExpand greater than 5 are" << endl
-       << "  not recommended." << endl
-       << "  " << endl
+//       << "  If the genome is highly repetitive or divergent from the read" << endl
+//       << "  sequences, the value of -maxExpand should be increased.  This option" << endl
+//       << "  controls how much the search for anchors is expanded past a simple" << endl
+//       << "  greedy search.  A value for -maxExpand of 1 is sufficent for" << endl
+//       << "  non-repetitive genomes, and values of -maxExpand greater than 5 are" << endl
+//       << "  not recommended." << endl
+//       << "  " << endl
        << "  Regions that are too repetitive may be ignored during mapping by" << endl
        << "  limiting the number of positions a read maps to with the" << endl
        << "  -maxAnchorsPerPosition option.  Values between 500 and 1000 are effective" << endl
@@ -3812,8 +3814,8 @@ int main(int argc, char* argv[]) {
 	clp.RegisterIntOption("match", &params.match, "", CommandLineParser::Integer);
 	clp.RegisterIntOption("mismatch", &params.mismatch, "", CommandLineParser::Integer);
 	clp.RegisterIntOption("minMatch", &params.minMatchLength, "", CommandLineParser::PositiveInteger);
-	
-  clp.RegisterIntOption("maxMatch", &params.anchorParameters.maxLCPLength, "", CommandLineParser::PositiveInteger);
+	clp.RegisterIntOption("maxMatch", &params.anchorParameters.maxLCPLength, "", CommandLineParser::NonNegativeInteger);
+	clp.RegisterIntOption("maxLCPLength", &params.anchorParameters.maxLCPLength, "", CommandLineParser::NonNegativeInteger);
 	clp.RegisterIntOption("indel", &params.indel, "", CommandLineParser::Integer);
 	clp.RegisterIntOption("insertion", &params.insertion, "", CommandLineParser::Integer);
 	clp.RegisterIntOption("deletion", &params.deletion, "", CommandLineParser::Integer);
@@ -3855,7 +3857,6 @@ int main(int argc, char* argv[]) {
 	clp.RegisterIntOption("minAvgQual", &params.minAvgQual, "", CommandLineParser::Integer);
 	clp.RegisterFlagOption("advanceHalf", &params.advanceHalf, "");
 	clp.RegisterIntOption("advanceExactMatches", &params.anchorParameters.advanceExactMatches, "", CommandLineParser::NonNegativeInteger);
-	clp.RegisterIntOption("maxLCPLength", &params.anchorParameters.maxLCPLength, "", CommandLineParser::NonNegativeInteger);
 	clp.RegisterFlagOption("unrollCcs", &params.unrollCcs, "");
 	clp.RegisterFlagOption("useccs", &params.useCcs, "");
 	clp.RegisterFlagOption("useccsdenovo", &params.useCcsOnly, "");
