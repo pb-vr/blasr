@@ -122,7 +122,7 @@ Set up the executable: loadPulses.
   $ cp $CMP_IN $CMP_OUT
   $ $EXEC $FOFN_IN $CMP_OUT -bymetric -metrics $METRICS -maxElements $MAX_ELEMENTS
   Either the number of elements exceeds maxElement (140000000). Or the estimated memory 
-  consumption exceeds maxMemory (6).
+  consumption exceeds maxMemory (4 GB).
   Loading pulses from .+ by read. (re)
   loading 2 alignments for movie 1
   loading 2 alignments for movie 2

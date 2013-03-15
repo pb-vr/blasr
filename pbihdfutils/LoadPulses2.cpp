@@ -1659,7 +1659,7 @@ int main(int argc, char* argv[]) {
     map<string,bool> metricOptions;
     int maxElements = 0;
     //Maximum Memory allowed for bymetric is 6 GB
-    int maxMemory = 6; 
+    int maxMemory = 4; 
     //
     // Default is all options are false
     //
@@ -1701,7 +1701,7 @@ int main(int argc, char* argv[]) {
             CommandLineParser::PositiveInteger);
     clp.RegisterIntOption("maxMemory", & maxMemory, 
             "Set a limit (in GB) on the memory to buffer data with -bymetric "
-            "(default value: 6 GB). Use -byread if the limit is exceeded.",
+            "(default value: 4 GB). Use -byread if the limit is exceeded.",
              CommandLineParser::PositiveInteger);
     clp.SetProgramSummary("Load pulse information such as inter pulse "
             "distance, or quality information into the cmp.h5 file. This allows "
@@ -2023,7 +2023,7 @@ int main(int argc, char* argv[]) {
                 ((float)requiredMem / 1024 / 1024) > maxMemory) {
                 cout << "Either the number of elements exceeds maxElement (" 
                      << hdfPlsReader.maxAllocNElements << "). Or the estimated memory " << endl
-                     << "consumption exceeds maxMemory ("  << maxMemory << ")." << endl
+                     << "consumption exceeds maxMemory ("  << maxMemory << " GB)." << endl
                      << "Loading pulses from " << movieFileNames[fofnMovieIndex] 
                      << " by read." << endl;
                 byMetricForThisMovie = false;
