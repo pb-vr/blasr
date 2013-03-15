@@ -83,6 +83,11 @@ class HDFAlnInfoGroup {
     alnInfoGroup.Close();
   }
   
+  // Return size of /AlnInfo/AlnIndex in KB
+  UInt GetAlnIndexSize() {
+    return alnIndexArray.GetNRows() / 1024 * sizeof (unsigned int) * NCols;
+  }
+
   void Read(AlnInfo &alnInfo) {
 
     int nAlignments = alnIndexArray.GetNRows();

@@ -817,6 +817,42 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
 	}
 
     //
+    // Return size of an entire field.
+    //
+    UInt GetFieldSize(const string & field) {
+        if (not includedFields[field]) {
+            cout << "ERROR, field [" << field << "] is not included in the base file." << endl;
+            exit(1);
+        }
+        if (field == "Basecall") {
+            return baseArray.arrayLength / 1024 * sizeof(unsigned char);
+        } else if (field == "QualityValue") {
+            return qualArray.arrayLength / 1024 * sizeof(unsigned char);
+        } else if (field == "DeletionQV") {
+            return deletionQVArray.arrayLength / 1024 * sizeof(unsigned char);
+        } else if (field == "DeletionTag")  {
+            return deletionTagArray.arrayLength / 1024 * sizeof(unsigned char);
+        } else if (field == "MergeQV") {
+            return mergeQVArray.arrayLength / 1024 * sizeof(unsigned char);
+        } else if (field == "InsertionQV") { 
+            return insertionQVArray.arrayLength / 1024 * sizeof(unsigned char);
+        } else if (field == "SubstitutionQV") {
+            return substitutionQVArray.arrayLength / 1024 * sizeof(unsigned char);
+        } else if (field == "SubstitutionTag") {
+            return substitutionTagArray.arrayLength / 1024 * sizeof(unsigned char);
+        } else if (field == "WidthInFrames") {
+            return basWidthInFramesArray.arrayLength / 1024 * sizeof(uint16_t);
+        } else if (field == "PreBaseFrames") {
+			return preBaseFramesArray.arrayLength / 1024 * sizeof(uint16_t);
+        } else if (field == "PulseIndex") {
+            return pulseIndexArray.arrayLength / 1024 * sizeof(int);
+        } else {
+            cout << "ERROR, field [" << field << "] is not supported. " << endl ;
+            exit(1);
+        }
+    }
+
+    //
     // Read an entire field.
     //
     void ReadField(BaseFile & baseFile, const string & field) {

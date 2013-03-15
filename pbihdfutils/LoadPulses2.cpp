@@ -12,6 +12,7 @@
 #include "datastructures/reads/BaseFile.h"
 #include "datastructures/reads/PulseFile.h"
 #include "datastructures/reads/ReadType.h"
+#include "datastructures/loadpulses/MetricField.h"
 #include "datastructures/loadpulses/MovieAlnIndexLookupTable.h"
 #include "utils/FileOfFileNames.h"
 #include "utils/TimeUtils.h"
@@ -40,8 +41,6 @@ const UChar missingQualityValue      = 255;
 const unsigned char maxQualityValue  = 100;
 const HalfWord missingFrameRateValue = USHRT_MAX;
 const unsigned int missingPulseIndex = UINT_MAX;
-
-enum FieldType {BasField, PlsField};
 
 
 void CapQualityValue(QualityValueVector<QualityValue> &vect, DNALength length, unsigned char maxQualityValue=100) {
@@ -163,7 +162,7 @@ vector<string> GetAllSupportedMetrics(bool isSneakyMetricsIncluded = true) {
     // Disable metric StartTimeOffset for now.
     // StartTimeOffset is placed at the same level as AlnArray, However, the 
     // size of StartTimeOffset is far less than AlnArray, while cmp.h5 spec
-    // requires all datasets at that level have the same size.  
+    // requires all datasets at that level to have the same size.  
     
     // supportedMetrics.push_back("StartTimeOffset");
 
@@ -236,8 +235,6 @@ vector<string> GetMetricsToLoad(map<string, bool> & metricOptions) {
     return metricsToLoad; 
 }
 
-
-
 void StoreDatasetFieldsFromPulseFields(MetricOptionsMap &fieldSet,
         RequirementMap &fieldRequirements, 
         vector<string> &datasetFields) {
@@ -290,92 +287,122 @@ void CreateMetricOptions(map<string, bool> &metricOptions) {
     }
 }
 
+// Check whether all fields are available or not.
+bool AreAllFieldsAvailable(
+        vector <Field>   & requiredFields,
+        HDFBasReader     & hdfBasReader,
+        HDFPlsReader     & hdfPlsReader, 
+        const bool       & useBaseFile,
+        const bool       & usePulseFile) {
+    bool allAvailable = true;
+
+    for (int i = 0; i < requiredFields.size(); i++) {
+        Field field = requiredFields[i];
+        if (field.type == BasField) {
+            if (!useBaseFile or !hdfBasReader.FieldIsIncluded(field.name)
+                or !hdfBasReader.includedFields[field.name]) {
+                allAvailable = false;
+                break;
+            }
+        } else if (field.type == PlsField) {
+            if (!usePulseFile or !hdfPlsReader.FieldIsIncluded(field.name)
+                or !hdfPlsReader.includedFields[field.name]) {
+                allAvailable = false;
+                break;
+            }
+        }
+    }
+    return allAvailable;
+}
+
+//
+// Check whether a metric is computable or not.
+// fieldsToBeUsed = all fields that will be used for computing a metric. 
+// If a metric can be computed from both bas and pls files (e.g. 
+// StartFrame, IPD, PulseWidth, WidthInFrame), only compute it from pls.
+//
+bool CanThisMetricBeComputed ( 
+        const string     & metricName,
+        HDFBasReader     & hdfBasReader,
+        HDFPlsReader     & hdfPlsReader, 
+        const bool       & useBaseFile,
+        const bool       & usePulseFile,
+        vector<Field>    & fieldsToBeUsed) {
+    fieldsToBeUsed.clear();
+
+    FieldsRequirement fieldsRequirement = FieldsRequirement(metricName);
+
+    bool metricMayBeComputedFromPls = true;
+    if (fieldsRequirement.fieldsUsePlsFile.size() != 0 && usePulseFile) {
+        metricMayBeComputedFromPls = AreAllFieldsAvailable(
+                fieldsRequirement.fieldsUsePlsFile, 
+                hdfBasReader, hdfPlsReader,
+                useBaseFile, usePulseFile);
+    } else {
+        metricMayBeComputedFromPls = false;
+    }
+
+    bool metricMayBeComputedFromBas = true;
+    if (fieldsRequirement.fieldsUseBasFile.size() != 0 && useBaseFile) {
+        metricMayBeComputedFromBas = AreAllFieldsAvailable(
+                fieldsRequirement.fieldsUseBasFile, 
+                hdfBasReader, hdfPlsReader,
+                useBaseFile, usePulseFile);
+    } else {
+        metricMayBeComputedFromBas = false;
+    }
+
+    bool metricMayBeComputed = true;
+    if (!metricMayBeComputedFromBas and !metricMayBeComputedFromPls) {
+        metricMayBeComputed = false;
+    }
+    
+    // Compute from pls if possible
+    if (metricMayBeComputedFromPls) {
+        fieldsToBeUsed = fieldsRequirement.fieldsUsePlsFile;
+    } else if (metricMayBeComputedFromBas) {
+        fieldsToBeUsed = fieldsRequirement.fieldsUseBasFile;
+    }
+
+    if (metricName == "StartTimeOffset") {
+        metricMayBeComputed = false;
+        // Disable StartTimeOffset for now.
+    }
+    if (metricName == "WhenStarted") {
+        // WhenStarted requires no fields from neither bas nor pls.
+        metricMayBeComputed = true;
+    }
+
+    return metricMayBeComputed; 
+}
+
 //
 // Check whether metrics are computable or not. If a metric is not
 // computable, disable it with a warning or exit with an error.
-// Need to refactor this function.
-// 
+//
 void CanMetricsBeComputed(
         MetricOptionsMap & metricOptions,
-        RequirementMap   & fieldRequirements, 
         HDFBasReader     & hdfBasReader,
         HDFPlsReader     & hdfPlsReader, 
-        CmpFile          & cmpFile,
         const bool       & useBaseFile,
         const bool       & usePulseFile,
         const bool       & failOnMissingData, 
         const string     & movieName) {
 
-    bool metricMayBeComputed = false;
     map<string,bool>::iterator metricIt;
     for (metricIt = metricOptions.begin(); metricIt != metricOptions.end(); ++metricIt) {
+        string metricName = metricIt->first;
+        if (metricName == "") {
+            metricIt->second == false;
+        }
+
         if (metricIt->second == false) {
             continue;
         }
-        bool metricMayBeComputed = true;
-        if (cmpFile.readType == ReadType::CCS and
-            metricIt->first != "QualityValue"  and
-            metricIt->first != "DeletionQV" and
-            metricIt->first != "SubstitutionQV" and
-            metricIt->first != "InsertionQV" and
-            metricIt->first != "DeletionTag" and
-            metricIt->first != "SubstitutionTag" and
-            metricIt->first != "Basecall") {
-            cout << "ERROR! The metric " << metricIt->first << " cannot be loaded into de novo ccs alignemnts." << endl;
-            metricMayBeComputed = false;
-        }
-
-        if (metricIt->first == "IPD") {
-            //
-            // The field requirements for IPD are special. 
-            //
-            if ((useBaseFile  and  !hdfBasReader.FieldIsIncluded("PreBaseFrames")) or
-                (usePulseFile and (!hdfPlsReader.FieldIsIncluded("StartFrame") and
-                                   !hdfPlsReader.FieldIsIncluded("WidthInFrames")) )) {
-                metricMayBeComputed = false;
-            }
-        }
-        else {
-            if (fieldRequirements.find(metricIt->first) != fieldRequirements.end()) {
-                //
-                // There are requirements for this field. Make sure all are
-                // present before trying to compute this field.
-                //
-                int requirementIndex;
-                for (requirementIndex = 0; requirementIndex < fieldRequirements[metricIt->first].size(); ++requirementIndex) {
-                    string requirement;
-                    requirement = fieldRequirements[metricIt->first][requirementIndex];
-
-                    if ((useBaseFile  == false or 
-                           (hdfBasReader.includedFields.find(requirement) == hdfBasReader.includedFields.end() or
-                            hdfBasReader.includedFields[requirement] == false)) and
-                        (usePulseFile == false or 
-                           (hdfPlsReader.includedFields.find(requirement) == hdfPlsReader.includedFields.end() or
-                            hdfPlsReader.includedFields[requirement] == false))) {
-                        metricMayBeComputed = false;
-                    }
-                }
-            }
-            else {
-                //
-                // There are no requirements for this field, so it must exist as
-                // a dataset in either the bas or pls file.
-                //
-                if ((useBaseFile  == false or 
-                       (hdfBasReader.includedFields.find(metricIt->first) == hdfBasReader.includedFields.end() or
-                        hdfBasReader.includedFields[metricIt->first] == false)) and
-                    (usePulseFile == false or 
-                       (hdfPlsReader.includedFields.find(metricIt->first) == hdfPlsReader.includedFields.end() or
-                        hdfPlsReader.includedFields[metricIt->first] == false))) {
-                    metricMayBeComputed = false;
-                }
-            }
-        }
-        
-        if (metricIt->first == "StartTimeOffset") {
-            metricMayBeComputed = false;
-            // Disable StartTimeOffset for now.
-        }
+        vector<Field> fieldsToBeUsed;
+        bool metricMayBeComputed = CanThisMetricBeComputed(metricName, 
+                hdfBasReader, hdfPlsReader, useBaseFile, usePulseFile, 
+                fieldsToBeUsed);
 
         if (metricMayBeComputed == false) {
             if (failOnMissingData) {
@@ -384,14 +411,94 @@ void CanMetricsBeComputed(
             else {
                 cout << "WARNING";
             }
-            cout << ": There is insufficient data to compute metric: " << metricIt->first << " in the file " << movieName << " ";
+            cout << ": There is insufficient data to compute metric: " 
+                 << metricName << " in the file " << movieName << " ";
             cout << " It will be ignored." << endl;
             if (failOnMissingData) {
                 exit(1);
             }
-            metricOptions[metricIt->first] = false;
+            metricOptions[metricName] = false;
         }
     }
+}
+
+// Return size of a single field in KB.
+UInt ComputeRequiredMemoryForThisField(
+        Field          & thisField,
+        HDFBasReader   & hdfBasReader,
+        HDFPlsReader   & hdfPlsReader,
+        const bool     & useBaseFile,
+        const bool     & usePulseFile) {
+    UInt memory = 0;
+    if (thisField.type == BasField) {
+        assert(useBaseFile);
+        return hdfBasReader.GetFieldSize(thisField.name);
+    }
+    if (thisField.type == PlsField) {
+        assert(usePulseFile);
+        return hdfPlsReader.GetFieldSize(thisField.name);
+    }
+    assert(false);
+}
+
+//
+// Return estimated memory peak (in KB) for buffering all data using -bymetric.
+//
+UInt ComputeRequiredMemory(
+        vector<string> & metricsToLoad, 
+        HDFBasReader   & hdfBasReader,
+        HDFPlsReader   & hdfPlsReader,
+        const bool     & useBaseFile,
+        const bool     & usePulseFile,
+        HDFCmpFile<CmpAlignment> & cmpReader,
+        UInt           & totalAlnLength) {
+    UInt maxMemory = 0;
+    for (int i = 0; i < metricsToLoad.size(); i++) {
+        UInt memoryForThisMetric = 0;
+        vector<Field> fieldsToBeUsed;
+        bool canBeComputed = CanThisMetricBeComputed(
+                metricsToLoad[i], hdfBasReader, hdfPlsReader,
+                useBaseFile, usePulseFile, fieldsToBeUsed);
+
+        for (int j = 0; j < fieldsToBeUsed.size(); j++) {
+            UInt memoryForThisField = ComputeRequiredMemoryForThisField(
+                    fieldsToBeUsed[j], hdfBasReader, hdfPlsReader,
+                    useBaseFile, usePulseFile);
+            memoryForThisMetric += memoryForThisField;
+        }
+        maxMemory = max(maxMemory, memoryForThisMetric);
+    }
+    //
+    // AlnIndex will be buffered. Some other datastructures also need  
+    // to be buffered for quick look up. Approximately double the size.
+    //
+    UInt totalAlnIndexMem = 2 * cmpReader.alnInfoGroup.GetAlnIndexSize();
+
+    //
+    // AlnArray and metrics to load needs to be buffered in KB.  
+    //
+    UInt totalAlnArrayMem = totalAlnLength / 1024 *
+                            (sizeof(unsigned int) + sizeof(unsigned char));
+
+    //
+    // It's diffcult to estimate how much memory will be used by hdf5.
+    // Assume memory consumed by hdf5 scales with AlnIndex and AlnArray datasets. 
+    //
+    UInt hdf5Mem = totalAlnIndexMem / 2 + totalAlnLength / 1024 * sizeof(unsigned int); 
+
+    maxMemory += totalAlnIndexMem + totalAlnArrayMem + hdf5Mem;
+
+    //cout << "The estimated peak memory for buffering fields is " 
+    //     << maxMemory << " KB." << endl;
+    //cout << "The estimated memory for buffering AlnIndex related data is " 
+    //     << totalAlnIndexMem << " KB."<< endl;
+    //cout << "The estimated memory for buffering AlnArray related data is " 
+    //     << totalAlnArrayMem << " KB." << endl;
+    //cout << "The estimated memory for hdf5 is "
+    //     << hdf5Mem << " KB." << endl; 
+    //cout << "The estimated total memory is " 
+    //     << maxMemory << " KB." << endl;
+    return maxMemory;
 }
 
 //
@@ -485,7 +592,7 @@ void BuildLookupTable(
     // another pass through a different movie part.
     //
     if (moviePartHoleNumbers.find(holeNumber) == moviePartHoleNumbers.end()) {
-        cout << "skip" << endl; 
+        //cout << "skip" << endl; 
         lookupTable.SetValue(true,
             movieAlignmentIndex, 
             alignmentIndex,  
@@ -667,6 +774,7 @@ void BuildLookupTablesAndMakeSane(
     //
     for (movieAlignmentIndex = 0; movieAlignmentIndex < movieAlnIndex.size(); movieAlignmentIndex++) {
         MovieAlnIndexLookupTable & table = lookupTables[movieAlignmentIndex];
+        if (table.skip) continue;
         //
         // Get aligned sequence for this alignment from cmpFile 
         //
@@ -740,11 +848,6 @@ void GroupLookupTables(
 
     for (movieAlignmentIndex = 0; movieAlignmentIndex < lookupTables.size(); movieAlignmentIndex++) {
         MovieAlnIndexLookupTable & lookupTable = lookupTables[movieAlignmentIndex];
-
-        // cout << "lookupTable[" << movieAlignmentIndex << "]: " 
-        //     << ", ref " << lookupTable.refGroupIndex << ", readGroupIndex "
-        //     << lookupTable.readGroupIndex << ", offsetBegin " << lookupTable.offsetBegin 
-        //     << ", offsetEnd " << lookupTable.offsetEnd << endl;
         
         if (isVeryFirstGroup or
             (lookupTable.refGroupIndex  != preRefGroupIndex or
@@ -807,192 +910,33 @@ void GroupLookupTables(
 }
 
 
-
-// Return fields that are required for computing this metric. 
-// Eighteen metrics are supported in total.
-// [1/18] metric requires only an attribute (not a field):
-//     WhenStarted 
-//
-// [9/18] metrics require exactly one BaseCall field
-//     QualityValue InsertionQV     MergeQV           DeletionQV
-//     DeletionTag  SubstitutionTag SubstitutionQV    PreBaseFrames 
-//     PulseIndex
-//       
-// [4/18] metrics require more than one field and can be computed using 
-// only one method:
-//                         BaseCall         PulseCall
-//     ----------------------------------------------------
-//     ClassifierQV        PulseIndex       NumEvent
-//                                          ClassifierQV
-//     ----------------------------------------------------
-//     pkmid               PulseIndex       NumEvent
-//                                          MidSignal
-//     ----------------------------------------------------
-//     Light               PulseIndex       NumEvent
-//                                          WidthInFrames
-//                                          MeanSignal
-//     ----------------------------------------------------
-//     StartTimeOffset     PulseIndex       NumEvent
-//                                          StartFrame
-//     ----------------------------------------------------
-// [4/18] metrics can be computed from both BaseCalls and PulseCalls. 
-// But sometimes the value computed from BaseCalls can be wrong, 
-// because the value of BaseCalls/PreBaseFrames may exceed 2^16-1.
-//                Method   BaseCall         PulseCall
-//     ----------------------------------------------------
-//     PulseWidth  (1)     WidthInFrames    
-//                  =======================================
-//                 (2)     PulseIndex       NumEvent
-//                                          WidthInFrames    
-//     ----------------------------------------------------
-//     WidthInFrames  : The same as PulseWidth
-//     ----------------------------------------------------
-//     StartFrame  (1)     PreBaseFrames 
-//                         WidthInFrames
-//                  =======================================
-//                 (2)     PulseIndex       NumEvent
-//                                          StartFrame
-//     ----------------------------------------------------
-//     IPD         (1)     PreBaseFrames    
-//                  =======================================
-//                 (2)     PulseIndex       NumEvent
-//                                          StartFrame
-//                                          WidthInFrames
-//     ----------------------------------------------------
-// Note: PulseWidth and WidthInFrames have the same meaning and are 
-// computed in the same way.
-//
-// Note: StartFrame can be loaded for both bas.h5 and pls.h5 files
-//       for bas.h5, StartFrame is computed from PreBaseFrames and WidthInFrames
-//           Let x = PreBaseFrames for bases 0 ... n-1, where x[0] is 0 and 
-//                   x[i] is the inter-pulse distance between start of pulse 
-//                   for base i and end of pulse for base i-1
-//           Let y = WidthInFrames for bases 0 ... n-1, where y[i] is the 
-//                   number of pulses within base i
-//       Then, 
-//           StartFrame[0] = x[0]
-//           StartFrame[i] = sum(x[0] ... x[i]) + sum(y[0] ... y[i-1]) 
-//                           for i in [1 ... n-1]
-//       for pls.h5, StartFrame can be directly read from dataset
-//       /PulseData/PulseCalls/StartFrame
-//
-// Note: StartTimeOffset is the StartFrame for the very first base of a read, it 
-//       can only be computed from PulseCalls
-//
-// Note: IPD has the same meaning as PreBaseFrames:
-//           = the inter-pulse distance between this base and end of last base,
-//           = the number of Frames between the ending pulse of the last base and 
-//           the starting pulse of this base.
-//       However, PreBaseFrames can only be read directly from BaseCalls, while
-//       IPD can also be computed from PulseCalls
-//           If use BaseCalls, 
-//               IPD[i] = PreBaseFrames[i]        for i in [0 ... n-1]
-//           If use PulseCalls,
-//               IPD[0] = 0
-//               IPD[i] = StartFrame[i] - StartFrame[i-1] - WidthInFrames[i-1]
-//                                                for i in [1 ... n-1]
-//
-vector< pair<string, FieldType> > GetRequiredFieldsForMetric(const string & metric) { 
-    vector< pair<string, FieldType> > requiredFields;
-    if (metric == "QualityValue"   ||  metric == "InsertionQV"     ||
-        metric == "MergeQV"        ||  metric == "DeletionQV"      ||
-        metric == "DeletionTag"    ||  metric == "SubstitutionTag" ||
-        metric == "SubstitutionQV" ||  metric == "PreBaseFrames"   ||
-        metric == "PulseIndex") {
-        requiredFields.push_back(pair<string, FieldType> (metric         , BasField));
-    } else 
-    if (metric == "ClassifierQV") {
-        requiredFields.push_back(pair<string, FieldType> (metric         , PlsField));
-        requiredFields.push_back(pair<string, FieldType> ("NumEvent"     , PlsField));
-        requiredFields.push_back(pair<string, FieldType> ("PulseIndex"   , BasField));
-    } else 
-    if (metric == "PulseWidth"     ||  metric == "WidthInFrames") {
-        // Both metrics require a field "WidthInFrames", which can be read from 
-        // either bas.h5 or pls.h5.
-        requiredFields.push_back(pair<string, FieldType> ("WidthInFrames", BasField));
-
-        requiredFields.push_back(pair<string, FieldType> ("WidthInFrames", PlsField));
-        requiredFields.push_back(pair<string, FieldType> ("NumEvent"     , PlsField));
-        requiredFields.push_back(pair<string, FieldType> ("PulseIndex"   , BasField));
-    } else
-    if (metric == "StartTimeOffset") {
-        requiredFields.push_back(pair<string, FieldType> ("StartFrame"   , PlsField));
-        requiredFields.push_back(pair<string, FieldType> ("NumEvent"     , PlsField));
-        requiredFields.push_back(pair<string, FieldType> ("PulseIndex"   , BasField));
-    } else
-    if (metric == "StartFrame") { 
-        // Compute StartFrame from either PulseCalls or BaseCalls
-        requiredFields.push_back(pair<string, FieldType> ("PreBaseFrames", BasField));
-        requiredFields.push_back(pair<string, FieldType> ("WidthInFrames", BasField));
-
-        requiredFields.push_back(pair<string, FieldType> ("StartFrame"   , PlsField));
-        requiredFields.push_back(pair<string, FieldType> ("NumEvent"     , PlsField));
-        requiredFields.push_back(pair<string, FieldType> ("PulseIndex"   , BasField));
-    } else 
-    if (metric == "StartFramePulse") {// Compute StartFrame from PulseCalls only
-        requiredFields.push_back(pair<string, FieldType> ("StartFrame"   , PlsField));
-        requiredFields.push_back(pair<string, FieldType> ("NumEvent"     , PlsField));
-        requiredFields.push_back(pair<string, FieldType> ("PulseIndex"   , BasField));
-    } else
-    if (metric == "StartFrameBase") {// Compute StartFrame from BaseCalls only
-        requiredFields.push_back(pair<string, FieldType> ("PreBaseFrames", BasField));
-        requiredFields.push_back(pair<string, FieldType> ("WidthInFrames", BasField));
-    } else 
-    if (metric == "WhenStarted") {
-        // WhenStarted does not require any field because it only requires an attribute
-    } else 
-    if (metric == "IPD") {
-        // IPD can be obtained from basFile.PreBaseFrames or computed from 
-        // plsFile.WidthInFrames and plsFile.StartFrame. Use the second method if possible
-        requiredFields.push_back(pair<string, FieldType> ("PreBaseFrames", BasField));
-
-        requiredFields.push_back(pair<string, FieldType> ("StartFrame"   , PlsField));
-        requiredFields.push_back(pair<string, FieldType> ("WidthInFrames", PlsField));
-        requiredFields.push_back(pair<string, FieldType> ("NumEvent"     , PlsField));
-        requiredFields.push_back(pair<string, FieldType> ("PulseIndex"   , BasField));
-    } else
-    if (metric == "pkmid") {
-        requiredFields.push_back(pair<string, FieldType> ("MidSignal"    , PlsField));
-        requiredFields.push_back(pair<string, FieldType> ("NumEvent"     , PlsField));
-        requiredFields.push_back(pair<string, FieldType> ("PulseIndex"   , BasField));
-    } else 
-    if (metric == "Light") {
-        requiredFields.push_back(pair<string, FieldType> ("WidthInFrames", PlsField));
-        requiredFields.push_back(pair<string, FieldType> ("MeanSignal"   , PlsField));
-        requiredFields.push_back(pair<string, FieldType> ("NumEvent"     , PlsField));
-        requiredFields.push_back(pair<string, FieldType> ("PulseIndex"   , BasField));
-    } else if (metric == "") {
-        // No metric, no required fields.
-    }else {
-        cout << "ERROR, metric [" << metric << "] is not supported." << endl;
-        exit(1);
-    }
-    return requiredFields;
-}
-
 //
 // Read all required fields for computing the specified metric into memory, 
 // unless the fields have been cached.
 //
 void CacheRequiredFieldsForMetric(
-        BaseFile                         & baseFile,
-        PulseFile                        & pulseFile,
-        HDFBasReader                     & hdfBasReader,
-        HDFPlsReader                     & hdfPlsReader,
-        HDFCCSReader<SMRTSequence>       & hdfCcsReader,
-        const bool                       & useBaseFile,
-        const bool                       & usePulseFile,
-        const bool                       & useCcs,
-        vector<pair<string, FieldType> > & cachedFields,
-        const string                     & curMetric) {
+        BaseFile                    & baseFile,
+        PulseFile                   & pulseFile,
+        HDFBasReader                & hdfBasReader,
+        HDFPlsReader                & hdfPlsReader,
+        HDFCCSReader<SMRTSequence>  & hdfCcsReader,
+        const bool                  & useBaseFile,
+        const bool                  & usePulseFile,
+        const bool                  & useCcs,
+        vector<Field>               & cachedFields,
+        const string                & curMetric) {
 
-    vector< pair<string, FieldType> > requiredFields = GetRequiredFieldsForMetric(curMetric);
+    vector<Field> fieldsToBeUsed;
+    bool canBeComputed = CanThisMetricBeComputed( 
+        curMetric, hdfBasReader, hdfPlsReader,
+        useBaseFile, usePulseFile, fieldsToBeUsed); 
+    assert(canBeComputed);
 
     // Cache all required fields 
-    for (int i = 0; i < requiredFields.size(); i++) {
+    for (int i = 0; i < fieldsToBeUsed.size(); i++) {
         bool isFieldCached = false;
         for (int j = 0; j < cachedFields.size(); j++) {
-            if (requiredFields[i] == cachedFields[j]) {
+            if (fieldsToBeUsed[i] == cachedFields[j]) {
                 isFieldCached = true;
                 break;
             }
@@ -1000,20 +944,20 @@ void CacheRequiredFieldsForMetric(
         if (isFieldCached) {
             continue;
         }
-        string    & curField = requiredFields[i].first;
-        FieldType & fieldType= requiredFields[i].second;
+        string    & curField = fieldsToBeUsed[i].name;
+        FieldType & fieldType= fieldsToBeUsed[i].type;
 
         if (fieldType == BasField and useBaseFile
             and hdfBasReader.FieldIsIncluded(curField)
             and hdfBasReader.includedFields[curField]) {
             hdfBasReader.ReadField(baseFile, curField);
-            cachedFields.push_back(requiredFields[i]);
+            cachedFields.push_back(fieldsToBeUsed[i]);
         } else 
         if (fieldType == PlsField and usePulseFile 
             and hdfPlsReader.FieldIsIncluded(curField)
             and hdfPlsReader.includedFields[curField]) {
             hdfPlsReader.ReadField(pulseFile, curField);
-            cachedFields.push_back(requiredFields[i]);
+            cachedFields.push_back(fieldsToBeUsed[i]);
         }
     }
 }
@@ -1023,19 +967,26 @@ void CacheRequiredFieldsForMetric(
 // the next metric.
 //
 void ClearCachedFields(
-        BaseFile                         & baseFile,
-        PulseFile                        & pulseFile,
-        HDFBasReader                     & hdfBasReader,
-        HDFPlsReader                     & hdfPlsReader,
-        HDFCCSReader<SMRTSequence>       & hdfCcsReader,
-        const bool                       & useBaseFile,
-        const bool                       & usePulseFile,
-        const bool                       & useCcs,
-        vector<pair<string, FieldType> > & cachedFields,
-        const string                     & curMetric,
-        const string                     & nextMetric) {
+        BaseFile                   & baseFile,
+        PulseFile                  & pulseFile,
+        HDFBasReader               & hdfBasReader,
+        HDFPlsReader               & hdfPlsReader,
+        HDFCCSReader<SMRTSequence> & hdfCcsReader,
+        const bool                 & useBaseFile,
+        const bool                 & usePulseFile,
+        const bool                 & useCcs,
+        vector<Field>              & cachedFields,
+        const string               & curMetric,
+        const string               & nextMetric) {
 
-    vector< pair<string, FieldType> > nextRequiredFields = GetRequiredFieldsForMetric(nextMetric);
+ 
+    vector<Field> nextRequiredFields;
+    if (nextMetric != "") {
+        bool canBeComputed = CanThisMetricBeComputed( 
+            nextMetric, hdfBasReader, hdfPlsReader,
+            useBaseFile, usePulseFile, nextRequiredFields); 
+        assert(canBeComputed);
+    }
     for (int i = 0; i < cachedFields.size(); i++) {
         bool isRequiredForNextMetric = false;
         for (int j = 0; j < nextRequiredFields.size(); j++) {
@@ -1047,8 +998,8 @@ void ClearCachedFields(
         if (isRequiredForNextMetric) {
             continue;
         }
-        string    & curField = cachedFields[i].first;
-        FieldType & fieldType= cachedFields[i].second;
+        string    & curField = cachedFields[i].name;
+        FieldType & fieldType= cachedFields[i].type;
 
         if (fieldType == BasField and useBaseFile  and 
             hdfBasReader.FieldIsIncluded(curField) and
@@ -1296,6 +1247,8 @@ void WriteMetric(
 
         for (movieAlignmentIndex = firstIndex; movieAlignmentIndex < lastIndex; movieAlignmentIndex++) {
             MovieAlnIndexLookupTable & lookupTable   = lookupTables[movieAlignmentIndex];
+            if (lookupTable.skip) continue;
+
             const UInt alignedSequenceLength         = lookupTable.offsetEnd - lookupTable.offsetBegin; 
             const UInt ungappedAlignedSequenceLength = lookupTable.queryEnd  - lookupTable.queryStart;
             const UInt   & readIndex                 = lookupTable.readIndex;
@@ -1650,12 +1603,11 @@ void WriteMetricWhenStarted(
 // Print metrics.
 //
 string MetricsToString(const vector<string> & metrics) {
-    string ret; 
+    string ret = ""; 
     int j = 0; 
     for (int i = 0; i < metrics.size(); i++) {
-        if (i % 4 == 0) ret += "    ";
         ret += metrics[i]; 
-        ret += ","; 
+        if (i != metrics.size()-1) ret += ","; 
         if (i % 4 == 3) ret += "\n";
     }
     return ret; 
@@ -1706,6 +1658,8 @@ int main(int argc, char* argv[]) {
     int numMetrics = 8;
     map<string,bool> metricOptions;
     int maxElements = 0;
+    //Maximum Memory allowed for bymetric is 6 GB
+    int maxMemory = 6; 
     //
     // Default is all options are false
     //
@@ -1724,26 +1678,34 @@ int main(int argc, char* argv[]) {
             "The cmp.h5 file to load pulse information into.", true);
     clp.RegisterPreviousFlagsAsHidden();
 
-    string metricsDescription = "A comma separated list of metrics (with no spaces).\nValid options are:";
+    string metricsDescription = "A comma separated list of metrics (with no spaces).\nValid options are:\n";
     metricsDescription += MetricsToString(GetAllSupportedMetrics(false));
+    metricsDescription += "\nDefault options are:\n";
+    metricsDescription += MetricsToString(GetDefaultMetrics());
+
     clp.RegisterStringOption("metrics", &metricList, metricsDescription);
-   
+    clp.RegisterFlagOption("failOnMissingData", &failOnMissingData, 
+            "Exit if any data fields are missing from the bas.h5 or pls.h5 "
+            "input that are required to load a metric. Defualt is a warning.");
     // Deprecate -useccs an option for old data. 
     // clp.RegisterFlagOption("useccs", &useCcs, 
     //        "Load pulse information for CCS sequences and not raw bases.");
     clp.RegisterFlagOption("byread", &byRead, 
             "Load pulse information by read rather than buffering metrics.");
-    clp.RegisterIntOption("maxElements", &maxElements, 
-            "Set a limit on the size of pls/bas file to buffer in.", CommandLineParser::PositiveInteger);
-    clp.RegisterFlagOption("failOnMissingData", &failOnMissingData, 
-            "Exit if any data fields are missing from the bas.h5 or pls.h5 input that are required to load a metric."
-            "Defualt is a warning.");
     clp.RegisterFlagOption("bymetric", & byMetric, 
             "Load pulse information by metric rather than by read. "
             "This uses more memory than -byread, but can be faster.");
-    clp.SetProgramSummary(
-            "Load pulse information such as inter pulse distance, or quality information into the cmp.h5 file."
-            "This allows one to analyze kinetic and quality information by alignment column.");
+    clp.RegisterIntOption("maxElements", &maxElements, 
+            "Set a limit on the size of pls/bas file to buffer in with -bymetric "
+            "(default value: maximum int). Use -byread if the limit is exceeded.", 
+            CommandLineParser::PositiveInteger);
+    clp.RegisterIntOption("maxMemory", & maxMemory, 
+            "Set a limit (in GB) on the memory to buffer data with -bymetric "
+            "(default value: 6 GB). Use -byread if the limit is exceeded.",
+             CommandLineParser::PositiveInteger);
+    clp.SetProgramSummary("Load pulse information such as inter pulse "
+            "distance, or quality information into the cmp.h5 file. This allows "
+            "one to analyze kinetic and quality information by alignment column.");
     clp.ParseCommandLine(argc, argv);
 
     if (printVersion) {
@@ -1856,13 +1818,13 @@ int main(int argc, char* argv[]) {
     // h5 file access property list can be customized here.
     // 
     H5::FileAccPropList fileAccPropList = H5::FileAccPropList::DEFAULT;
-    int    mdc_nelmts ; // h5: number of items in meta data cache
-    size_t rdcc_nelmts; // h5: number of itesm in raw data chunk cache
-    size_t rdcc_nbytes; // h5: raw data chunk cache size (in bytes) 
-    double rdcc_w0 ;    // h5: preemption policy
-    fileAccPropList.getCache(mdc_nelmts, rdcc_nelmts, rdcc_nbytes, rdcc_w0);
-    // fileAccPropList.setCache(mdc_nelmts, rdcc_nelmts, rdcc_nbytes, rdcc_w0)
-    fileAccPropList.setCache(4096, 4096, 8388608, rdcc_w0);
+    int    mdc_nelmts  = 4096; // h5: number of items in meta data cache
+    size_t rdcc_nelmts = 4096; // h5: number of items in raw data chunk cache
+    size_t rdcc_nbytes = 9192; // h5: raw data chunk cache size (in bytes) per dataset
+    double rdcc_w0     = 0.75;    // h5: preemption policy
+    // fileAccPropList.getCache(mdc_nelmts, rdcc_nelmts, rdcc_nbytes, rdcc_w0);
+    fileAccPropList.setCache(mdc_nelmts, rdcc_nelmts, rdcc_nbytes, rdcc_w0);
+    // fileAccPropList.setCache(4096, 4096, 8388608, rdcc_w0);
 
     for (movieIndex = 0; movieIndex < nMovies; movieIndex++) {
         if (!hdfBasReader.Initialize(movieFileNames[movieIndex], fileAccPropList)) {
@@ -1977,23 +1939,6 @@ int main(int argc, char* argv[]) {
             hdfPlsReader.ReadPulseFileInit(pulseFile); 
         }
 
-        // 
-        // Check metric dataset size in this movie, if the size is too large, 
-        // fall back from byMetric to byRead in order to avoid consuming 
-        // too much memory.
-        //
-        if (byMetricForThisMovie)
-        {
-            if (hdfBasReader.baseArray.arrayLength > hdfBasReader.maxAllocNElements or 
-               (usePulseFile and 
-                hdfPlsReader.GetStartFrameSize() > hdfPlsReader.maxAllocNElements))
-            {
-                cout << "Loading pulses from " << movieFileNames[fofnMovieIndex] 
-                     << " by read." << endl;
-                byMetricForThisMovie = false;
-            }
-        }
-
         string cmpFileMovieName;
 
         for (m = 0; m < cmpFile.movieInfo.name.size(); m++) {
@@ -2038,9 +1983,52 @@ int main(int argc, char* argv[]) {
         }
 
         // Check whether all metrics are computable or not. 
-        CanMetricsBeComputed(metricOptions, fieldRequirements,
-            hdfBasReader, hdfPlsReader, cmpFile, useBaseFile,
+        CanMetricsBeComputed(metricOptions, hdfBasReader, hdfPlsReader, useBaseFile,
             usePulseFile, failOnMissingData, movieFileNames[fofnMovieIndex]);
+
+        // Get all metrics that are (1) supported, (2) required and (3) can be loaded.
+        vector<string> metricsToLoad = GetMetricsToLoad(metricOptions);
+
+        //
+        // An index set is a set of indices into the alignment array that
+        // are of reads generated by this movie.  Load pulses for all
+        // alignments generated for this movie.
+        //
+        // Movie index sets should be sorted by alignment index. Build a lookup table for this.
+        //
+        
+        std::vector<std::pair<int,int> > toFrom;
+        UInt totalAlnLength = 0;
+        for (movieAlignmentIndex = 0; movieAlignmentIndex < movieIndexSets[movieIndex].size(); movieAlignmentIndex++) {
+            alignmentIndex = movieIndexSets[movieIndex][movieAlignmentIndex];
+            totalAlnLength += cmpFile.alnInfo.alignments[alignmentIndex].GetOffsetEnd() - \
+                              cmpFile.alnInfo.alignments[alignmentIndex].GetOffsetBegin();
+            toFrom.push_back(std::pair<int,int>(cmpFile.alnInfo.alignments[alignmentIndex].GetAlignmentId(), movieAlignmentIndex));
+        }
+
+        // orders by first by default.
+        std::sort(toFrom.begin(), toFrom.end());
+
+        // 
+        // Check metric dataset size in this movie and the required memory 
+        // consumption, if either limit is exceeded, switch to byread.
+        //
+        if (byMetricForThisMovie)
+        {
+            UInt requiredMem = ComputeRequiredMemory(metricsToLoad, hdfBasReader, 
+                    hdfPlsReader, useBaseFile, usePulseFile, cmpReader, totalAlnLength);
+            if (hdfBasReader.baseArray.arrayLength > hdfBasReader.maxAllocNElements or 
+                (usePulseFile and 
+                 hdfPlsReader.GetStartFrameSize() > hdfPlsReader.maxAllocNElements) or
+                ((float)requiredMem / 1024 / 1024) > maxMemory) {
+                cout << "Either the number of elements exceeds maxElement (" 
+                     << hdfPlsReader.maxAllocNElements << "). Or the estimated memory " << endl
+                     << "consumption exceeds maxMemory ("  << maxMemory << ")." << endl
+                     << "Loading pulses from " << movieFileNames[fofnMovieIndex] 
+                     << " by read." << endl;
+                byMetricForThisMovie = false;
+            }
+        }
 
         if (((metricOptions.find("StartFrameBase") != metricOptions.end() and 
               metricOptions["StartFrameBase"]) or 
@@ -2067,25 +2055,6 @@ int main(int argc, char* argv[]) {
                 cmpReader.movieInfoGroup.StoreFrameRate(m, pulseFile.GetFrameRate());
             }
         }
-
-        //
-        // An index set is a set of indices into the alignment array that
-        // are of reads generated by this movie.  Load pulses for all
-        // alignments generated for this movie.
-        //
-
-        //
-        // Movie index sets should be sorted by alignment index. Build a lookup table for this.
-        //
-        
-        std::vector<std::pair<int,int> > toFrom;
-        for (movieAlignmentIndex = 0; movieAlignmentIndex < movieIndexSets[movieIndex].size(); movieAlignmentIndex++) {
-            alignmentIndex = movieIndexSets[movieIndex][movieAlignmentIndex];
-            toFrom.push_back(std::pair<int,int>(cmpFile.alnInfo.alignments[alignmentIndex].GetAlignmentId(), movieAlignmentIndex));
-        }
-
-        // orders by first by default.
-        std::sort(toFrom.begin(), toFrom.end());
 
         //
         // Load metrics for alignments from movie 'movieIndex'.
@@ -2136,14 +2105,12 @@ int main(int argc, char* argv[]) {
             }
 
             // Keep a list of currently cached fields. 
-            vector<pair<string, FieldType> > cachedFields;
+            vector<Field> cachedFields;
             if (usePulseFile) {
                 // PulseCalls/ZMW/NumEvent is always cached in plsFile.
-                cachedFields.push_back(pair<string, FieldType> ("NumEvent", PlsField));
+                cachedFields.push_back(Field("NumEvent", PlsField));
             } 
 
-            // Get all metrics that are (1) supported, (2) required and (3) can be loaded.
-            vector<string> metricsToLoad = GetMetricsToLoad(metricOptions);
             for (int metricsToLoadIndex = 0; metricsToLoadIndex < metricsToLoad.size(); metricsToLoadIndex++) {
                 string curMetric = metricsToLoad[metricsToLoadIndex];
                 // Metric "WhenStarted" should have been loaded before getting here.

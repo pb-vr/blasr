@@ -35,8 +35,8 @@
  * =====================================================================================
  */
 
-#ifndef DATASTRUCTURES_MAPPING_MovieAlnIndexLookupTable_H_
-#define DATASTRUCTURES_MAPPING_MovieAlnIndexLookupTable_H_
+#ifndef DATASTRUCTURES_LOADPULSES_MovieAlnIndexLookupTable_H_
+#define DATASTRUCTURES_LOADPULSES_MovieAlnIndexLookupTable_H_
 #include "Types.h"
 
 class MovieAlnIndexLookupTable {
@@ -107,7 +107,6 @@ public:
                   const int  & readStartP,       
                   const int  & readLengthP) {
         skip = skipP; 
-        if (skip) return;
         movieAlignmentIndex = movieAlignmentIndexP;
         alignmentIndex      = alignmentIndexP;
         refGroupIndex       = refGroupIndexP;
@@ -124,6 +123,10 @@ public:
 
     void print() {
         // Print this lookup table for debugging . 
+        if (skip) 
+            cout << "skip = True, ";
+        else 
+            cout << "skip = False, ";
         cout << "movieAlnIndex    = " << alignmentIndex << ", refGroupIndex = " << refGroupIndex
              << ", readGroupIndex = " << readGroupIndex << ", holeNumber    = " << holeNumber
              << ", offsetBegin    = " << offsetBegin    << ", offsetEnd     = " << offsetEnd

@@ -121,9 +121,32 @@ Set up the executable: loadPulses.
   $ rm -rf $CMP_OUT
   $ cp $CMP_IN $CMP_OUT
   $ $EXEC $FOFN_IN $CMP_OUT -bymetric -metrics $METRICS -maxElements $MAX_ELEMENTS
+  Either the number of elements exceeds maxElement (140000000). Or the estimated memory 
+  consumption exceeds maxMemory (6).
   Loading pulses from .+ by read. (re)
   loading 2 alignments for movie 1
   loading 2 alignments for movie 2
+
+  $ h5diff $CMP_OUT $CMP_STDOUT
+  dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
+  \d+ differences found (re)
+  dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
+  \d differences found (re)
+  [1]
+
+#Test loadPulses -byMetric on a multi-streaming job.
+  $ FOFN_IN=$DATDIR/lambda_bax.fofn
+  $ CMP_IN=$DATDIR/lambda_bax.cmp.h5
+  $ CMP_OUT=$OUTDIR/lambda_bax.cmp.h5
+  $ CMP_STDOUT=$STDDIR/lambda_bax.cmp.h5
+  $ METRICS=QualityValue,MergeQV,InsertionQV,DeletionQV,DeletionTag,PulseWidth,SubstitutionQV,SubstitutionTag
+
+  $ rm -rf $CMP_OUT
+  $ cp $CMP_IN $CMP_OUT
+  $ $EXEC $FOFN_IN $CMP_OUT -bymetric -metrics $METRICS 
+  WARNING: There is insufficient data to compute metric: MergeQV in the file .+ It will be ignored. (re)
+  loading 2 alignments for movie 1
+  loading 2 alignments for movie 1
 
   $ h5diff $CMP_OUT $CMP_STDOUT
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>

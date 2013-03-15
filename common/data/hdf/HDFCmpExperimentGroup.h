@@ -127,5 +127,10 @@ class HDFCmpExperimentGroup {
     fields["PulseIndex"] = &this->pulseIndex;
     fields["MergeQV"] = &this->mergeQV;
   }
+
+  // Return reference alignment AlnArray size in KB.
+  UInt GetAlnArraySize() {
+      return alignmentArray.arrayLength / 1024 * sizeof (unsigned char);
+  }
 };
 #endif

@@ -246,6 +246,34 @@ class HDFPlsReader : public DatasetCollection, public HDFPulseDataFile  {
 	}
 
     //
+    // Return size of the entire field in KB.
+    //
+    UInt GetFieldSize(const string & field) {
+        if (not includedFields[field]) {
+            cout << "ERROR, field " << field << " is not included in the pulse file. " << endl;
+            exit(1); 
+        }
+        if (field == "StartFrame") {
+            return startFrameArray.arrayLength / 1024 * sizeof(unsigned int);
+        } else if (field == "WidthInFrames") {
+            return plsWidthInFramesArray.arrayLength / 1024 * sizeof (uint16_t);
+        } else if (field == "MeanSignal") {
+            return meanSignalArray.arrayLength / 1024 * sizeof(uint16_t);
+        } else if (field == "MidSignal") {
+            return midSignalArray.arrayLength / 1024 * sizeof(uint16_t);
+        } else if (field == "MaxSignal") {
+            return maxSignalArray.arrayLength / 1024 * sizeof(uint16_t);
+        } else if (field == "NumEvent") {
+            return  zmwReader.numEventArray.arrayLength / 1024 * sizeof (int);
+        } else if (field == "ClassifierQV") {
+            return classifierQVArray.arrayLength /1024 * sizeof(float);
+        } else {
+            cout << "ERROR, field [" << field << "] is not supported. " << endl ;
+            exit(1);
+        }
+    }
+
+    //
     // Read the entire field to memory
     // 
     void ReadField(PulseFile & pulseFile, const string & field) {
