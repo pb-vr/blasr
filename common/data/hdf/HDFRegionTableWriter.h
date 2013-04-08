@@ -51,6 +51,7 @@ class HDFRegionTableWriter {
   HDFRegionTableWriter() {
     curRow = 0;
     nRows  = 0;
+    parentGroupPtr = NULL;
   }
 
   int Initialize(HDFGroup &parentGroupP) {
@@ -104,7 +105,7 @@ class HDFRegionTableWriter {
       regionSources.Create(regions.dataset,  "RegionSources", regionSourcesVect);
     }
   }
-  int WriteRows(vector<RegionAnnotation> &annotations) {
+  void WriteRows(vector<RegionAnnotation> &annotations) {
     int i;
     for (i = 0; i < annotations.size(); i++) {
       Write(annotations[i]);

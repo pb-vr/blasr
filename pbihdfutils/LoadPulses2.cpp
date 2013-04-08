@@ -815,7 +815,7 @@ void BuildLookupTablesAndMakeSane(
                  << alignedSequence      << endl
                  << "Original sequence: "<< endl
                  << readSequence         << endl;
-            assert(0);
+            exit(1);
         }
     }
 

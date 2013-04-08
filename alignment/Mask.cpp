@@ -38,6 +38,7 @@ bool GetPos(T_Iterator it, T_Iterator end, DNALength &pos, T_Comparison &comp) {
     }
     ++it;
   }
+  return true;
 }
 
 template<typename T>

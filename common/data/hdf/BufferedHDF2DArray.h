@@ -122,6 +122,7 @@ class BufferedHDF2DArray : public HDFData, public HDFWriteBuffer<T> {
       if (_rowLength == 0) {
         cout << "ERROR!  Improper usage of BufferedHDF2DArray::Initialize.  The 2D Array "<<endl
              << "is being created but is given a number of columns of 0." << endl;
+        exit(1);
       }
       Create(&group.group, datasetName, _rowLength);
     }
@@ -166,8 +167,8 @@ class BufferedHDF2DArray : public HDFData, public HDFWriteBuffer<T> {
         cout << e.getDetailMsg() << endl;
         exit(1);
       }
-      return 1;
     }
+      return 1;
 	}
 
 	int size() {

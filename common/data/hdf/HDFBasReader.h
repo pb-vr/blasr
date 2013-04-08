@@ -568,6 +568,9 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
 	 // the current sequence. 
 	 //
 	 retVal = this->GetNext((FASTQSequence&)seq);
+	 //
+	 // Bail now if the file is already done
+     //
 	 if (retVal  == 0) {
 		 return 0;
 	 }
@@ -587,11 +590,6 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
 	 }
 	 curBasePos = nextBasePos;
 	 
-	 //
-	 // Bail now if the file is already done
-	 if (retVal == 0) {
-		 return retVal;
-	 }
 	 //
 	 // By default, the subread of a read without subread information is
 	 // the whole read.

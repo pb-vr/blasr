@@ -147,7 +147,7 @@ class HDFRegionTableReader {
 		}
 		ReadTableAttributes(table);
 		table.table.resize(nRows);
-		int i;
+		int i = 0;
 		while(GetNext(table.table[curRow])) {
 			i++;
 		}

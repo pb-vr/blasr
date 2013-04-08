@@ -54,10 +54,13 @@ class HDFFile {
       }
       catch (FileIException fileException) {
         cout << "Error creating file " << fileName << endl;
+        exit(1);
       }
     }
-    rootGroup.Initialize(hdfFile, "/");
-		return;
+    if (rootGroup.Initialize(hdfFile, "/") != 1) {
+        cout << "Error initializing the root group for file " << fileName << endl;
+        exit(1);
+    }
   }
 
 	void Close() {

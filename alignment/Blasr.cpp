@@ -1674,7 +1674,7 @@ void RefineAlignment(vector<T_Sequence*> &bothQueryStrands,
         }
         else {
             GuidedAlign(qSeq, tSeq, alignmentCandidate, 
-                        idsScoreFn, params.bandSize,
+                        idsScoreFn, params.guidedAlignBandSize,
                         mappingBuffers, 
                         refinedAlignment, Global, false);
         }
@@ -2760,8 +2760,6 @@ void StoreMapQVs(SMRTSequence &read,
     assert(assigned[i]);
   }
 }
-
-                            
 
 //
 // The full read is not the subread, and does not have masked off characters.
@@ -4383,7 +4381,7 @@ int main(int argc, char* argv[]) {
 			else {
 				if (reader->HasRegionTable()) {
 					if (regionTableReader->Initialize(params.readsFileNames[params.readsFileIndex]) == 0) {
-						cout << "ERROR! Could not read the region table " << params.regionTableFileNames[params.readsFileIndex] <<endl;
+						cout << "ERROR! Could not read the region table " << params.readsFileNames[params.readsFileIndex] <<endl;
 						exit(1);
 					}
 					params.useRegionTable = true;
