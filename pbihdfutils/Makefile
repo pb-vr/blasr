@@ -25,7 +25,7 @@ include ../common.mk
 # Define the targets before including the rules since the rules contains a target itself.
 #
 
-all: bin make.dep loadPulses writeHDFSubset pls2fasta extractReadsByTitle filterHDFPls pls2 testAdvance computeRefCoverage toAfg cmpView cmpInformation printmsa printvariants cmpH5Diff samtoh5
+all: bin make.dep loadPulses writeHDFSubset pls2fasta extractReadsByTitle filterHDFPls pls2 testAdvance computeRefCoverage toAfg cmpView cmpInformation printmsa printvariants cmpH5Diff samtoh5 samtom4
 
 include ../make.rules
 
@@ -36,7 +36,7 @@ endif
 #
 # List of executables to deploy in the secondary analysis build
 #
-DISTRIB_SET   = loadPulses writeHDFSubset pls2fasta toAfg samtoh5
+DISTRIB_SET   = loadPulses writeHDFSubset pls2fasta toAfg samtoh5 samtom4
 DISTRIB_EXECS = $(addprefix bin/, $(DISTRIB_SET))
 INSTALL_EXECS = $(addsuffix -install, $(DISTRIB_SET))
 
@@ -65,6 +65,7 @@ printmsa: bin/printmsa
 printvariants: bin/printvariants
 cmpH5Diff: bin/cmpH5Diff
 samtoh5: bin/samtoh5
+samtom4: bin/samtom4
 
 bin/cmpView: bin/CmpH5View.o
 	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
@@ -116,6 +117,11 @@ bin/computeRefCoverage: bin/ComputeRefCoverage.o
 
 bin/samtoh5: bin/SamToCmpH5.o
 	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR)   -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
+
+
+bin/samtom4: bin/SamToM4.o
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -lz -lpthread
+
 
 INSTALL_DIR ?= $(ANALYSIS_HOME)/bin
 install:

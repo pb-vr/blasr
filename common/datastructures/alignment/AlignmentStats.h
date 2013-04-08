@@ -32,6 +32,7 @@ class AlignmentStats {
   void CopyStats(AlignmentStats rhs) {
     *this = rhs;
   }
+
 };
 
 #endif

@@ -1,7 +1,7 @@
 #ifndef ALIGNMENT_SET_TO_CMP_H5_ADAPTER_H_
 #define ALIGNMENT_SET_TO_CMP_H5_ADAPTER_H_
 
-
+#include "utils/SMRTReadUtils.h"
 #include "data/hdf/HDFCmpFile.h"
 #include "AlignmentSet.h"
 #include "datastructures/alignment/AlignmentCandidate.h"
@@ -26,21 +26,6 @@ class RefIndex {
     id   = rhs.id;
   }
 };
-
-bool ParsePBIReadName(string &readName, string &movieName, int &readIndex) {
-  vector<string> tokens;
-  ParseSeparatedList(readName, tokens, '/');
-  if (tokens.size() < 3) {
-    movieName = "";
-    readIndex = 0;
-    return false;
-  }
-  else {
-    movieName = tokens[0];
-    readIndex = atoi(tokens[1].c_str());
-    return true;
-  }
-}
 
 template<typename T_CmpFile>
 class AlignmentSetToCmpH5Adapter {

@@ -114,7 +114,7 @@ namespace SAMOutput {
         // If the alignment is a reverse complement, the soft clipped
         // string still excludes the low quality prefix and suffix,
         // but since the reverse string is printed, the prefix and
-        // suffix are reversed.n
+        // suffix are reversed.
         //
 
         T_Sequence subSeq;
@@ -431,6 +431,17 @@ namespace SAMOutput {
     if (clipping == soft) {
       SetSoftClip(alignment, read, prefixSoftClip, suffixSoftClip);
     }
+    //
+    // "RG" read group Id
+    // "AS" alignment score
+    // "XS" read alignment start position without counting previous soft clips (1 based) 
+    // "XE" read alignment end position without counting previous soft clips (1 based) 
+    // "XL" aligned read length 
+    // "XQ" query sequence length
+    // "XT" # of continues reads, always 1 for blasr 
+    // "NM" # of subreads 
+    // "FI" read alignment start position (1 based) 
+    //
     samFile << "XS:i:" << alignment.QAlignStart() + 1 - prefixSoftClip << "\t";
     samFile << "XE:i:" << alignment.QAlignEnd() + 1 - prefixSoftClip << "\t";
     samFile << "XL:i:" << alignment.qAlignedSeq.length << "\t";
@@ -439,6 +450,8 @@ namespace SAMOutput {
                         // output by blasr.
     samFile << "NM:i:" << context.nSubreads << "\t";
     samFile << "FI:i:" << alignment.qAlignedSeqPos + 1;
+    // Add query sequence length
+    samFile << "\t" << "XQ:i:" << alignment.qLength << "\t";
 
     samFile << endl;
 

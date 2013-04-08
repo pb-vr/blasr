@@ -34,6 +34,7 @@ class SAMReader {
     return (lineType == HSHeader or
             lineType == HSSequence or
             lineType == HSReadGroup or 
+            lineType == HSProgram or 
             lineType == HSComment);
   }
 
@@ -112,7 +113,8 @@ class SAMReader {
     Read(alignments);
   }
 
-  void ReadHeader(AlignmentSet<T_ReferenceSequence, T_ReadGroup, T_SAMAlignment> &alignments) {
+  vector<string> ReadHeader(AlignmentSet<T_ReferenceSequence, T_ReadGroup, T_SAMAlignment> &alignments) {
+    vector<string> allHeaders;
     string line;
     LineType lineType;
     lineNumber = 0;
@@ -120,6 +122,7 @@ class SAMReader {
       getline(samFile, line);
       lineType = GetLineType(line);
       if (LineTypeIsHeader(lineType)) {
+        allHeaders.push_back(line);
         stringstream strm(line);
         string tag;
         strm >> tag;
@@ -145,6 +148,7 @@ class SAMReader {
       }
       ++lineNumber;
     }
+    return allHeaders;
   }
  
   void Read(AlignmentSet<T_ReferenceSequence, T_ReadGroup, T_SAMAlignment> &alignments) {

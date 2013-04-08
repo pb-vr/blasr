@@ -36,23 +36,72 @@ class SAMAlignment {
   string seq;
   string qual;
 
+    // Optional tags defined in blasr:
+    // "RG" read group Id
+    // "AS" alignment score
+    // "XS" read alignment start position without counting previous soft clips (1 based) 
+    // "XE" read alignment end position without counting previous soft clips (1 based) 
+    // "XL" aligned read length 
+    // "XQ" query read length
+    // "XT" # of continues reads, always 1 for blasr 
+    // "NM" # of subreads 
+    // "FI" read alignment start position (1 based) 
+    //
   float score;
   int   xs, xe;
   int xl;
+  int xq;
+
   string rg;
   int   as;
   int   xt;
   int   nm;
   int   fi;
+  string optTagStr; 
   
   SAMAlignment() {
     //
     // Initialize all optional fields.  Required fields will be
     // assigned a value later.
     //
-    score = xs = xe = as = xt = nm = fi = xl = 0;
-    rg = "";
+    score = xs = xe = as = xt = xq = nm = fi = xl = 0;
+    rg = optTagStr = "";
   }
+
+  void PrintSAMAlignment(ostream & out = cout) {
+      out << qName << "\t" << flag  << "\t" << rName << "\t"
+          << pos   << "\t" << mapQV << "\t" << cigar << "\t"
+          << rNext << "\t" << pNext << "\t" << tLen  << "\t"
+          << seq   << "\t" << qual  << "\t" << optTagStr 
+          << "\n";
+  }
+
+  // Find position of the nth character in a string.
+  int FindPosOfNthChar(string str, int n, char c) {
+    if (n < 1) {
+      cout << "Nth should be a positive integer." << endl;
+      exit(0);
+    }
+    int count = 1;
+    int pos = str.find(c, 0);
+    // pos is the position of the first character c;
+    while(count < n and pos != string::npos) {
+        pos = str.find(c, pos+1);
+        count ++;
+    }
+    return pos;
+  }
+
+  // Trim the end '\n\r' characters from a string.
+  string TrimStringEnd(string str) {
+    string newStr = str;
+    while(newStr[newStr.size()-1] == '\r' or
+          newStr[newStr.size()-1] == '\n') {
+        newStr.erase(newStr.size()-1, 1);
+    }
+    return newStr;
+  }
+
   bool StoreValues(string &line,  int lineNumber=0) {
     stringstream strm(line);
     vector<bool> usedFields;
@@ -107,6 +156,15 @@ class SAMAlignment {
     }
 
     mapQV = (unsigned char) tmpMapQV;
+
+    // Find posisition of the 11th tab.
+    int optTagsStartPos = FindPosOfNthChar(strm.str(), 11, '\t');
+    // Save all optional tags.
+    if (optTagsStartPos != string::npos) {
+        optTagStr = strm.str().substr(optTagsStartPos+1);
+        optTagStr = TrimStringEnd(optTagStr);
+    } 
+
     //
     // If not aligned, stop trying to read in elements from the sam string.
     //
@@ -154,6 +212,10 @@ class SAMAlignment {
         else if (kvName == "FI") {
           strm >> fi;
         }
+        else if (kvName == "XQ") {
+          strm >> xq;
+        }
+
       }
       else {
         cout <<"ERROR.  Could not parse typed keyword value " << typedKVPair << endl;
@@ -177,8 +239,6 @@ class SAMPosAlignment : public SAMAlignment {
   unsigned int tStart, tEnd;
   int qStrand, tStrand;
 };
-
-
 
 /* 
  * Write the full one later

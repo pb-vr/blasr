@@ -41,6 +41,18 @@ Test blasr with -m 0 ~ 5
   $ $EXEC $DATDIR/read.fasta  $DATDIR/ref.fasta -m 4 -out $OUTDIR/read.m4
   $ diff $OUTDIR/read.m4 $STDDIR/read.m4
 
+Test blasr with *.fofn input
+  $ rm -rf $OUTDIR/lambda_bax.m4 
+  $ $EXEC $DATDIR/lambda_bax.fofn $DATDIR/lambda_ref.fasta -m 4 -out lambda_bax_tmp.m4 -nproc 15
+  $ sort lambda_bax_tmp.m4 > $OUTDIR/lambda_bax.m4
+  $ diff $OUTDIR/lambda_bax.m4 $STDDIR/lambda_bax.m4
+
+Test blasr with -noSplitSubreads 
+  $ rm -rf $OUTDIR/lambda_bax_noSplitSubreads.m4 $OUTDIR/lambda_bax_noSplitSubreads.m4
+  $ $EXEC $DATDIR/lambda_bax.fofn $DATDIR/lambda_ref.fasta -noSplitSubreads -m 4 -out lambda_bax_noSplitSubreads_tmp.m4 -nproc 15
+  $ sort lambda_bax_noSplitSubreads_tmp.m4 > $OUTDIR/lambda_bax_noSplitSubreads.m4
+  $ diff $OUTDIR/lambda_bax_noSplitSubreads.m4 $STDDIR/lambda_bax_noSplitSubreads.m4
+
 Test alignment score
   $ rm -rf $OUTDIR/testscore.m0
   $ $EXEC $DATDIR/read.fasta  $DATDIR/ref.fasta -minReadLength 1 -m 0 -out $OUTDIR/testscore.m0
@@ -50,4 +62,8 @@ Test affineAlign
   $ rm -rf $OUTDIR/affineAlign.m0
   $ $EXEC $DATDIR/affineAlign.fofn $DATDIR/substr_with_ins.fasta -m 0 -out $OUTDIR/affineAlign.m0  -affineAlign  -readIndex 493 -insertion 100 -deletion 100
   $ diff $OUTDIR/affineAlign.m0 $STDDIR/affineAlign.m0
+
+  $ rm -rf $OUTDIR/ecoli_affine.m0
+  $ $EXEC $DATDIR/ecoli_affine.fasta $DATDIR/ecoli_reference.fasta -m 0 -out $OUTDIR/ecoli_affine.m0 -affineAlign -insertion 100 -deletion 100
+  $ diff $OUTDIR/ecoli_affine.m0 $STDDIR/ecoli_affine.m0
 

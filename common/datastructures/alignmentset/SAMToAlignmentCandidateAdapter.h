@@ -138,7 +138,7 @@ int GetAlignedQueryLengthByCIGARSum(vector<char> &ops, vector<int> &lengths) {
   }
   int queryLength = 0;
   for (; i < ops.size() && ops[i] != 'S' && ops[i] != 'H'; i++) {
-    if (ops[i] == 'M' or ops[i] == 'I' or ops[i] == 'N') {
+    if (IsAssignChar(ops[i]) or ops[i] == 'I' or ops[i] == 'N') {
       queryLength += lengths[i];
     }
   }
@@ -158,7 +158,7 @@ int GetAlignedReferenceLengthByCIGARSum(vector<char> &ops, vector<int> &lengths)
   }
   int refLength = 0;
   for (; i < ops.size() && ops[i] != 'S' && ops[i] != 'H'; i++) {
-    if (ops[i] == 'M' or ops[i] == 'D' or ops[i] == 'N') {
+    if (IsAssignChar(ops[i]) or ops[i] == 'D' or ops[i] == 'N') {
       refLength += lengths[i];
     }
   }
