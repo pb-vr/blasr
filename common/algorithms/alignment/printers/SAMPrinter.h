@@ -451,7 +451,7 @@ namespace SAMOutput {
     samFile << "NM:i:" << context.nSubreads << "\t";
     samFile << "FI:i:" << alignment.qAlignedSeqPos + 1;
     // Add query sequence length
-    samFile << "\t" << "XQ:i:" << alignment.qLength << "\t";
+    samFile << "\t" << "XQ:i:" << alignment.qLength;
 
     samFile << endl;
 
