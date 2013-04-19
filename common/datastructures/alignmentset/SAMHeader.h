@@ -17,7 +17,8 @@ class SAMHeader {
         formatVersion = kvPairs[i].value;
       }
       else if (kvPairs[i].key == "SO") {
-        if (kvPairs[i].value == "unknown") {
+        if (kvPairs[i].value == "unknown" ||
+            kvPairs[i].value == "unsorted") {
           sortingOrder = unknown;
         }
         else if (kvPairs[i].value == "sorted") {
