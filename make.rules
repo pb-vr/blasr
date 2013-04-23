@@ -12,7 +12,7 @@ bin:
 init:
 				@( [[ ! -e bin ]] && mkdir -p bin ) || true
 
-.PHONY : make.dep
+#.PHONY : make.dep
 
 make.dep:
 				@ -rm -f make.dep
