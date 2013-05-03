@@ -7,6 +7,7 @@
 #include "qvs/QualityValue.h"
 #include "algorithms/alignment/printers/SAMPrinter.h"
 #include "algorithms/alignment/AlignmentFormats.h"
+#include "utils/RangeUtils.h"
 
 class MappingParameters {
  public:
@@ -164,6 +165,8 @@ class MappingParameters {
   int   affineExtend;
   bool  scaleMapQVByNumSignificantClusters;
   int   limsAlign;
+  string holeNumberRangesStr;
+  Ranges holeNumberRanges;
 	void Init() {
     readIndex = -1;
     maxReadIndex = -1;
@@ -314,6 +317,7 @@ class MappingParameters {
     affineExtend = 5;
     scaleMapQVByNumSignificantClusters = false;
     limsAlign = 0;
+    holeNumberRangesStr = "";
 	}
 
 	MappingParameters() {
@@ -440,6 +444,14 @@ class MappingParameters {
     if (limsAlign != 0) {
       mapSubreadsSeparately = false;
       forwardOnly = true;
+    }
+    
+    if (holeNumberRangesStr.size() > 0) {
+        if (not holeNumberRanges.setRanges(holeNumberRangesStr)) {
+            cout << "ERROR, could not parse hole number ranges: " 
+                 << holeNumberRangesStr << "." << endl;
+            exit(1);
+        }
     }
   }
 

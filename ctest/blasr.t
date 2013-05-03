@@ -67,3 +67,10 @@ Test affineAlign
   $ $EXEC $DATDIR/ecoli_affine.fasta $DATDIR/ecoli_reference.fasta -m 0 -out $OUTDIR/ecoli_affine.m0 -affineAlign -insertion 100 -deletion 100
   $ diff $OUTDIR/ecoli_affine.m0 $STDDIR/ecoli_affine.m0
 
+
+Test -holeNumbers
+  $ rm -f $OUTDIR/holeNumbers.m4
+  $ $EXEC $DATDIR/lambda_bax.fofn $DATDIR/lambda_ref.fasta -m 4 -out $OUTDIR/holeNumbers.  m4 -holeNumbers 14798,55000-55100 -nproc 8
+  $ sort $OUTDIR/holeNumbers.m4 | md5sum
+  21fd37b14b85ef7dda332ea10edc524a  -
+

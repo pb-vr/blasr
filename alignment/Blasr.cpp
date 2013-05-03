@@ -77,8 +77,10 @@
 #define MAX_PHRED_SCORE 254
 #define MAPQV_END_ALIGN_WIGGLE 5
 
+//#define USE_GOOGLE_PROFILER
+
 #ifdef USE_GOOGLE_PROFILER
-#include "google/profiler.h"
+#include "gperftools/profiler.h"
 #endif
 
 using namespace std;
@@ -453,6 +455,9 @@ void SetHelp(string &str) {
              << "               Only report alignments if they are greater than p percent identity."<<endl
              << "   -unaligned file" << endl
              << "               Output reads that are not aligned to 'file'." << endl
+             << "   -holeNumbers LIST " << endl
+             << "               When specified, only align reads whose ZMW hole numbers are in LIST." << endl
+             << "               LIST is a comma-delimited string of ranges, such as '1,2,3,10-13'." << endl
              << endl 
              << " Options for anchoring alignment regions. This will have the greatest effect on speed and sensitivity." << endl
              << "   -minMatch m (10) " << endl
@@ -3081,13 +3086,20 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
     //
     // Give the opportunity to align a subset of reads.
     //
-    if (params.maxReadIndex >= 0 and smrtRead.zmwData.holeNumber > params.maxReadIndex) {
+    if ((params.maxReadIndex >= 0 and 
+         smrtRead.zmwData.holeNumber > params.maxReadIndex)) {
+      if (readIsCCS) {
+        ccsRead.Free();
+      }
       smrtRead.Free();
       break;
     }
 
-    if (readHasGoodRegion == false or (params.readIndex >= 0 and smrtRead.zmwData.holeNumber != params.readIndex)) {
-
+    if (readHasGoodRegion == false or 
+        (params.readIndex >= 0 and 
+         smrtRead.zmwData.holeNumber != params.readIndex) or
+        (params.holeNumberRangesStr.size() > 0 and
+         not params.holeNumberRanges.contains(smrtRead.zmwData.holeNumber))) {
       //
       // Nothing to do with this read. Skip aligning it entirely.
       //
@@ -3098,12 +3110,14 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
       // Stop processing once the specified read index is reached.
       // Eventually this will change to just seek to readIndex, and
       // just align one read anyway.
-      if (smrtRead.zmwData.holeNumber > params.readIndex) {
+      if ((params.readIndex >= 0 and 
+           smrtRead.zmwData.holeNumber > params.readIndex) or
+          (params.holeNumberRangesStr.size() > 0 and 
+           smrtRead.zmwData.holeNumber > params.holeNumberRanges.max())){
         break;
       }
       continue;
     }
-    
     
 
     // 
@@ -3885,6 +3899,9 @@ int main(int argc, char* argv[]) {
 	clp.RegisterFlagOption("h", &printVerboseHelp, "");
   clp.RegisterFloatOption("accuracyPrior",    &params.readAccuracyPrior, "", CommandLineParser::NonNegativeFloat);
   clp.RegisterIntOption("readIndex", &params.readIndex, "", CommandLineParser::NonNegativeInteger);
+  // holeNumberRangesStr is a string of comma-delimited hole number ranges, such as '1,2,3,10-15'.
+  // Blasr only analyzes reads whose hole numbers are in the specified hole number ranges. 
+  clp.RegisterStringOption("holeNumbers", &params.holeNumberRangesStr, "");
   clp.RegisterIntOption("maxReadIndex", &params.maxReadIndex, "", CommandLineParser::NonNegativeInteger);
 	clp.RegisterFlagOption("version", (bool*)&params.printVersion, "");
   clp.RegisterIntOption("substitutionPrior",  &params.substitutionPrior, "", CommandLineParser::NonNegativeInteger);

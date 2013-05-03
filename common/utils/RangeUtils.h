@@ -73,6 +73,8 @@ bool ParseRanges(string & rangesStr,
     }
     if (parseSucceed) {
         sort(ranges.begin(), ranges.end());
+    } else {
+        ranges.clear();
     }
     return parseSucceed;
 }
@@ -89,6 +91,14 @@ public:
     
     int size() {
         return ranges.size();
+    }
+    UInt max() {
+        if (size() == 0) {
+            cout << "ERROR, could not determine the maximum value "
+                 << "of an empty Ranges object." << endl;
+            exit(1);
+        }
+        return ranges.back().end;
     }
 
     bool contains(const UInt & query) {
