@@ -6,7 +6,7 @@
  *    Description:  Filter SAM Hits according to 
  *                  filteration criteria
  *                     minPctSimilarity, minAccuracy, 
- *                     minLength 
+ *                     minLength, holeNumber
  *                  and multiple-hit policy
  *                     random    : a random hit
  *                     all       : all hits
@@ -30,6 +30,8 @@
 #include "CommandLineParser.h"
 #include "utils/ChangeListID.h"
 #include "utils/TimeUtils.h"
+#include "utils/RangeUtils.h"
+#include "utils/SMRTReadUtils.h"
 #include "algorithms/alignment/ScoreMatrices.h"
 #include "algorithms/alignment/AlignmentUtils.h"
 #include "algorithms/alignment/StringToScoreMatrix.h"
@@ -176,6 +178,9 @@ int main(int argc, char* argv[]) {
     bool isSorted       = false; // Whether input sam file is sorted.
     int  verbosity      = 0;
 
+    string holeNumberStr;
+    Ranges holeNumberRanges;
+
     FilterCriteria filterCriteria;
     string hitPolicyStr = "randombest";
     HITPOLICY hitPolicy = ALLBEST; 
@@ -224,9 +229,10 @@ int main(int argc, char* argv[]) {
             "  G klmno\n"
             "  T pqrst\n"
             "  N uvwxy\n" 
-            ". The values a...y should be input as a quoted space separated "
-            "string: \"a b c ... y\". Lower scores are better, so matches should be less "
-            "than mismatches e.g. a,g,m,s = -5 (match), mismatch = 6. ");
+            ". The values a...y should be input as a quoted space "
+            "seperated string: \"a b c ... y\". Lower scores are better, "
+            "so matches should be less than mismatches e.g. a,g,m,s = -5 "
+            "(match), mismatch = 6. ");
     clp.RegisterIntOption("deletion",           &delScore, 
             "Specify a user-defined deletion score.",
             CommandLineParser::Integer);
@@ -254,10 +260,12 @@ int main(int argc, char* argv[]) {
             "The title is in the format /name/hole/coordinates, where"
             " coordinates are in the format \\d+_\\d+, and represent "
             "the interval of the read that was aligned.");
-    //clp.RegisterIntOption("verbosity",          &verbosity,
-    //        "(0)  Set desired verbosity.", 
-    //        CommandLineParser::PositiveInteger);
-    clp.SetExamples("Because SAM has optional tags that have different meanings"
+    clp.RegisterStringOption("holeNumbers",    &holeNumberStr,
+            "A string of comma-delimited hole number ranges to output hits, "
+            "such as '1,2,10-12'. "
+            "This requires hit titles to be in SMRT read title format.");
+    clp.SetExamples(
+            "Because SAM has optional tags that have different meanings"
             " in different programs, careful usage is required in order "
             "to have proper output.  The \"xs\" tag in bwa-sw is used to "
             "show the suboptimal score, but in PacBio SAM (blasr) it is "
@@ -313,6 +321,15 @@ int main(int argc, char* argv[]) {
                 << "20 21 22 23 24 25\"" << endl;
             exit(1);
         }
+    }
+
+    // Parse hole number ranges. 
+    if (holeNumberStr.size() != 0) {
+        if (not holeNumberRanges.setRanges(holeNumberStr)) {
+            cout << "Could not parse hole number ranges: "
+                 << holeNumberStr << "." << endl;
+            exit(1);
+        } 
     }
 
     int scoreMatrix[5][5];
@@ -411,6 +428,24 @@ int main(int argc, char* argv[]) {
         if (samAlignment.rName == "*") {
             continue;
         }
+
+        if (parseSmrtTitle and holeNumberStr.size() != 0) {
+            string movieName;
+            int thisHoleNumber;
+            if (not ParsePBIReadName(samAlignment.qName, 
+                                     movieName, 
+                                     thisHoleNumber)) {
+                cout << "ERROR, could not parse SMRT title: "
+                     << samAlignment.qName << "." << endl;
+                exit(1);
+            }
+            if (not holeNumberRanges.contains(UInt(thisHoleNumber))) {
+                if (verbosity > 0) 
+                    cout << thisHoleNumber << " is not in range." << endl; 
+                continue;
+            }
+        }
+
         if (samAlignment.cigar.find('P') != string::npos) {
             cout << "WARNING. Could not process sam record with 'P' in its cigar string."
                  << endl;

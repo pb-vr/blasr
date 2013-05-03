@@ -56,5 +56,14 @@ Set up the executable: samFilter.
   $ tail -n+6 $OUTFILE | md5sum 
   8accc624e674a81353a4642455659427  -
 
-#Test samFilter with -scoreMatrix
+#Test samFilter with -holeNumbers
+  $ OUTFILE=$OUTDIR/lambda_bax_filter_6.sam
+  $ STDFILE=$STDDIR/lambda_bax_filter_6.sam
+
+  $ rm -f $OUTFILE
+  $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE -holeNumbers 101350-105000,21494 
+  $ tail -n+6 $OUTFILE | md5sum 
+  6a1c10bb0b1d92cec06f6ccc9f4b1ba1  -
+
+
 
