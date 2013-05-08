@@ -448,7 +448,7 @@ namespace SAMOutput {
     samFile << "XT:i:1\t"; // reads are allways continuous reads, not
                         // referenced based circular consensus when
                         // output by blasr.
-    samFile << "NM:i:" << context.nSubreads << "\t";
+    samFile << "NM:i:" << context.editDist << "\t";
     samFile << "FI:i:" << alignment.qAlignedSeqPos + 1;
     // Add query sequence length
     samFile << "\t" << "XQ:i:" << alignment.qLength;

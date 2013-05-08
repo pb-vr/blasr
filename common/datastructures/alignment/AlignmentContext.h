@@ -18,6 +18,7 @@ public:
   string readGroupId;
   string chipId;
   AlignMode alignMode;
+  int editDist;
   AlignmentContext() {
     isPrimary = true;
     subreadIndex = 0;
@@ -32,6 +33,7 @@ public:
     readGroupId = "";
     chipId = "";
     alignMode = NoAlignMode;
+    editDist = 0;
   }
   bool IsFirst() {
     return subreadIndex == 0;

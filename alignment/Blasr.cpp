@@ -2899,6 +2899,14 @@ void PrintAlignments(vector<T_AlignmentCandidate*> alignmentPtrs,
     else {
       alignmentContext.isPrimary = true;
     }
+
+    if (params.printSAM) {
+        T_AlignmentCandidate & alignment = *alignmentPtrs[i];
+        alignmentContext.editDist = ComputeAlignmentScore(alignment,
+            alignment.qAlignedSeq, 
+            alignment.tAlignedSeq, 
+            EditDistanceMatrix, 1, 1);
+    }
     
     PrintAlignment(*alignmentPtrs[i], read, params, alignmentContext, outFile);
   }
