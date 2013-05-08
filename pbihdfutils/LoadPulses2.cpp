@@ -2100,8 +2100,15 @@ int main(int argc, char* argv[]) {
                 }
                 if (!cmpReader.alnInfoGroup.numPasses.IsInitialized()) {
                     cmpReader.alnInfoGroup.InitializeNumPasses();
+                    // Clear /AlnInfo/NumPasses dataset.
+                    cmpReader.alnInfoGroup.numPasses.Resize(0);
                 }
-                cmpReader.alnInfoGroup.numPasses.WriteToPos(&numPassesMetric[0], numPassesMetric.size(), 0);
+                // Append numPasses of this movie to the end of /AlnInfo/NumPasses.
+                UInt numPassesSize = cmpReader.alnInfoGroup.numPasses.size();
+                cmpReader.alnInfoGroup.numPasses.WriteToPos(
+                        &numPassesMetric[0], 
+                        numPassesMetric.size(),
+                        numPassesSize);
             }
 
             // Keep a list of currently cached fields. 
