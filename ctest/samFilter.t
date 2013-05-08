@@ -17,7 +17,7 @@ Set up the executable: samFilter.
   $ rm -f $OUTFILE
   $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE -minAccuracy 70 -minPctSimilarity 30 -hitPolicy all
   $ tail -n+6 $OUTFILE | md5sum 
-  92aa828ff92fcadd2ce18f2faa3982c8  -
+  90918e80e7f62cc2bc907c7d4ebc47d0  -
 
 #Test samFilter with -hitPolicy allbest
   $ OUTFILE=$OUTDIR/lambda_bax_filter_2.sam
@@ -63,7 +63,7 @@ Set up the executable: samFilter.
   $ rm -f $OUTFILE
   $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE -holeNumbers 101350-105000,21494 
   $ tail -n+6 $OUTFILE | md5sum 
-  6a1c10bb0b1d92cec06f6ccc9f4b1ba1  -
+  76c41aecfdcf4da6492b1b629d17614c  -
 
 
 

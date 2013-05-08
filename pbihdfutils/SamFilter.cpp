@@ -95,11 +95,20 @@ bool byQNameScoreTStart(const SAMAlignment & a,
     return (a.qName < b.qName);
 }
 
+// Compare SAMAlignment objects by rName and qName 
+bool byRNameQName(const SAMAlignment & a, 
+                  const SAMAlignment & b) {
+    if (a.rName == b.rName) {
+        return a.qName < b.qName;
+    }
+    return (a.rName < b.rName);
+}
+
 // Get the next group of SAM alignments that have the same qName from
 // allSAMAlignments[groupBegin ... groupEnd)
 // Note that allSAMAlignments is already sorted by qName, score and tPos.
 void GetNextSAMAlignmentGroup(vector<SAMAlignment> & allSAMAlignments, 
-                              unsigned int & groupBegin, 
+                              unsigned int groupBegin, 
                               unsigned int & groupEnd) {
     assert(groupBegin < allSAMAlignments.size());
     groupEnd = groupBegin + 1;
@@ -490,22 +499,32 @@ int main(int argc, char* argv[]) {
     }
 
     // Sort all SAM alignments by qName, score and target position.
-    if (!isSorted)
-        sort(allSAMAlignments.begin(), allSAMAlignments.end(), byQNameScoreTStart);
+    if (!isSorted) {
+        sort(allSAMAlignments.begin(), allSAMAlignments.end(), 
+             byQNameScoreTStart);
+    }
 
-    unsigned int groupBegin, groupEnd;
-    groupBegin = 0;
+    unsigned int groupEnd;
 
-    while(groupBegin < allSAMAlignments.size()) {
+    vector<SAMAlignment> filteredSAMAlignments;
+    while(allSAMAlignments.size() > 0) {
         // Get the next group of SAM alignments which have the same qName
-        // from allSAMAlignments[groupBegin ...groupEnd)
-        GetNextSAMAlignmentGroup(allSAMAlignments, groupBegin, groupEnd);
-        vector<unsigned int> hitIndices = ApplyHitPolicy(hitPolicy, allSAMAlignments, 
-                                                         groupBegin, groupEnd);
+        // from allSAMAlignments[0 ... groupEnd), where groupBegin = 0
+        GetNextSAMAlignmentGroup(allSAMAlignments, 0, groupEnd);
+        vector<unsigned int> hitIndices = ApplyHitPolicy(
+                hitPolicy, allSAMAlignments, 0, groupEnd);
         for(unsigned int i = 0; i < hitIndices.size(); i++) {
-            allSAMAlignments[hitIndices[i]].PrintSAMAlignment(outFileStrm);
+            filteredSAMAlignments.push_back(allSAMAlignments[hitIndices[i]]);
         }
-        groupBegin = groupEnd;
+        allSAMAlignments.erase(allSAMAlignments.begin(), 
+                               allSAMAlignments.begin() + groupEnd);
+    }
+
+    sort(filteredSAMAlignments.begin(), filteredSAMAlignments.end(), 
+         byRNameQName);
+
+    for(unsigned int i = 0; i < filteredSAMAlignments.size(); i++) {
+        filteredSAMAlignments[i].PrintSAMAlignment(outFileStrm);
     }
 
 	if (outFileName != "") {
