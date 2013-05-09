@@ -54,6 +54,8 @@ class FASTAReader {
     doToUpper = false;
     convMat = PreserveCase;
     computeMD5 = false;
+    filePtr = NULL;
+    curPos = 0;
   }
   FASTAReader() {
     Init();

@@ -197,7 +197,7 @@ float IDSScoreFunction<DNASequence, FASTQSequence>::NormalizedInsertion(DNASeque
   }
 
   float sum = SumAsValidPhred(insScore, delScore, matchScore);
-  if (sum / 0) {
+  if (sum > 0) {
     float numerator = pow(10,insScore/-10.0);
     return -10*log10( numerator / sum);
   }

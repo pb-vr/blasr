@@ -51,7 +51,8 @@ class HDFData : public HDFAttributable {
   // Allow derived classes to be initialized generically.
   //
   virtual int Initialize(HDFGroup &parentGroup, const string &datasetName) { 
-    cout << "ERROR! Only a subclass should call this " << endl;
+    cout << "ERROR! Only a subclass should call this." << endl;
+    exit(1);
   }
 
   int BaseInitializeDataset(CommonFG &hdfFile, string _datasetName) {

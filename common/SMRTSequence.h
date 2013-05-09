@@ -53,6 +53,7 @@ class SMRTSequence : public FASTQSequence {
     lowQualityPrefix = lowQualitySuffix = 0;
   }
   SMRTSequence() : FASTQSequence() {
+      holeNumber = -1;
     SetNull();
 	}
 	void Allocate(DNALength length) {

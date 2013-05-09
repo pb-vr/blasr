@@ -24,8 +24,9 @@ class HDFZMWReader {
 		readHoleNumber  = false;
 		readHoleXY      = false;
 		readNumEvent    = false;
-    readHoleStatus  = false;
-    nZMWEntries = curZMW = 0;
+        readHoleStatus  = false;
+        nZMWEntries = curZMW = 0;
+        parentGroupPtr = NULL;
 	}
 
 	int Initialize(HDFGroup *parentGroupP) {

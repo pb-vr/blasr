@@ -42,7 +42,8 @@ class HDFScanDataReader {
 		fileHasScanData = false;
 		movieName = "";
 		runCode   = "";
-    platformId      = NoPlatform;
+        platformId      = NoPlatform;
+        initializedAcqParamsGroup = initializedRunInfoGroup = false;
 	}
 
 	int InitializeAcqParamsAtoms() {

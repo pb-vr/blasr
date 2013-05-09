@@ -275,7 +275,7 @@ class DiffCoverCompareSuffices {
 	}
 };
 
-UInt LightweightSuffixSort(unsigned char text[], UInt textLength, UInt *index, int diffCoverSize) {
+bool LightweightSuffixSort(unsigned char text[], UInt textLength, UInt *index, int diffCoverSize) {
 	//
 	// index is an array of length textLength that contains all
 	// suffices.
@@ -343,9 +343,8 @@ UInt LightweightSuffixSort(unsigned char text[], UInt textLength, UInt *index, i
 	UInt largestLexName;
 	cerr << "Enumerating " << diffCoverSize << "-prefixes." << endl;
 	largestLexName = DiffCoverBuildLexNaming(text, textLength,
-																					 index, dSetSize, diffCover, diffCoverLength, diffCoverSize, 
-																					 mu.diffCoverReverseLookup,
-																					 lexVNaming);
+        index, dSetSize, diffCover, diffCoverLength, diffCoverSize, 
+		mu.diffCoverReverseLookup, lexVNaming);
 	//
 	// Step 1.3 Compute ISA' of lex-order.
 	//
@@ -364,7 +363,6 @@ UInt LightweightSuffixSort(unsigned char text[], UInt textLength, UInt *index, i
 			if (i > textLength) {
 				break;
 			}
-			UInt index = mu.compute(di, dci);
 			mu.compute(di, dci);
 		}
 	}
@@ -429,9 +427,9 @@ UInt LightweightSuffixSort(unsigned char text[], UInt textLength, UInt *index, i
 		}
 		std::sort(&index[setBegin], &index[setEnd], lOrderComparator);
 		setBegin = setEnd;
-    return true;
 	}
 	
+    return true;
 	// DONE!!!!!
 
 }

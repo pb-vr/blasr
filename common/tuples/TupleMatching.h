@@ -45,7 +45,7 @@ template<typename TSequence, typename TMatch, typename T_TupleList>
 		for (s = 0; s < querySeq.length - tm.tupleSize + 1; s++) {
       if ((res and (res = queryTuple.ShiftAddRL(querySeq.seq[s+tm.tupleSize-1], tm))) or
           (!res and (res = queryTuple.FromStringRL(&querySeq.seq[s], tm)))) {
-				int targetListIndex;
+				int targetListIndex = 0;
         typename vector<typename T_TupleList::Tuple>::const_iterator curIt, endIt;
 				targetTupleList.FindAll(queryTuple, curIt, endIt);
         

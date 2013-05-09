@@ -19,6 +19,7 @@ class MatchPos {
 		q = pq;
 		l = pl;
 		m = pm;
+        w = 0;
 	}
 	MatchPos (const MatchPos &rhs) {
 		(*this) = rhs;
@@ -31,7 +32,7 @@ class MatchPos {
 		t = q = -1;
 		l = 0;
 		w = 0;
-    m = 0;
+        m = 0;
 	}
 
 	MatchPos& operator=(const MatchPos &rhs) {
@@ -82,9 +83,10 @@ class ChainedMatchPos : public MatchPos {
 	int score;
 	ChainedMatchPos *chainPrev;
  public:
- ChainedMatchPos(DNALength pt, DNALength pq, DNALength pl, int pm) : MatchPos(pt, pq, pl, pm) {}
+ ChainedMatchPos(DNALength pt, DNALength pq, DNALength pl, int pm) : MatchPos(pt, pq, pl, pm) {score = 0; chainPrev = NULL;}
   ChainedMatchPos() : MatchPos() {
 		score = 0;
+        chainPrev = NULL;
 	}
 	ChainedMatchPos(const ChainedMatchPos &rhs) {
 		(*this) = rhs;

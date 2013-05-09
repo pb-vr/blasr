@@ -79,7 +79,7 @@ class MappingParameters {
   bool printHeader;
   bool samplePaths;
   bool warp, nowarp;
-	bool usePrefixLookupTable;
+	//bool usePrefixLookupTable;
 	bool doSensitiveSearch;
 	bool emulateNucmer;
 	bool refineBetweenAnchorsOnly;
@@ -88,11 +88,11 @@ class MappingParameters {
 	TupleMetrics saTupleMetrics;
 	TupleMetrics sdpTupleMetrics;
 	int lookupTableLength;
-	int branchQualityThreshold;
+	//int branchQualityThreshold;
 	int qualityLowerCaseThreshold;
 	AnchorParameters anchorParameters;
 	int readsFileIndex;
-	int numBranches;
+	//int numBranches;
 	bool storeMetrics;
 	bool ignoreQualities;
 	bool extendFrontAlignment;
@@ -116,7 +116,7 @@ class MappingParameters {
 	string titleTableName;
 	bool readSeparateRegionTable;
 	string regionTableFileName;
-	float averageMismatchScore;
+	//float averageMismatchScore;
 	bool mapSubreadsSeparately;
 	bool useRegionTable;
 	bool useHQRegionTable;
@@ -193,10 +193,10 @@ class MappingParameters {
 		maxScore = -200;
 		argi = 1;
 		nProc = 1;
-		readsFileNames;
-		genomeFileName;
-		tupleListName;
-		posTableName;
+		assert(readsFileNames.empty());
+		tupleListName = "";
+        genomeFileName = "";
+		posTableName = "";
 		suffixArrayFileName= "";
 		bwtFileName = "";
 		indexFileName = "";

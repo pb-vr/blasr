@@ -102,6 +102,7 @@ class CompressedSequence : public FASTASequence {
 	CompressedSequence() {
 		hasIndex = 0;
 		hasTitle = 0;
+        qual = NULL;
 		FASTASequence();
 	}
 			

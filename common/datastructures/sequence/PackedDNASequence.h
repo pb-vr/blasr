@@ -40,7 +40,8 @@ class PackedDNASequence {
 	PackedDNASequence() {
 		nCountInWord = 0;
 		nCountNuc = 0;
-    arrayLength = 0;
+        length = arrayLength = 0;
+        seq = NULL;
 	}
 
 	void Allocate(DNALength numberOfNucleotides) {

@@ -7,7 +7,12 @@ class ZMWGroupEntry {
 	UInt x;
 	UInt y;
 	int  numEvents;
-  unsigned char holeStatus;
+    unsigned char holeStatus;
+    ZMWGroupEntry() {
+        holeNumber = x = y = 0;
+        numEvents = 0;
+        holeStatus = '0';
+    }
 };
 
 

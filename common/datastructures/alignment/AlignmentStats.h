@@ -15,6 +15,7 @@ class AlignmentStats {
 		nMatch = nMismatch = nIns = nDel = 0;
 		pctSimilarity = 0.0;
 		mapQV = 0;
+        score = 0;
 	}
 	AlignmentStats &Assign(const AlignmentStats &rhs) {
 		nMatch = rhs.nMatch;						  		

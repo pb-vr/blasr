@@ -55,9 +55,9 @@ template<typename T_RefSequence, typename T_QuerySequence>
    return ins;
  }
 
- float NormalizedMatch(T_RefSequence &ref, DNALength refPos, T_QuerySequence &query, DNALength queryPos) {}
- float NormalizedInsertion(T_RefSequence &ref, DNALength refPos, T_QuerySequence &query, DNALength queryPos) {}
- float NormalizedDeletion(T_RefSequence &ref, DNALength refPos, T_QuerySequence &query, DNALength queryPos) {}
+ float NormalizedMatch(T_RefSequence &ref, DNALength refPos, T_QuerySequence &query, DNALength queryPos) {return 0;}
+ float NormalizedInsertion(T_RefSequence &ref, DNALength refPos, T_QuerySequence &query, DNALength queryPos) {return 0;}
+ float NormalizedDeletion(T_RefSequence &ref, DNALength refPos, T_QuerySequence &query, DNALength queryPos) {return 0;}
   
 };
 

@@ -115,6 +115,13 @@ class FlatMatrix2D {
 			*matPtr = value;
 		}
 	}
+
+    ~FlatMatrix2D(){
+        if (matrix != NULL) {
+            delete [] matrix;
+            matrix = NULL;
+        }
+    }
 };
 
 
@@ -167,6 +174,12 @@ class FlatMatrix3D {
 	T Set(int x, int y, int z, T v){ 
 		return matrix[Index(x,y,z)] = v;
 	}
+    ~FlatMatrix3D() {
+        if (matrix != NULL) {
+            delete [] matrix;
+            matrix = NULL;
+        }
+    }
 };
 		
 	

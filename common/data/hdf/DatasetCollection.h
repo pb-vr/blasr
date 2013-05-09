@@ -56,6 +56,7 @@ class DatasetCollection {
 		else {
 			includedFields[fieldName] = true;
 		}
+        return 1;
 	}
 	
 	bool FieldIsIncluded(string fieldName) {

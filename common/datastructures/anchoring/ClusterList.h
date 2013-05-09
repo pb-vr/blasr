@@ -88,6 +88,7 @@ class ClusterList {
     lowerSizeLimitNumAnchors = 1;
     curp = cure = 0;
     onContigStart = true;
+    curIndex = 0;
   }
 
 };

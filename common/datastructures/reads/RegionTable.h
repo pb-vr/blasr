@@ -105,7 +105,7 @@ class RegionTable {
     return table[regionIndex].GetStart();
   }
   
-  int SetStart(int regionIndex, int start) {
+  void SetStart(int regionIndex, int start) {
     assert(regionIndex < table.size());
     assert(regionIndex >= 0);
     table[regionIndex].SetStart(start);
@@ -117,7 +117,7 @@ class RegionTable {
     return table[regionIndex].GetEnd();
   }
 
-  int SetEnd(int regionIndex, int end) {
+  void SetEnd(int regionIndex, int end) {
     assert(regionIndex < table.size());
     assert(regionIndex >= 0);
     table[regionIndex].SetEnd(end);

@@ -24,9 +24,8 @@ class Fragment {
 		x = px;
 		y = py;
 		weight = pweight;
-		chainPrev = 0;
-    index = length = 0;
-    cost = 0;
+        length = index = 0;
+		chainPrev = cost = chainLength = 0;
 	}
 	//
 	// Provide default constructor that will
@@ -36,8 +35,8 @@ class Fragment {
 	Fragment() {
 		x = -1;
 		y = -1;
-		chainPrev = 0;
-		chainLength = length;
+        weight = length = index = 0;
+		chainPrev = cost = chainLength = 0;
 	}
 	int LessThan(const Fragment &f) const {
 		if (x < f.x)

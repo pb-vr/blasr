@@ -609,6 +609,7 @@ class CommandLineParser {
 	}
 
 	void PrintUsage() {
+        ios::fmtflags f = cout.flags();
 		if (helpString != "") {
 			cout << helpString << endl;
 			return;
@@ -663,6 +664,7 @@ class CommandLineParser {
       PrintIndentedText(cout, examples, 5, (int) lineLength, 5);
       cout << endl;
     }
+        cout.flags(f);
 
 	}
 

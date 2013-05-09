@@ -47,7 +47,8 @@ class HDFPulseDataFile {
 		useScanData        = false;
 		closeFileOnExit    = false;
 		maxAllocNElements  = INT_MAX;
-    rootGroupPtr       = NULL;
+        preparedForRandomAccess = false;
+        rootGroupPtr       = NULL;
 	}
 
   void PrepareForRandomAccess() {

@@ -43,12 +43,10 @@ class PSTVertex {
 
 template<typename T_Point>
 class PrioritySearchTree {
-
  private:
 
 	vector<PSTVertex<T_Point> > tree;
 	vector<PSTVertex<T_Point> > *treePtr;
-
 	int GetMedianIndex(int start, int end) {
 		return (end + start) / 2;
 	}
@@ -185,6 +183,9 @@ class PrioritySearchTree {
 	}
 	
  public:
+    PrioritySearchTree() {
+        treePtr = NULL;
+    }
 
 	void CreateTree(vector<T_Point> &points, vector<PSTVertex<T_Point> > *bufTreePtr=NULL) {
 		/*

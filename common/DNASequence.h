@@ -85,8 +85,8 @@ class DNASequence {
 	typedef Nucleotide T_Block;
 	DNASequence &Copy(const DNASequence &rhs, DNALength rhsPos=0, DNALength rhsLength=0) {
 		if (length != 0) {
-			assert(seq != NULL);
-			delete[] seq;
+			if (seq != NULL)
+			    delete[] seq;
             seq = NULL;
             length = 0;
 		}

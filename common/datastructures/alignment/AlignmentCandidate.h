@@ -38,8 +38,8 @@ class AlignmentCandidate : public Alignment {
 	T_QSequence qAlignedSeq;
 	DNALength   tAlignedSeqPos, qAlignedSeqPos;
 	DNALength   tAlignedSeqLength, qAlignedSeqLength;
-  float       pvalVariance, weightVariance, pvalNStdDev, weightNStdDev;
-  int         numSignificantClusters;
+    float       pvalVariance, weightVariance, pvalNStdDev, weightNStdDev;
+    int         numSignificantClusters;
 	int readIndex;
 	//
 	// [q/t]IsSubstring refers to whether or not the text or query
@@ -68,15 +68,15 @@ class AlignmentCandidate : public Alignment {
 		qAlignedSeqLength   = rhs.qAlignedSeqLength;
 		readIndex           = rhs.readIndex;
 		tIndex              = rhs.tIndex;
-    mapQV               = rhs.mapQV;
-    clusterScore        = rhs.clusterScore;
-    clusterWeight       = rhs.clusterWeight;
+        mapQV               = rhs.mapQV;
+        clusterScore        = rhs.clusterScore;
+        clusterWeight       = rhs.clusterWeight;
 		*((Alignment*)this) = ((Alignment&)rhs);
 
-    pvalVariance = rhs.pvalVariance;
-    pvalNStdDev  = rhs.pvalNStdDev;
-    weightVariance=rhs.weightVariance;
-    weightNStdDev= rhs.weightNStdDev;
+        pvalVariance = rhs.pvalVariance;
+        pvalNStdDev  = rhs.pvalNStdDev;
+        weightVariance=rhs.weightVariance;
+        weightNStdDev= rhs.weightNStdDev;
 
 		return *this;
 	}
@@ -97,10 +97,13 @@ class AlignmentCandidate : public Alignment {
 		tAlignedSeqLength = 0;
 		qAlignedSeqLength = 0;
 		tIndex            = 0;
+        readIndex         = 0;
 		mapQV             = 50;
 		clusterScore      = 0;
-    numSignificantClusters = 0;
-    pvalVariance = pvalNStdDev = weightVariance = weightNStdDev = 0;
+        clusterWeight     = 0;
+        numSignificantClusters = 0;
+        pvalVariance = pvalNStdDev = 0;
+        weightVariance = weightNStdDev = 0;
 	}
  
  AlignmentCandidate(const AlignmentCandidate &rhs) {

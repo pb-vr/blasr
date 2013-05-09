@@ -201,7 +201,7 @@ int CollectRegionIndices(SMRTSequence &read, RegionTable &regionTable, vector<in
 
 
 template<typename T_Sequence>
-int CollectSubreadIntervals(T_Sequence &read, RegionTable *regionTablePtr, vector<ReadInterval> &subreadIntervals, bool byAdapter=false) {
+void CollectSubreadIntervals(T_Sequence &read, RegionTable *regionTablePtr, vector<ReadInterval> &subreadIntervals, bool byAdapter=false) {
 	int regionIndex;						 
 	int regionLowIndex, regionHighIndex;
 	regionLowIndex = regionHighIndex = 0;

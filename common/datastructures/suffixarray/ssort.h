@@ -334,8 +334,8 @@ ssort(SAIndex a[], SAIndex s[])
 		a[i] = p[i] & ~ORIG;
 	
 out:
-	free(p);
-	free(q);
+	delete [] p;
+	delete [] q;
 	return result;
 }
 

@@ -6,6 +6,10 @@ class ChainedFragment : public Fragment {
 	int score;
 	ChainedFragment *chainPrev;
  public:
+    ChainedFragment()::Fragment() {
+        score = 0;
+        chainPrev = NULL; 
+    }
 	
 	int SetScore(int _score) {
 		return (score = _score);

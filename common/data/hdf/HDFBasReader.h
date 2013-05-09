@@ -70,7 +70,7 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
 	unsigned int nBases;
   
 
-	bool readPulseInformation;
+	//bool readPulseInformation;
 	bool hasRegionTable;
 
 	HDFArray<int> zmwXCoordArray;
@@ -94,17 +94,18 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
 //	HDFArray<HalfWord> pulseWidthArray; This is deprecated
   HDFAtom<string> changeListIDAtom;
 
-	bool useWidthInFrames,  usePulseIndex, useZmwReader;
+	//bool useWidthInFrames,  usePulseIndex, 
+    bool useZmwReader;
 //    bool usePulseWidth; This is deprecated
 	
 	string baseCallsGroupName;
 	bool qualityFieldsAreCritical;
 	
-	bool useHoleNumbers, useHoleStatus;
-	bool usePreBaseFrames;
+	//bool useHoleNumbers, useHoleStatus;
+	//bool usePreBaseFrames;
 	bool useBasHoleXY;
-	bool useBasecall;
-	bool useQuality;
+	//bool useBasecall;
+	//bool useQuality;
   bool readBasesFromCCS;
   QVScale qvScale;
 

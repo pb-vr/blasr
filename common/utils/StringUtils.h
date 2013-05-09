@@ -75,7 +75,8 @@ int Tokenize(string orig, string pattern, vector<string> &tokens) {
 	bool prevWasToken = false;
 	tokenEnd = 0;
 	tokenStart = 0;
-	for (tokenEnd = 0; tokenEnd < origLength-patternLength; tokenEnd) {
+    //for (tokenEnd = 0; tokenEnd < origLength-patternLength; tokenEnd) {
+    while(tokenEnd < origLength - patternLength) {
     while (tokenStart < origLength - patternLength and 
            orig.compare(tokenStart, patternLength, pattern, 0, patternLength) == 0) {
       tokenStart++;

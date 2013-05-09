@@ -106,7 +106,8 @@ template<typename T,
      componentList[i] = false;
    }
 	 // Must create a suffix array, but for now make it null.
-	 index = NULL;
+	 target = NULL;
+     index = NULL;
  }
  ~SuffixArray() {
 	 if (deleteStructures == false) {
@@ -590,9 +591,11 @@ void WriteComponentList(ofstream &out) {
 		 ReadComponentList(saIn);
      LightReadArray(saIn);
      ReadLookupTable(saIn);
+     saIn.close();
      return true;
    }
    else {
+     saIn.close();
      return false;
    }
  }
@@ -610,13 +613,13 @@ void WriteComponentList(ofstream &out) {
 		 if (componentList[CompLookupTable]) {
 			 ReadLookupTable(saIn);
 		 }
+	 saIn.close();
      return true;
 	 }
 	 else {
+	 saIn.close();
      return false;
 	 }
-	 saIn.close();
-   return true;
  }
 
  int SearchLCP(T* target, T* query, DNALength queryLength, SAIndex &low, SAIndex &high, DNALength &lcpLength, DNALength maxlcp) {

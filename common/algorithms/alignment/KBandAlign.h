@@ -129,7 +129,7 @@ int KBandAlign(T_QuerySequence &qSeq, T_TargetSequence &tSeq,
 		}
 	}
 	if (alignType == TargetFit or alignType == Fit) {
-		for (q = 1; q <= k & t < qLen; q++) {
+		for (q = 1; q <= k & q < qLen; q++) {
 			scoreMat[rc2index(q, 0, nCols)] = 0;
 			pathMat[rc2index(q, 0, nCols)] = Up;
 		}

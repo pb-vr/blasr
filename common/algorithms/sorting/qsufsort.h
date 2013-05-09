@@ -49,7 +49,8 @@ template<typename T_Index, long T_Index_MAX=0>
 	T_Index INDEX_MAX;
 	LarssonSuffixSort() {
 		INDEX_MAX = T_Index_MAX;
-    r = h = 0;
+        r = h = 0;
+        I = V = NULL;
 	}
   void operator()(T_Index *x, T_Index *p, T_Index n, T_Index k, T_Index l)  {
     suffixsort(x,p,n,k,l);
