@@ -822,18 +822,28 @@ void BuildLookupTablesAndMakeSane(
     hdfBasReader.ClearField(baseFile, "Basecall");
 }
 
-// Group lookupTables with the same refGroupIndex and 
-// the same readGroupIndex, and save index of the first lookupTable
-// (0 based, inclusive) and index of the last lookupTable 
-// (0 based, exclusive) of each group to groupedLookupTablesIndexPairs 
+// Given a vector of lookupTables in which items with the same 
+// refGroupIndex and readGroupIndex are grouped, find index boundaries
+// of each group and save these boundaries to groupedLookupTablesIndexPairs
+// The index boundary of each group consists of:
+//   1, index (0 based, inclusive) of the very first item of a group
+//   2, index (0 based, exclusive) of the very last item of a group 
 //
-// Assume that the following criterion are met. 
-// (1) lookupTables are grouped by refGroupIndex, then readGroupIndex, 
-// (2) if two lookupTables have the same refGroupIndex, then they 
-// must have the same readGroupIndex 
+// Assume that lookupTables satisfy the following criteria.
+//   1, items are already grouped by refGroupIndex and readGroupIndex 
+//   2, items which have the same alnGroupIndex, should have 
+//      the same refGroupIndex and readGroupIndex 
 // Note that: 
-// (1) within each grouped lookupTables, offsetBegin may not begin 
-// from 0, and offsets may not be continugous. 
+//   1, alnGroupIndex represents index of AlnGroupID, (i.e. dataset
+//      /AlnInfo/AlnIndex column 1);
+//      refGroupIndex represents index of RefGroupID, (i.e. dataset
+//      /AlnInfo/AlnIndex column 3);
+//      readGroupIndex represents index of an experiment group within
+//      a refGroup (e.g. if a refGroup /ref0001 contains two experiment
+//      groups /ref0001/movie1 and /ref0001/movie2, then readGroupIndex
+//      for these two groups are 0 and 1.).
+//   2, within each grouped item, offsetBegin may not begin from 0, 
+//      and offsets may not be continugous. 
 //
 void GroupLookupTables(
         vector<MovieAlnIndexLookupTable>  & lookupTables,
@@ -891,7 +901,9 @@ void GroupLookupTables(
     // Double check all assumptions are met
     for (int i = 0; i < refGroupIndexReadGroupIndexPairs.size(); i++) {
         for (int j = i+1; j < refGroupIndexReadGroupIndexPairs.size(); j++) {
-        // Assure that assumption (1) is met
+            // Assure that assumption (1) is met. If this assertion fails, 
+            // then alignments in the input cmp.h5 are not grouped by
+            // reference. Check /AlnInfo/AlnIndex dataset column 3.
             assert(refGroupIndexReadGroupIndexPairs[i] != refGroupIndexReadGroupIndexPairs[j]);
         }
     }

@@ -458,6 +458,7 @@ void SetHelp(string &str) {
              << "   -holeNumbers LIST " << endl
              << "               When specified, only align reads whose ZMW hole numbers are in LIST." << endl
              << "               LIST is a comma-delimited string of ranges, such as '1,2,3,10-13'." << endl
+             << "               This option only works when reads are in base or pulse h5 format." << endl
              << endl 
              << " Options for anchoring alignment regions. This will have the greatest effect on speed and sensitivity." << endl
              << "   -minMatch m (10) " << endl
