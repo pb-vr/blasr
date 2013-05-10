@@ -6,7 +6,7 @@ class ChainedFragment : public Fragment {
 	int score;
 	ChainedFragment *chainPrev;
  public:
-    ChainedFragment()::Fragment() {
+    ChainedFragment():Fragment() {
         score = 0;
         chainPrev = NULL; 
     }
