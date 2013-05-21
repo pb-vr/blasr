@@ -16,8 +16,8 @@ Set up the executable: samFilter.
 
   $ rm -f $OUTFILE
   $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE -minAccuracy 70 -minPctSimilarity 30 -hitPolicy all
-  $ tail -n+6 $OUTFILE | md5sum 
-  90918e80e7f62cc2bc907c7d4ebc47d0  -
+  $ tail -n+7 $OUTFILE | md5sum 
+  1280157f8e9cf1a133684807419b9360  -
 
 #Test samFilter with -hitPolicy allbest
   $ OUTFILE=$OUTDIR/lambda_bax_filter_2.sam
@@ -25,8 +25,8 @@ Set up the executable: samFilter.
 
   $ rm -f $OUTFILE
   $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE -hitPolicy allbest
-  $ tail -n+6 $OUTFILE | md5sum 
-  c969dcb2c288168af34ceac3dfea6db1  -
+  $ tail -n+7 $OUTFILE | md5sum 
+  46c45c202ad170f9d04951bbf95fc62a  -
 
 #Test samFilter with -hitPolicy random   
   $ OUTFILE=$OUTDIR/lambda_bax_filter_3.sam
@@ -34,8 +34,8 @@ Set up the executable: samFilter.
 
   $ rm -f $OUTFILE
   $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE -hitPolicy random
-  $ tail -n+6 $OUTFILE | md5sum 
-  d6d006dcd8d558aa7680a783326428f0  -
+  $ tail -n+7 $OUTFILE | md5sum 
+  e8668ee48fde6eb27cf786cc4ba5bb6d  -
 
 #Test samFilter with -hitPolicy randombest   
   $ OUTFILE=$OUTDIR/lambda_bax_filter_4.sam
@@ -43,8 +43,8 @@ Set up the executable: samFilter.
 
   $ rm -f $OUTFILE
   $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE -hitPolicy randombest 
-  $ tail -n+6 $OUTFILE | md5sum 
-  27ea175208aa67a968a019175c03f4b8  -
+  $ tail -n+7 $OUTFILE | md5sum 
+  46c45c202ad170f9d04951bbf95fc62a  -
 
 
 #Test samFilter with -scoreFunction 
@@ -53,8 +53,8 @@ Set up the executable: samFilter.
 
   $ rm -f $OUTFILE
   $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE -scoreFunction alignerscore
-  $ tail -n+6 $OUTFILE | md5sum 
-  8accc624e674a81353a4642455659427  -
+  $ tail -n+7 $OUTFILE | md5sum 
+  46c45c202ad170f9d04951bbf95fc62a  -
 
 #Test samFilter with -holeNumbers
   $ OUTFILE=$OUTDIR/lambda_bax_filter_6.sam
@@ -62,8 +62,8 @@ Set up the executable: samFilter.
 
   $ rm -f $OUTFILE
   $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE -holeNumbers 101350-105000,21494 
-  $ tail -n+6 $OUTFILE | md5sum 
-  76c41aecfdcf4da6492b1b629d17614c  -
+  $ tail -n+7 $OUTFILE | md5sum 
+  46c45c202ad170f9d04951bbf95fc62a  -
 
 
 

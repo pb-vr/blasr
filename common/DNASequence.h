@@ -291,6 +291,8 @@ class DNASequence {
 	void Assign(DNASequence &ref, DNALength start=0, DNALength plength=0) {
 		if (seq != NULL) {
 			delete[] seq;
+            seq = NULL;
+            length = 0;
 		}
 		if (plength) {
 			length = plength;

@@ -145,13 +145,15 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
 	T_HDFBasReader() {
 		curRead      = 0;
 		curBasePos   = 0;
-    nBases       = 0;
-    preparedForRandomAccess = false;
-    readBasesFromCCS = false;
+        nBases       = 0;
+        preparedForRandomAccess = false;
+        readBasesFromCCS = false;
 		baseCallsGroupName = "BaseCalls";
 		qualityFieldsAreCritical = true;
 		useZmwReader = false;
-    useBasHoleXY = true;
+        useBasHoleXY = true;
+        hasRegionTable = false;
+        qvScale = POverOneMinusP; //default 0 = POverOneMinusP
 		fieldNames.push_back("Basecall");
 		fieldNames.push_back("DeletionQV");
 		fieldNames.push_back("DeletionTag");
@@ -168,7 +170,7 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
     // Start out with no fields being read.
 		InitializeAllFields(false);
     // Then by default always read bases.
-    IncludeField("Basecall");
+        IncludeField("Basecall");
 	}
 
 

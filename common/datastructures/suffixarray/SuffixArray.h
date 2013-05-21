@@ -100,6 +100,7 @@ template<typename T,
 	 lookupPrefixLength = 0;
 	 lookupTableLength = 0;
 	 deleteStructures  = true;
+     ckMagicNumber = 0;
    length = 0;
    int i;
    for (i = 0; i < ComponentListLength; i++) {
