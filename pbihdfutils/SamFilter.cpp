@@ -41,6 +41,11 @@
 #include "datastructures/alignment/FilterCriteria.h"
 #include "datastructures/alignmentset/SAMToAlignmentCandidateAdapter.h"
 
+//#define USE_GOOGLE_PROFILER
+#ifdef USE_GOOGLE_PROFILER
+#include "gperftools/profiler.h"
+#endif
+
 char VERSION[] = "v0.1.0";
 char PERFORCE_VERSION_STRING[] = "";
 // By default negative score is better.
@@ -172,6 +177,15 @@ vector<unsigned int> ApplyHitPolicy(HITPOLICY hitPolicy,
 }
 
 int main(int argc, char* argv[]) {
+#ifdef USE_GOOGLE_PROFILER
+    char *profileFileName = getenv("CPUPROFILE");
+    if (profileFileName != NULL) {
+      ProfilerStart(profileFileName);
+    }
+    else {
+      ProfilerStart("google_profile.txt");
+    }
+#endif
     string samFileName, refFileName, outFileName;
     bool parseSmrtTitle = false;
     int  scoreCutoff    = INF_INT;
@@ -477,9 +491,10 @@ int main(int argc, char* argv[]) {
             ComputeAlignmentStats(alignment, alignment.qAlignedSeq.seq, 
                                   alignment.tAlignedSeq.seq, scoreMatrix,
                                   insScore, delScore);
-            if (verbosity > 0) 
+            if (verbosity > 0)  {
                 cout << "Aligner's score = "  << samAlignment.as 
                      << ", computed score = " << alignment.score << endl;
+            }
 
             // Assign score to samAlignment.
             samAlignment.score = alignment.score;
@@ -504,20 +519,19 @@ int main(int argc, char* argv[]) {
              byQNameScoreTStart);
     }
 
-    unsigned int groupEnd;
-
+    unsigned int groupBegin = 0;
+    unsigned int groupEnd = -1;
     vector<SAMAlignment> filteredSAMAlignments;
-    while(allSAMAlignments.size() > 0) {
+    while(groupBegin < allSAMAlignments.size()) {
         // Get the next group of SAM alignments which have the same qName
-        // from allSAMAlignments[0 ... groupEnd), where groupBegin = 0
-        GetNextSAMAlignmentGroup(allSAMAlignments, 0, groupEnd);
+        // from allSAMAlignments[groupBegin ... groupEnd)
+        GetNextSAMAlignmentGroup(allSAMAlignments, groupBegin, groupEnd);
         vector<unsigned int> hitIndices = ApplyHitPolicy(
-                hitPolicy, allSAMAlignments, 0, groupEnd);
+                hitPolicy, allSAMAlignments, groupBegin, groupEnd);
         for(unsigned int i = 0; i < hitIndices.size(); i++) {
             filteredSAMAlignments.push_back(allSAMAlignments[hitIndices[i]]);
         }
-        allSAMAlignments.erase(allSAMAlignments.begin(), 
-                               allSAMAlignments.begin() + groupEnd);
+        groupBegin = groupEnd;
     }
 
     sort(filteredSAMAlignments.begin(), filteredSAMAlignments.end(), 
@@ -530,5 +544,8 @@ int main(int argc, char* argv[]) {
 	if (outFileName != "") {
 		outFileStrm.close();
 	}
+#ifdef USE_GOOGLE_PROFILER
+  ProfilerStop();
+#endif
     return 0;
 }
