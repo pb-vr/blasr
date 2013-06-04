@@ -105,6 +105,27 @@ class AlignmentCandidate : public Alignment {
         pvalVariance = pvalNStdDev = 0;
         weightVariance = weightNStdDev = 0;
 	}
+
+    void Print(ostream & out = cout) {
+        out << "Print an AlignmentCandidate object (mapQV " 
+            << mapQV << ", clusterscore " << clusterScore 
+            << ", tTitle: " << tTitle << ", qTitle: " << qTitle 
+            << ")." << endl;
+        out << "  query: " << qTitle << ", "  
+            << "qStrand: " << qStrand << ", " 
+            << "qPos: " << qPos << ", "
+            << "qLen: " << qLength << ", "
+            << "qAlignLength: " << qAlignLength << ", "
+            << "qAlignedSeqPos:" << qAlignedSeqPos << ", "
+            << "qAlignedSeqLen:" << qAlignedSeqLength << endl
+            << "  target: " << tTitle << ", "  
+            << "tStrand: " << tStrand << ", " 
+            << "tPos: " << tPos << ", "
+            << "tLen: " << tLength << ", "
+            << "tAlignLength: " << tAlignLength << ", "
+            << "tAlignedSeqPos:" << tAlignedSeqPos << ", " 
+            << "tAlignedSeqLen:" << tAlignedSeqLength << endl;
+    }
  
  AlignmentCandidate(const AlignmentCandidate &rhs) {
    *this = rhs;

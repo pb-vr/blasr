@@ -108,9 +108,6 @@ ReaderAgglomerate *reader;
 
 typedef MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> MappingIPC;
 
-
-
-
 class ClusterInformation {
 public:
   int maxClusterSize;
@@ -185,7 +182,6 @@ public:
         subreads[i].title = NULL;
       }
     }
-
     subreadAlignments.clear();
     read.Free();
   }
@@ -194,11 +190,12 @@ public:
     subreadAlignments.resize(nSeq);
     subreads.resize(nSeq);
   }
-  
+
   void CheckSeqIndex(int seqIndex) {
     if ( seqIndex < 0 or seqIndex >= subreads.size() ) {
-        cout << "ERROR, adding a sequence to an unallocated position." << endl;
-        assert(0);
+      cout << "ERROR, adding a sequence to an unallocated position." 
+           << endl;
+      assert(0);
     }
   }
 
@@ -216,6 +213,29 @@ public:
     CheckSeqIndex(seqIndex);
     subreadAlignments[seqIndex].insert(subreadAlignments[seqIndex].end(), seqAlignmentPtrs.begin(), seqAlignmentPtrs.end());
   }
+
+  void Print(ostream &out=cout) { 
+    out << "A ReadAlignments object with " 
+        << subreadAlignments.size()
+        << " groups of subread alignments." << endl;
+        for (int i = 0; i < subreadAlignments.size(); i++) {
+            out << "  subreadAlignment group [" << i << "/" 
+                << subreadAlignments.size() << "]" << endl;
+            for(int j = 0; j < subreadAlignments[i].size(); j++) {
+                out << "    [" << i << "][" << j << "/" 
+                    << subreadAlignments[i].size() << "]" << endl;
+                subreadAlignments[i][j];
+            }
+        }
+        for (int i = 0; i < subreads.size(); i++) {
+            out << "  subread [" << i << "/" << subreads.size()
+                << "]: ";
+            subreads[i].Print(out);
+        }
+        out << "  read: ";
+        read.Print(out);
+        out << endl << endl;
+    }
 
   ~ReadAlignments() {
     read.FreeIfControlled();
@@ -2128,7 +2148,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
                                 // allow for indels to stretch out the mapping of the read.
                                 (DNALength) ((read.subreadEnd - read.subreadStart) * (1 + params.indelRate)), params.nCandidates,
                                 seqBoundary,
-                                lisPValueByWeight,
+                                lisPValueByWeight, // different from pvaltype == 2 and 0
                                 lisWeightFn,
                                 topIntervals, genome, read, intervalSearchParameters,
                                 &mappingBuffers.globalChainEndpointBuffer,
@@ -2141,7 +2161,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
       FindMaxIncreasingInterval(Reverse, mappingBuffers.rcMatchPosList,
                                 (DNALength) ((read.subreadEnd - read.subreadStart) * (1 + params.indelRate)), params.nCandidates, 
                                 seqBoundary,
-                                lisPValueByWeight,
+                                lisPValueByWeight, // different from pvaltype == 2 and 0
                                 lisWeightFn,
                                 topIntervals, genome, readRC, intervalSearchParameters,
                                 &mappingBuffers.globalChainEndpointBuffer,
@@ -2155,7 +2175,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
                                 // allow for indels to stretch out the mapping of the read.
                                 (DNALength) ((read.subreadEnd - read.subreadStart) * (1 + params.indelRate)), params.nCandidates,
                                 seqBoundary,
-                                lisPValueByLogSum,
+                                lisPValueByLogSum, // different from pvaltype == 1 and 0
                                 lisWeightFn,
                                 topIntervals, genome, read, intervalSearchParameters,
                                 &mappingBuffers.globalChainEndpointBuffer,
@@ -2167,7 +2187,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
       FindMaxIncreasingInterval(Reverse, mappingBuffers.rcMatchPosList,
                                 (DNALength) ((read.subreadEnd - read.subreadStart) * (1 + params.indelRate)), params.nCandidates, 
                                 seqBoundary,
-                                lisPValueByLogSum,
+                                lisPValueByLogSum, // different from pvaltype == 1 and 0
                                 lisWeightFn,
                                 topIntervals, genome, readRC, intervalSearchParameters,
                                 &mappingBuffers.globalChainEndpointBuffer,
@@ -2819,20 +2839,16 @@ void PrintAlignment(T_AlignmentCandidate &alignment, SMRTSequence &fullRead, Map
     cout << "may not have proper write permissions." << endl;
     exit(1);
   }
-  
 }
 
-
-void PrintAlignments(vector<T_AlignmentCandidate*> alignmentPtrs,
-                     SMRTSequence &read,
-                     MappingParameters &params, ostream &outFile, 
-                     AlignmentContext alignmentContext) {
+vector<T_AlignmentCandidate*>
+SelectAlignmentsToPrint(vector<T_AlignmentCandidate*> alignmentPtrs,
+                        MappingParameters & params) {
   //
-  // Print all alignments, unless the parameter placeRandomly is set.
-  // In this case only one read is printed and it is selected from all
+  // Select all alignments, unless the parameter placeRandomly is set.
+  // In this case only one read is selected and it is selected from all
   // equally top scoring hits.
   //
-  
   UInt i;
   int optScore;
   int nOpt = 0;
@@ -2854,14 +2870,6 @@ void PrintAlignments(vector<T_AlignmentCandidate*> alignmentPtrs,
       }
     }
   }
-  
-  if (params.nProc > 1) {
-#ifdef __APPLE__
-    sem_wait(semaphores.writer);
-#else
-    sem_wait(&semaphores.writer);
-#endif
-  }
 
   int optIndex = 0;
   int startIndex = 0;
@@ -2875,7 +2883,26 @@ void PrintAlignments(vector<T_AlignmentCandidate*> alignmentPtrs,
     startIndex = 0;
     endIndex   = MIN(params.nBest, alignmentPtrs.size());
   }
-  for (i = startIndex; i < endIndex; i++) { 
+
+  vector<T_AlignmentCandidate*> ret;
+  ret.assign(alignmentPtrs.begin() + startIndex, 
+             alignmentPtrs.begin() + endIndex);
+  return ret;
+}
+
+// Print all alignments in vector<T_AlignmentCandidate*> alignmentPtrs
+void PrintAlignments(vector<T_AlignmentCandidate*> alignmentPtrs,
+                     SMRTSequence &read,
+                     MappingParameters &params, ostream &outFile, 
+                     AlignmentContext alignmentContext) {
+  if (params.nProc > 1) {
+#ifdef __APPLE__
+    sem_wait(semaphores.writer);
+#else
+    sem_wait(&semaphores.writer);
+#endif
+  }
+  for (int i = 0; i < alignmentPtrs.size(); i++) { 
     T_AlignmentCandidate *aref = alignmentPtrs[i];      
       
     if (aref->blocks.size() == 0) {
@@ -2984,6 +3011,18 @@ void AssignMapQV(vector<T_AlignmentCandidate*> &alignmentPtrs) {
   }
 }
 
+void PrintAlignmentPtrs(vector <T_AlignmentCandidate*> & alignmentPtrs) {
+    for(int alignmentIndex = 0; 
+        alignmentIndex < alignmentPtrs.size();
+        alignmentIndex++) {
+        cout << "["<< alignmentIndex << "/" 
+             << alignmentPtrs.size() << "]" << endl;
+        T_AlignmentCandidate *alignment = alignmentPtrs[alignmentIndex];          
+        alignment->Print(cout);
+    }
+    cout << endl;
+}
+
 //template<typename T_SuffixArray, typename T_GenomeSequence, typename T_Tuple>
 void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) { 
   
@@ -3001,12 +3040,12 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
   FASTQSequence fastaGenome;
   T_GenomeSequence    genome;
   BWT *bwtPtr;
-  
+
   mapData->ShallowCopySuffixArray(sarray);
   mapData->ShallowCopyReferenceSequence(genome);
   mapData->ShallowCopySequenceIndexDatabase(seqdb);
   mapData->ShallowCopyTupleCountTable(ct);
-
+  
   bwtPtr = mapData->bwtPtr;
   SeqBoundaryFtr<FASTQSequence> seqBoundary(&seqdb);
 
@@ -3168,8 +3207,6 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
 
     ReadAlignments allReadAlignments;
     allReadAlignments.read = smrtRead;
-
-    
 
     if (readIsCCS == false and params.mapSubreadsSeparately) {
       vector<ReadInterval> subreadIntervals;
@@ -3354,12 +3391,11 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
           subreadSequence.Free();
           subreadSequenceRC.Free();
         }
-
       }
-    }
+    } // End of if (readIsCCS == false and params.mapSubreadsSeparately) 
     else {
       //
-      // The read The read must be mapped as a whole, even it it contains subreads.
+      // The read must be mapped as a whole, even if it contains subreads.
       //
       vector<T_AlignmentCandidate*> alignmentPtrs;
       mapData->metrics.numReads++;
@@ -3437,8 +3473,14 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
         subreadIterator->Reset();
         int subreadIndex;
 
+        // 
+        // Select de novo ccs-reference alignments for subreads to align to.
         //
-        // Realign all subreads.
+        vector<T_AlignmentCandidate*> selectedAlignmentPtrs =
+        SelectAlignmentsToPrint(alignmentPtrs, params);
+
+        //
+        // Realign all subreads to selected reference locations.
         //
         for (subreadIndex = 0; subreadIndex < subreadIterator->GetNumPasses(); subreadIndex++) {
           subreadIterator->GetNext(passDirection, passStartBase, passNumBases);
@@ -3449,16 +3491,15 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
           //allReadAlignments.SetSequence(subreadIndex, subread);
           // The unrolled alignment should be relative to the entire read.
           allReadAlignments.SetSequence(subreadIndex, ccsRead.unrolledRead);
-		  
+
           int alignmentIndex;
           
           //
           // Align all subreads to the positions that the de novo
           // sequence has aligned to.
           //
-          for (alignmentIndex = 0; alignmentIndex < alignmentPtrs.size(); alignmentIndex++) {
-
-            T_AlignmentCandidate *alignment = alignmentPtrs[alignmentIndex];          
+          for (alignmentIndex = 0; alignmentIndex < selectedAlignmentPtrs.size(); alignmentIndex++) {
+            T_AlignmentCandidate *alignment = selectedAlignmentPtrs[alignmentIndex];          
             if (alignment->score > params.maxScore) break;
             //
             // Determine where in the genome the subread has mapped.
@@ -3491,12 +3532,10 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
             /*
              * Determine the strand to align the subread strand to.
              */
-
             if (alignment->tStrand == passDirection) {
               //
               // The alignment is in the same direction as the subread.  Easy.
               //
-
               T_AlignmentCandidate exploded;
               int explodedScore;
               bool computeProbIsFalse = false; 
@@ -3510,7 +3549,16 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
                                           Local, computeProbIsFalse, 6);
 
               if (params.verbosity > 0) {
-                StickPrintAlignment(exploded,
+                  cout << "StickPrintAlignment subread-reference alignment which has" 
+                       << " the same direction as the ccs-reference alignment. " 
+                       << " subreadId "<< subreadIndex
+                       << ", alignmentId " << alignmentIndex << endl;
+                  cout << "subread: " << endl;
+                  ((DNASequence) subread).PrintSeq(cout);
+                  cout << endl;
+                  cout << "ccsAlignedForwardRefSeq " << endl;
+                  ((DNASequence) ccsAlignedForwardRefSequence).PrintSeq(cout);
+                  StickPrintAlignment(exploded,
                                     (DNASequence&) subread,
                                     (DNASequence&) ccsAlignedForwardRefSequence,
                                     cout,
@@ -3520,19 +3568,19 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
               if (exploded.blocks.size() > 0) {
                 ComputeAlignmentStats(exploded, subread.seq, ccsAlignedForwardRefSequence.seq, SMRTDistanceMatrix, params.indel, params.indel );
                 if (exploded.score <= params.maxScore) {
-
                   //
-                  // Reset the coordinates of the alignment so that
-                  // they are relative to the genome, not the aligned
-                  // substring.
+                  // The coordinates of the alignment should be
+                  // relative to the reference sequence (the specified chromosome,
+                  // not the whole genome). 
                   //
                   exploded.qStrand = 0;
-                  exploded.tStrand = alignment->tStrand;
-
+                  exploded.tStrand = 0; 
                   exploded.qLength = ccsRead.unrolledRead.length;
                   exploded.tLength = alignment->tLength;
-                  exploded.tAlignedSeq.Copy(ccsAlignedForwardRefSequence);
-                  exploded.tAlignedSeqPos = alignment->tAlignedSeqPos;
+                  exploded.tAlignedSeq.Copy(ccsAlignedForwardRefSequence); 
+                  exploded.tAlignedSeqPos = (passDirection == 0)?
+                          (alignment->tAlignedSeqPos):
+                          (exploded.tLength - alignment->tAlignedSeqPos - alignment->tAlignedSeqLength);
                   exploded.tAlignedSeqLength = alignment->tAlignedSeqLength;
                   exploded.qAlignedSeq.ReferenceSubstring(subread);
                   exploded.qAlignedSeqPos = passStartBase;
@@ -3548,9 +3596,10 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
                   exploded.qName = string(ccsRead.unrolledRead.title) + namestrm.str();
                 
                   //
-                  // Assign the proper chromosome coordiantes.
+                  // Don't call AssignRefContigLocation as the coordinates
+                  // of the alignment is already relative to the chromosome coordiantes.
                   //
-                  AssignRefContigLocation(exploded, seqdb, genome);
+                  // AssignRefContigLocation(exploded, seqdb, genome);
 
                   //
                   // Save this alignment for printing later.
@@ -3558,13 +3607,11 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
                   T_AlignmentCandidate *alignmentPtr = new T_AlignmentCandidate;
                   *alignmentPtr = exploded;
                   allReadAlignments.AddAlignmentForSeq(subreadIndex, alignmentPtr);
-                }
-              }
-            }
-            else {
+                } // End of exploded score <= maxScore.
+              } // End of exploded.blocks.size() > 0.
+            } // The subread has the same pass direction as strand of ccs alignment.
+            else { // The subread has reverse pass direction as strand of ccs alignment.
               int pos = 0;
-
-
               T_AlignmentCandidate explodedrc;
               int explodedRCScore;
               bool computeProbIsFalse = false;
@@ -3575,13 +3622,16 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
                                             explodedrc,  
                                             Global, computeProbIsFalse, 4);
 
-
               int explodedrcscore = explodedrc.score;
               if (params.verbosity > 0) {
+                cout << "StickPrintAlignment subread-reference alignment which has" 
+                     << " different direction as the ccs-reference alignment. " 
+                     << " subreadId "<< subreadIndex
+                     << ", alignmentId " << alignmentIndex << endl;
                 cout << "subread: " << endl;
                 ((DNASequence) subread).PrintSeq(cout);
                 cout << endl;
-                cout << "ccsAlignedSequence " << endl;
+                cout << "ccsAlignedReverseRefSequence " << endl;
                 ((DNASequence) ccsAlignedReverseRefSequence).PrintSeq(cout);
                 StickPrintAlignment(explodedrc,
                                     (DNASequence&) subread,
@@ -3595,11 +3645,18 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
                 if (explodedrc.score <= params.maxScore) {
                   explodedrc.qStrand = 0;
                   explodedrc.tStrand = 1;
+                  //
+                  // The subread-reference alignment should have the opposite 
+                  // direction of the de_novo_ccs-reference alignment.
+                  //
                   explodedrc.qLength = ccsRead.unrolledRead.length;
                   explodedrc.tLength = alignment->tLength;
                   explodedrc.tAlignedSeq.Copy(ccsAlignedReverseRefSequence);
+
                   explodedrc.qAlignedSeq.ReferenceSubstring(subread);
-                  explodedrc.tAlignedSeqPos = genome.MakeRCCoordinate(alignment->tAlignedSeqPos + alignment->tAlignedSeqLength);
+                  explodedrc.tAlignedSeqPos = (passDirection == 0)?
+                          (alignment->tAlignedSeqPos):
+                          (explodedrc.tLength - alignment->tAlignedSeqPos - alignment->tAlignedSeqLength);
                   explodedrc.tAlignedSeqLength = alignment->tAlignedSeqLength;
                   explodedrc.qAlignedSeqPos = passStartBase;
                   explodedrc.mapQV = alignment->mapQV;
@@ -3609,19 +3666,23 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
                   namestrm << "/" << passStartBase << "_" << passStartBase + passNumBases;
                   explodedrc.qName = string(ccsRead.unrolledRead.title) + namestrm.str();
 
-                
-                  AssignRefContigLocation(explodedrc, seqdb, genome);
-                
+                  //
+                  // Don't call AssignRefContigLocation as the coordinates
+                  // of the alignment is already relative to the chromosom 
+                  // coordinates.
+                  // AssignRefContigLocation(explodedrc, seqdb, genome);
+                  //
+
                   T_AlignmentCandidate *alignmentPtr = new T_AlignmentCandidate;
                   *alignmentPtr = explodedrc;
                   allReadAlignments.AddAlignmentForSeq(subreadIndex, alignmentPtr);
-                }
-              }
-            }
-          }
-        }
-			}
-		}
+                } // End of explodedrc.score <= maxScore.
+              } // End of if (exploderc block size > 0).
+            } // The subread has the opposite pass direction as strand of the ccs alignment.
+          } // End of aligning a subread to where the de novo ccs has aligned to.
+        } // End of aligning all subreads to where the de novo ccs has aligned to
+      } // End of if readIsCCS.
+    } // End of if not (readIsCCS == false and params.mapSubreadsSeparately) 
 
     int subreadIndex;
     int nAlignedSubreads = allReadAlignments.GetNAlignedSeq();
@@ -3657,9 +3718,10 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
         
       if (allReadAlignments.subreadAlignments[subreadIndex].size() > 0) {
         int alnIndex;
-
-        PrintAlignments(allReadAlignments.subreadAlignments[subreadIndex], 
-//                        smrtRead, // the source read
+        vector<T_AlignmentCandidate*> selectedAlignmentPtrs =
+        SelectAlignmentsToPrint(allReadAlignments.subreadAlignments[subreadIndex], 
+                                params);
+        PrintAlignments(selectedAlignmentPtrs, 
                         allReadAlignments.subreads[subreadIndex], // the source read
                         // for these alignments
                         params, *mapData->outFilePtr,

@@ -42,6 +42,7 @@ class AlignmentSet {
           if (it == fastaRefToIndex.end()) {
               cout<<"Error, can not find reference name "<<references[i].sequenceName
                   <<" in the reference genome."<<endl;
+              exit(1);
           }
           newreferences[(*it).second] = references[i];
       }

@@ -121,17 +121,15 @@ FASTAReader(string &fileName) {
 	}
 
 	long ReadAllSequencesIntoOne(FASTASequence &seq, SequenceIndexDatabase<FASTASequence> *seqDBPtr=NULL) {
-
-    
 		long p = curPos;
 		AdvanceToTitleStart(p);
 		CheckValidTitleStart(p);
 		ReadTitle(p, seq.title, seq.titleLength);
-    if (seq.title == NULL) {
-      cout << "ERROR, sequence must have a nonempty title." << endl;
-      exit(1);
-    }
-		if (seqDBPtr != NULL) {
+        if (seq.title == NULL) {
+            cout << "ERROR, sequence must have a nonempty title." << endl;
+            exit(1);
+        }
+        if (seqDBPtr != NULL) {
 			seqDBPtr->growableName.push_back(seq.title);
 		}
 		long seqLength;
@@ -139,11 +137,11 @@ FASTAReader(string &fileName) {
 		long memorySize = seqLength+padding;
 
 		long a = memorySize;
-    if (memorySize > UINT_MAX) {
-      cout << "ERROR! Reading fasta files greater than 4Gbytes is not supported." << endl;
-      exit(1);
-    }
-		seq.Resize(memorySize);
+        if (memorySize > UINT_MAX) {
+            cout << "ERROR! Reading fasta files greater than 4Gbytes is not supported." << endl;
+            exit(1);
+        }
+        seq.Resize(memorySize);
 		long i;
 		i = 0L;
 		for (; p < fileSize; p++, i++ ) {
@@ -157,10 +155,10 @@ FASTAReader(string &fileName) {
 			//
 			
 			while (p < seqLength and
-						 (seq.seq[p] == ' ' or
-							seq.seq[p] == '\n' or 
-							seq.seq[p] == '\t' or
-							seq.seq[p] == '\r')) {
+				   (seq.seq[p] == ' ' or
+				    seq.seq[p] == '\n' or 
+					seq.seq[p] == '\t' or
+					seq.seq[p] == '\r')) {
 				p++;
 			}
 			if (p < seqLength and seq.seq[p] == '>') {
@@ -178,14 +176,14 @@ FASTAReader(string &fileName) {
           
 					seqDBPtr->growableName.push_back(title);
 					seqDBPtr->growableSeqStartPos.push_back(i);
-          int nSeq = seqDBPtr->growableSeqStartPos.size();
-          if (nSeq > 1 and computeMD5) {
-            string md5Str;
-            MakeMD5((const char*) &seq.seq[seqDBPtr->growableSeqStartPos[nSeq-2]],
-                    seqDBPtr->growableSeqStartPos[nSeq-1] - seqDBPtr->growableSeqStartPos[nSeq-2] - 1,
-                    md5Str);
-            seqDBPtr->md5.push_back(md5Str);
-          }
+                    int nSeq = seqDBPtr->growableSeqStartPos.size();
+                    if (nSeq > 1 and computeMD5) {
+                        string md5Str;
+                        MakeMD5((const char*) &seq.seq[seqDBPtr->growableSeqStartPos[nSeq-2]],
+                                seqDBPtr->growableSeqStartPos[nSeq-1] - seqDBPtr->growableSeqStartPos[nSeq-2] - 1,
+                                md5Str);
+                        seqDBPtr->md5.push_back(md5Str);
+                    }
 				}
 			}
 			else if (p < seqLength)  {
@@ -196,34 +194,34 @@ FASTAReader(string &fileName) {
 				p++;
 			}
 		}
-    if (i > UINT_MAX) {
-      cout << "ERROR! Sequences greater than 4Gbase are not supported." << endl;
-      exit(1);
-    }
-    //
-    // Append an 'N' at the end of the last sequence for consistency
-    // between different orderings of reference input. 
-    //
-    seq.seq[i] = 'N';
-    i++;
-		seq.length = i;
-		// fill padding.
-		for (; i < memorySize; i++ ){
-			seq.seq[i] = 0;
-		}
-		if (seqDBPtr != NULL) {
-			seqDBPtr->growableSeqStartPos.push_back(seq.length);
-      int nSeq = seqDBPtr->growableSeqStartPos.size();
-      if (nSeq > 1 and computeMD5) {
-        string md5Str;
-        MakeMD5((const char*) &seq.seq[seqDBPtr->growableSeqStartPos[nSeq-2]],
-                seqDBPtr->growableSeqStartPos[nSeq-1] - seqDBPtr->growableSeqStartPos[nSeq-2] - 1,
-                md5Str);
-        seqDBPtr->md5.push_back(md5Str);
-      }
-			seqDBPtr->Finalize();
-		}
-		return seq.length;
+        if (i > UINT_MAX) {
+            cout << "ERROR! Sequences greater than 4Gbase are not supported." << endl;
+            exit(1);
+        }
+        //
+        // Append an 'N' at the end of the last sequence for consistency
+        // between different orderings of reference input. 
+        //
+        seq.seq[i] = 'N';
+        i++;
+        seq.length = i;
+        // fill padding.
+        for (; i < memorySize; i++ ){
+            seq.seq[i] = 0;
+        }
+        if (seqDBPtr != NULL) {
+            seqDBPtr->growableSeqStartPos.push_back(seq.length);
+            int nSeq = seqDBPtr->growableSeqStartPos.size();
+            if (nSeq > 1 and computeMD5) {
+                string md5Str;
+                MakeMD5((const char*) &seq.seq[seqDBPtr->growableSeqStartPos[nSeq-2]],
+                        seqDBPtr->growableSeqStartPos[nSeq-1] - seqDBPtr->growableSeqStartPos[nSeq-2] - 1,
+                        md5Str);
+                seqDBPtr->md5.push_back(md5Str);
+            }
+            seqDBPtr->Finalize();
+        }
+        return seq.length;
 	}
 
 	void ReadTitle(long &p, char *&title, int &titleLength) {

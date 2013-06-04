@@ -83,3 +83,8 @@ Test Sam out nm tag
   NM:i:2
   NM:i:4
 
+Test -useccsall with bestn = 1
+  $ $EXEC $DATDIR/ccstest.fofn $DATDIR/ccstest_ref.fasta -bestn 1 -useccsall -sam -out $OUTDIR/useccsall.sam -holeNumbers 76772
+  $ tail -n+9 $OUTDIR/useccsall.sam | md5sum 
+  51468bb5674f1074e7b34f9499f06ed3  -
+
