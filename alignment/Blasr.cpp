@@ -437,7 +437,7 @@ void SetHelp(string &str) {
              << endl
              << " Alignment Output." << endl
              << "   -bestn n (10)" <<endl
-			 << "               Report the top 'n' alignments." << endl
+             << "               Report the top 'n' alignments." << endl
              << "   -sam        Write output in SAM format." << endl
              << "   -clipping [none|hard|soft] (none)" << endl
              << "               Use no/hard/soft clipping for SAM output."<< endl
@@ -513,9 +513,9 @@ void SetHelp(string &str) {
              << "               Keep up to 'n' candidates for the best alignment.  A large value of n will slow mapping" << endl
              << "               because the slower dynamic programming steps are applied to more clusters of anchors" <<endl
              << "               which can be a rate limiting step when reads are very long."<<endl
-//			 << "   -placeRandomly (false)" << endl
+//           << "   -placeRandomly (false)" << endl
 //           << "               When there are multiple positions to map a read with equal alignment scores, place the" << endl
-//			 << "               read randomly at one of them.  The default is to place the read at the first." <<endl
+//           << "               read randomly at one of them.  The default is to place the read at the first." <<endl
              << endl
              << "  Options for Refining Hits." << endl
 //             << "   -indelRate i (0.30)" << endl
@@ -655,7 +655,7 @@ void PrintDiscussion() {
        << "  limiting the number of positions a read maps to with the" << endl
        << "  -maxAnchorsPerPosition option.  Values between 500 and 1000 are effective" << endl
        << "  in the human genome." << endl
-	   << "  " << endl
+       << "  " << endl
        << "  For small genomes such as bacterial genomes or BACs, the default parameters " << endl
        << "  are sufficient for maximal sensitivity and good speed." << endl
        << endl << endl;
@@ -3676,30 +3676,30 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
     }
     
     allReadAlignments.Clear();
-		smrtReadRC.Free();
-		smrtRead.Free();
+    smrtReadRC.Free();
+    smrtRead.Free();
 
-		if (readIsCCS) {
-			ccsRead.Free();
+    if (readIsCCS) {
+      ccsRead.Free();
       unrolledReadRC.Free();
-		}
+    }
     numAligned++;
     if(numAligned % 100 == 0) {
       mappingBuffers.Reset();
     }
-	}
-	if (params.nProc > 1) {
+  }
+  if (params.nProc > 1) {
 #ifdef __APPLE__
-		sem_wait(semaphores.reader);
-		sem_post(semaphores.reader);
+    sem_wait(semaphores.reader);
+    sem_post(semaphores.reader);
 #else
-		sem_wait(&semaphores.reader);
-		sem_post(&semaphores.reader);
+    sem_wait(&semaphores.reader);
+    sem_post(&semaphores.reader);
 #endif
-	}
-	if (params.nProc > 1) {
-		pthread_exit(NULL); 
-	}
+  }
+  if (params.nProc > 1) {
+    pthread_exit(NULL); 
+  }
 }
 
 float ComputePMatch(float accuracy, int anchorLength) {
@@ -3732,171 +3732,171 @@ int ComputeExpectedWaitingBases(float mean, float variance, float certainty) {
 
 int main(int argc, char* argv[]) {
 
-	//
-	// Configure parameters for refining alignments.
-	//
-	MappingParameters params;
-	ReverseCompressIndex index;
-	pid_t parentPID;
-	pid_t *pids;
-	
-	CommandLineParser clp;
+  //
+  // Configure parameters for refining alignments.
+  //
+  MappingParameters params;
+  ReverseCompressIndex index;
+  pid_t parentPID;
+  pid_t *pids;
+  
+  CommandLineParser clp;
   string commandLine;
-	string helpString;
-	SetHelp(helpString);
+  string helpString;
+  SetHelp(helpString);
 
-	string conciseHelpString;
-	SetConciseHelp(conciseHelpString);
-	
-	stringstream usageSStrm;
-	usageSStrm << "   Basic usage: 'blasr reads.{fasta,bas.h5} genome.fasta [-options] " << endl
-						 << " [option]\tDescription (default_value)." << endl << endl
-						 << " Input Files." << endl
-						 << "   reads.fasta is a multi-fasta file of reads.  While any fasta file is valid input, " 
-						 "it is preferable to use pls.h5 or bas.h5 files because they contain "
-						 "more rich quality value information." << endl
-						 << "   reads.bas.h5|reads.pls.h5 Is the native output format in Hierarchical Data Format of "
-		"SMRT reads. This is the preferred input to blasr because rich quality"
-		"value (insertion,deletion, and substitution quality values) information is "
-		"maintained.  The extra quality information improves variant detection and mapping"<<
-		"speed." << endl << endl;
+  string conciseHelpString;
+  SetConciseHelp(conciseHelpString);
+  
+  stringstream usageSStrm;
+  usageSStrm << "   Basic usage: 'blasr reads.{fasta,bas.h5} genome.fasta [-options] " << endl
+             << " [option]\tDescription (default_value)." << endl << endl
+             << " Input Files." << endl
+             << "   reads.fasta is a multi-fasta file of reads.  While any fasta file is valid input, " 
+             "it is preferable to use pls.h5 or bas.h5 files because they contain "
+             "more rich quality value information." << endl
+             << "   reads.bas.h5|reads.pls.h5 Is the native output format in Hierarchical Data Format of "
+    "SMRT reads. This is the preferred input to blasr because rich quality"
+    "value (insertion,deletion, and substitution quality values) information is "
+    "maintained.  The extra quality information improves variant detection and mapping"<<
+    "speed." << endl << endl;
 
 
-	clp.SetHelp(helpString);
-	clp.SetConciseHelp(conciseHelpString);
-	clp.SetProgramSummary(usageSStrm.str());
-	clp.SetProgramName("blasr");
+  clp.SetHelp(helpString);
+  clp.SetConciseHelp(conciseHelpString);
+  clp.SetProgramSummary(usageSStrm.str());
+  clp.SetProgramName("blasr");
 
-	//
-	// Make the default arguments.
-	//
-	bool required=true;
-	bool optional=false;
-	int  trashbinInt;
-	float trashbinFloat;
+  //
+  // Make the default arguments.
+  //
+  bool required=true;
+  bool optional=false;
+  int  trashbinInt;
+  float trashbinFloat;
   bool trashbinBool;
-	//	clp.RegisterStringListOption("input_files", &params.readsFileNames, "Read files followed by genome.");
-	//	clp.RegisterPreviousFlagsAsHidden();
-	bool printVerboseHelp = false;
-	bool printLongHelp    = false;
-	clp.RegisterStringOption("sa", &params.suffixArrayFileName, "");
-	clp.RegisterStringOption("ctab", &params.countTableName, "" );
-	clp.RegisterStringOption("regionTable", &params.regionTableFileName, "");
-	clp.RegisterIntOption("bestn", (int*) &params.nBest, "", CommandLineParser::PositiveInteger);
+  //  clp.RegisterStringListOption("input_files", &params.readsFileNames, "Read files followed by genome.");
+  //  clp.RegisterPreviousFlagsAsHidden();
+  bool printVerboseHelp = false;
+  bool printLongHelp    = false;
+  clp.RegisterStringOption("sa", &params.suffixArrayFileName, "");
+  clp.RegisterStringOption("ctab", &params.countTableName, "" );
+  clp.RegisterStringOption("regionTable", &params.regionTableFileName, "");
+  clp.RegisterIntOption("bestn", (int*) &params.nBest, "", CommandLineParser::PositiveInteger);
   clp.RegisterIntOption("limsAlign", &params.limsAlign, "", CommandLineParser::PositiveInteger);
   clp.RegisterFlagOption("printOnlyBest", &params.printOnlyBest, "");
-	clp.RegisterFlagOption("outputByThread", &params.outputByThread, "");
-	clp.RegisterFlagOption("rbao", &params.refineBetweenAnchorsOnly, "");
+  clp.RegisterFlagOption("outputByThread", &params.outputByThread, "");
+  clp.RegisterFlagOption("rbao", &params.refineBetweenAnchorsOnly, "");
   clp.RegisterFlagOption("allowAdjacentIndels", &params.forPicard, "");
   clp.RegisterFlagOption("onegap", &params.separateGaps, "");
   clp.RegisterFlagOption("allowAdjacentIndels", &params.forPicard, "");
   clp.RegisterFlagOption("placeRandomly", &params.placeRandomly, "");
   clp.RegisterIntOption("randomSeed", &params.randomSeed, "", CommandLineParser::Integer);
-	clp.RegisterFlagOption("extend", &params.extendAlignments, "");
+  clp.RegisterFlagOption("extend", &params.extendAlignments, "");
   clp.RegisterIntOption("branchExpand", &params.anchorParameters.branchExpand, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterIntOption("maxExtendDropoff", &params.maxExtendDropoff, "", CommandLineParser::NonNegativeInteger);
-	clp.RegisterFlagOption("nucmer", &params.emulateNucmer, "");
-	clp.RegisterIntOption("maxExpand", &params.maxExpand, "", CommandLineParser::PositiveInteger);
-	clp.RegisterIntOption("minExpand", &params.minExpand, "", CommandLineParser::NonNegativeInteger);
-	clp.RegisterStringOption("seqdb",  &params.seqDBName, "");
-	clp.RegisterStringOption("anchors",  &params.anchorFileName, "");
+  clp.RegisterFlagOption("nucmer", &params.emulateNucmer, "");
+  clp.RegisterIntOption("maxExpand", &params.maxExpand, "", CommandLineParser::PositiveInteger);
+  clp.RegisterIntOption("minExpand", &params.minExpand, "", CommandLineParser::NonNegativeInteger);
+  clp.RegisterStringOption("seqdb",  &params.seqDBName, "");
+  clp.RegisterStringOption("anchors",  &params.anchorFileName, "");
   clp.RegisterStringOption("clusters", &params.clusterFileName, "");
   clp.RegisterFlagOption("samplePaths", (bool*) &params.samplePaths, "");
   clp.RegisterFlagOption("noStoreMapQV", &params.storeMapQV, "");
   clp.RegisterFlagOption("nowarp", (bool*) &params.nowarp, "");
-	clp.RegisterFlagOption("noRefineAlign", (bool*) &params.refineAlign, "");
-	clp.RegisterFlagOption("guidedAlign", (bool*)&params.useGuidedAlign, "");
+  clp.RegisterFlagOption("noRefineAlign", (bool*) &params.refineAlign, "");
+  clp.RegisterFlagOption("guidedAlign", (bool*)&params.useGuidedAlign, "");
   clp.RegisterFlagOption("useGuidedAlign", (bool*)&trashbinBool, "");
   clp.RegisterFlagOption("noUseGuidedAlign", (bool*)&params.useGuidedAlign, "");
   clp.RegisterFlagOption("header", (bool*)&params.printHeader, "");
   clp.RegisterIntOption("subreadImplType", &params.subreadMapType, "", CommandLineParser::PositiveInteger);
-	clp.RegisterIntOption("bandSize", &params.bandSize, "", CommandLineParser::PositiveInteger);	
-	clp.RegisterIntOption("extendBandSize", &params.extendBandSize, "", CommandLineParser::PositiveInteger);	
-	clp.RegisterIntOption("guidedAlignBandSize", &params.guidedAlignBandSize, "", CommandLineParser::PositiveInteger);	
-	clp.RegisterIntOption("maxAnchorsPerPosition", &params.anchorParameters.maxAnchorsPerPosition, "", CommandLineParser::PositiveInteger);
-	clp.RegisterIntOption("stopMappingOnceUnique", (int*) &params.anchorParameters.stopMappingOnceUnique, "", CommandLineParser::NonNegativeInteger);
-	clp.RegisterStringOption("out", &params.outFileName, "");
-	clp.RegisterIntOption("match", &params.match, "", CommandLineParser::Integer);
-	clp.RegisterIntOption("mismatch", &params.mismatch, "", CommandLineParser::Integer);
-	clp.RegisterIntOption("minMatch", &params.minMatchLength, "", CommandLineParser::PositiveInteger);
-	clp.RegisterIntOption("maxMatch", &params.anchorParameters.maxLCPLength, "", CommandLineParser::NonNegativeInteger);
-	clp.RegisterIntOption("maxLCPLength", &params.anchorParameters.maxLCPLength, "", CommandLineParser::NonNegativeInteger);
-	clp.RegisterIntOption("indel", &params.indel, "", CommandLineParser::Integer);
-	clp.RegisterIntOption("insertion", &params.insertion, "", CommandLineParser::Integer);
-	clp.RegisterIntOption("deletion", &params.deletion, "", CommandLineParser::Integer);
-	clp.RegisterIntOption("idsIndel", &params.idsIndel, "", CommandLineParser::Integer);
-	clp.RegisterIntOption("sdpindel", &params.sdpIndel, "", CommandLineParser::Integer);
-	clp.RegisterIntOption("sdpIns", &params.sdpIns, "", CommandLineParser::Integer);
-	clp.RegisterIntOption("sdpDel", &params.sdpDel, "", CommandLineParser::Integer);
-	clp.RegisterFloatOption("indelRate", &params.indelRate, "", CommandLineParser::NonNegativeFloat);
-	clp.RegisterFloatOption("minRatio", &params.minRatio, "", CommandLineParser::NonNegativeFloat); 
-	clp.RegisterFloatOption("sdpbypass", &params.sdpBypassThreshold, "", CommandLineParser::NonNegativeFloat);
-	clp.RegisterFloatOption("minFrac", &trashbinFloat, "", CommandLineParser::NonNegativeFloat);
-	clp.RegisterIntOption("maxScore", &params.maxScore, "", CommandLineParser::Integer);
-	clp.RegisterStringOption("bwt", &params.bwtFileName, "");
-	clp.RegisterIntOption("m", &params.printFormat, "", CommandLineParser::NonNegativeInteger);
+  clp.RegisterIntOption("bandSize", &params.bandSize, "", CommandLineParser::PositiveInteger);  
+  clp.RegisterIntOption("extendBandSize", &params.extendBandSize, "", CommandLineParser::PositiveInteger);  
+  clp.RegisterIntOption("guidedAlignBandSize", &params.guidedAlignBandSize, "", CommandLineParser::PositiveInteger);  
+  clp.RegisterIntOption("maxAnchorsPerPosition", &params.anchorParameters.maxAnchorsPerPosition, "", CommandLineParser::PositiveInteger);
+  clp.RegisterIntOption("stopMappingOnceUnique", (int*) &params.anchorParameters.stopMappingOnceUnique, "", CommandLineParser::NonNegativeInteger);
+  clp.RegisterStringOption("out", &params.outFileName, "");
+  clp.RegisterIntOption("match", &params.match, "", CommandLineParser::Integer);
+  clp.RegisterIntOption("mismatch", &params.mismatch, "", CommandLineParser::Integer);
+  clp.RegisterIntOption("minMatch", &params.minMatchLength, "", CommandLineParser::PositiveInteger);
+  clp.RegisterIntOption("maxMatch", &params.anchorParameters.maxLCPLength, "", CommandLineParser::NonNegativeInteger);
+  clp.RegisterIntOption("maxLCPLength", &params.anchorParameters.maxLCPLength, "", CommandLineParser::NonNegativeInteger);
+  clp.RegisterIntOption("indel", &params.indel, "", CommandLineParser::Integer);
+  clp.RegisterIntOption("insertion", &params.insertion, "", CommandLineParser::Integer);
+  clp.RegisterIntOption("deletion", &params.deletion, "", CommandLineParser::Integer);
+  clp.RegisterIntOption("idsIndel", &params.idsIndel, "", CommandLineParser::Integer);
+  clp.RegisterIntOption("sdpindel", &params.sdpIndel, "", CommandLineParser::Integer);
+  clp.RegisterIntOption("sdpIns", &params.sdpIns, "", CommandLineParser::Integer);
+  clp.RegisterIntOption("sdpDel", &params.sdpDel, "", CommandLineParser::Integer);
+  clp.RegisterFloatOption("indelRate", &params.indelRate, "", CommandLineParser::NonNegativeFloat);
+  clp.RegisterFloatOption("minRatio", &params.minRatio, "", CommandLineParser::NonNegativeFloat); 
+  clp.RegisterFloatOption("sdpbypass", &params.sdpBypassThreshold, "", CommandLineParser::NonNegativeFloat);
+  clp.RegisterFloatOption("minFrac", &trashbinFloat, "", CommandLineParser::NonNegativeFloat);
+  clp.RegisterIntOption("maxScore", &params.maxScore, "", CommandLineParser::Integer);
+  clp.RegisterStringOption("bwt", &params.bwtFileName, "");
+  clp.RegisterIntOption("m", &params.printFormat, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterFlagOption("sam", &params.printSAM, "");
   clp.RegisterStringOption("clipping", &params.clippingString, "");
-	clp.RegisterIntOption("sdpTupleSize", &params.sdpTupleSize, "", CommandLineParser::PositiveInteger);
-	clp.RegisterIntOption("pvaltype", &params.pValueType, "", CommandLineParser::NonNegativeInteger);
-	clp.RegisterIntOption("start", &params.startRead, "", CommandLineParser::NonNegativeInteger);
-	clp.RegisterIntOption("stride", &params.stride, "", CommandLineParser::NonNegativeInteger);
-	clp.RegisterFloatOption("subsample", &params.subsample, "", CommandLineParser::PositiveFloat);
-	clp.RegisterIntOption("nproc", &params.nProc, "", CommandLineParser::PositiveInteger);
-	clp.RegisterFlagOption("sortRefinedAlignments",(bool*) &params.sortRefinedAlignments, "");
-	clp.RegisterIntOption("quallc", &params.qualityLowerCaseThreshold, "", CommandLineParser::Integer);
-	clp.RegisterFlagOption("v", (bool*) &params.verbosity, "");
-	clp.RegisterIntOption("V", &params.verbosity, "Specify a level of verbosity.", CommandLineParser::NonNegativeInteger);
-	clp.RegisterIntOption("contextAlignLength", &params.anchorParameters.contextAlignLength, "", CommandLineParser::PositiveInteger);
-	clp.RegisterFlagOption("skipLookupTable", &params.anchorParameters.useLookupTable, "");
-	clp.RegisterStringOption("metrics", &params.metricsFileName, "");
-	clp.RegisterStringOption("lcpBounds", &params.lcpBoundsFileName, "");
+  clp.RegisterIntOption("sdpTupleSize", &params.sdpTupleSize, "", CommandLineParser::PositiveInteger);
+  clp.RegisterIntOption("pvaltype", &params.pValueType, "", CommandLineParser::NonNegativeInteger);
+  clp.RegisterIntOption("start", &params.startRead, "", CommandLineParser::NonNegativeInteger);
+  clp.RegisterIntOption("stride", &params.stride, "", CommandLineParser::NonNegativeInteger);
+  clp.RegisterFloatOption("subsample", &params.subsample, "", CommandLineParser::PositiveFloat);
+  clp.RegisterIntOption("nproc", &params.nProc, "", CommandLineParser::PositiveInteger);
+  clp.RegisterFlagOption("sortRefinedAlignments",(bool*) &params.sortRefinedAlignments, "");
+  clp.RegisterIntOption("quallc", &params.qualityLowerCaseThreshold, "", CommandLineParser::Integer);
+  clp.RegisterFlagOption("v", (bool*) &params.verbosity, "");
+  clp.RegisterIntOption("V", &params.verbosity, "Specify a level of verbosity.", CommandLineParser::NonNegativeInteger);
+  clp.RegisterIntOption("contextAlignLength", &params.anchorParameters.contextAlignLength, "", CommandLineParser::PositiveInteger);
+  clp.RegisterFlagOption("skipLookupTable", &params.anchorParameters.useLookupTable, "");
+  clp.RegisterStringOption("metrics", &params.metricsFileName, "");
+  clp.RegisterStringOption("lcpBounds", &params.lcpBoundsFileName, "");
   clp.RegisterStringOption("fullMetrics", &params.fullMetricsFileName, "");
-	clp.RegisterIntOption("nbranch", &params.anchorParameters.numBranches, "", CommandLineParser::NonNegativeInteger);
-	clp.RegisterFlagOption("divideByAdapter", &params.byAdapter, "");
-	clp.RegisterFlagOption("useQuality", &params.ignoreQualities, "");
-	clp.RegisterFlagOption("noFrontAlign", &params.extendFrontAlignment, "");
-	clp.RegisterIntOption("minReadLength", &params.minReadLength, "", CommandLineParser::NonNegativeInteger);
-	clp.RegisterIntOption("maxReadLength", &params.maxReadLength, "", CommandLineParser::NonNegativeInteger);
-	clp.RegisterIntOption("minSubreadLength", &params.minSubreadLength, "", CommandLineParser::NonNegativeInteger);
-	clp.RegisterIntOption("minAvgQual", &params.minAvgQual, "", CommandLineParser::Integer);
-	clp.RegisterFlagOption("advanceHalf", &params.advanceHalf, "");
-	clp.RegisterIntOption("advanceExactMatches", &params.anchorParameters.advanceExactMatches, "", CommandLineParser::NonNegativeInteger);
-	clp.RegisterFlagOption("unrollCcs", &params.unrollCcs, "");
-	clp.RegisterFlagOption("useccs", &params.useCcs, "");
-	clp.RegisterFlagOption("useccsdenovo", &params.useCcsOnly, "");
-	clp.RegisterFlagOption("useccsall", &params.useAllSubreadsInCcs, "");
+  clp.RegisterIntOption("nbranch", &params.anchorParameters.numBranches, "", CommandLineParser::NonNegativeInteger);
+  clp.RegisterFlagOption("divideByAdapter", &params.byAdapter, "");
+  clp.RegisterFlagOption("useQuality", &params.ignoreQualities, "");
+  clp.RegisterFlagOption("noFrontAlign", &params.extendFrontAlignment, "");
+  clp.RegisterIntOption("minReadLength", &params.minReadLength, "", CommandLineParser::NonNegativeInteger);
+  clp.RegisterIntOption("maxReadLength", &params.maxReadLength, "", CommandLineParser::NonNegativeInteger);
+  clp.RegisterIntOption("minSubreadLength", &params.minSubreadLength, "", CommandLineParser::NonNegativeInteger);
+  clp.RegisterIntOption("minAvgQual", &params.minAvgQual, "", CommandLineParser::Integer);
+  clp.RegisterFlagOption("advanceHalf", &params.advanceHalf, "");
+  clp.RegisterIntOption("advanceExactMatches", &params.anchorParameters.advanceExactMatches, "", CommandLineParser::NonNegativeInteger);
+  clp.RegisterFlagOption("unrollCcs", &params.unrollCcs, "");
+  clp.RegisterFlagOption("useccs", &params.useCcs, "");
+  clp.RegisterFlagOption("useccsdenovo", &params.useCcsOnly, "");
+  clp.RegisterFlagOption("useccsall", &params.useAllSubreadsInCcs, "");
   clp.RegisterFlagOption("extendDenovoCCSSubreads", &params.extendDenovoCCSSubreads, "");
-	clp.RegisterFlagOption("noRefineAlignments", &params.refineAlignments, "");
-	clp.RegisterFloatOption("minPctIdentity", &params.minPctIdentity, "", CommandLineParser::NonNegativeFloat);
-	clp.RegisterFloatOption("maxPctIdentity", &params.maxPctIdentity, "", CommandLineParser::NonNegativeFloat);
-	clp.RegisterIntOption("nCandidates", &params.nCandidates, "", CommandLineParser::NonNegativeInteger);
-	clp.RegisterFlagOption("useTemp", (bool*) &params.tempDirectory, "");
-	clp.RegisterFlagOption("noSplitSubreads", &params.mapSubreadsSeparately, "");
+  clp.RegisterFlagOption("noRefineAlignments", &params.refineAlignments, "");
+  clp.RegisterFloatOption("minPctIdentity", &params.minPctIdentity, "", CommandLineParser::NonNegativeFloat);
+  clp.RegisterFloatOption("maxPctIdentity", &params.maxPctIdentity, "", CommandLineParser::NonNegativeFloat);
+  clp.RegisterIntOption("nCandidates", &params.nCandidates, "", CommandLineParser::NonNegativeInteger);
+  clp.RegisterFlagOption("useTemp", (bool*) &params.tempDirectory, "");
+  clp.RegisterFlagOption("noSplitSubreads", &params.mapSubreadsSeparately, "");
   clp.RegisterIntOption("subreadMapType", &params.subreadMapType, "", CommandLineParser::NonNegativeInteger);
-	clp.RegisterStringOption("titleTable", &params.titleTableName, "");
-	clp.RegisterFlagOption("useSensitiveSearch", &params.doSensitiveSearch, "");
-	clp.RegisterFlagOption("ignoreRegions", &params.useRegionTable, "");
-	clp.RegisterFlagOption("ignoreHQRegions", &params.useHQRegionTable, "");
+  clp.RegisterStringOption("titleTable", &params.titleTableName, "");
+  clp.RegisterFlagOption("useSensitiveSearch", &params.doSensitiveSearch, "");
+  clp.RegisterFlagOption("ignoreRegions", &params.useRegionTable, "");
+  clp.RegisterFlagOption("ignoreHQRegions", &params.useHQRegionTable, "");
   clp.RegisterFlagOption("computeAlignProbability", &params.computeAlignProbability, "");
-	clp.RegisterStringOption("unaligned", &params.unalignedFileName, "");
+  clp.RegisterStringOption("unaligned", &params.unalignedFileName, "");
   clp.RegisterFlagOption("global", &params.doGlobalAlignment, "");
-	clp.RegisterIntOption("globalChainType", &params.globalChainType, "", CommandLineParser::NonNegativeInteger);
-	clp.RegisterFlagOption("noPrintSubreadTitle", (bool*) &params.printSubreadTitle, "");
-	clp.RegisterIntOption("saLookupTableLength", &params.lookupTableLength, "", CommandLineParser::PositiveInteger);
-	clp.RegisterFlagOption("useDetailedSDP", &params.detailedSDPAlignment, "");
-	clp.RegisterFlagOption("nouseDetailedSDP", &trashbinBool, "");
-	clp.RegisterIntOption("sdpFilterType", &params.sdpFilterType, "", CommandLineParser::NonNegativeInteger);
-	clp.RegisterIntOption("scoreType", &params.scoreType, "", CommandLineParser::NonNegativeInteger);
-	clp.RegisterFlagOption("help", &params.printDiscussion, "");
-	clp.RegisterFlagOption("h", &printVerboseHelp, "");
+  clp.RegisterIntOption("globalChainType", &params.globalChainType, "", CommandLineParser::NonNegativeInteger);
+  clp.RegisterFlagOption("noPrintSubreadTitle", (bool*) &params.printSubreadTitle, "");
+  clp.RegisterIntOption("saLookupTableLength", &params.lookupTableLength, "", CommandLineParser::PositiveInteger);
+  clp.RegisterFlagOption("useDetailedSDP", &params.detailedSDPAlignment, "");
+  clp.RegisterFlagOption("nouseDetailedSDP", &trashbinBool, "");
+  clp.RegisterIntOption("sdpFilterType", &params.sdpFilterType, "", CommandLineParser::NonNegativeInteger);
+  clp.RegisterIntOption("scoreType", &params.scoreType, "", CommandLineParser::NonNegativeInteger);
+  clp.RegisterFlagOption("help", &params.printDiscussion, "");
+  clp.RegisterFlagOption("h", &printVerboseHelp, "");
   clp.RegisterFloatOption("accuracyPrior",    &params.readAccuracyPrior, "", CommandLineParser::NonNegativeFloat);
   clp.RegisterIntOption("readIndex", &params.readIndex, "", CommandLineParser::NonNegativeInteger);
   // holeNumberRangesStr is a string of comma-delimited hole number ranges, such as '1,2,3,10-15'.
   // Blasr only analyzes reads whose hole numbers are in the specified hole number ranges. 
   clp.RegisterStringOption("holeNumbers", &params.holeNumberRangesStr, "");
   clp.RegisterIntOption("maxReadIndex", &params.maxReadIndex, "", CommandLineParser::NonNegativeInteger);
-	clp.RegisterFlagOption("version", (bool*)&params.printVersion, "");
+  clp.RegisterFlagOption("version", (bool*)&params.printVersion, "");
   clp.RegisterIntOption("substitutionPrior",  &params.substitutionPrior, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterIntOption("deletionPrior",  &params.globalDeletionPrior, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterIntOption("recurseOver", &params.recurseOver, "", CommandLineParser::NonNegativeInteger);
@@ -3907,7 +3907,7 @@ int main(int argc, char* argv[]) {
   clp.RegisterFlagOption("affineAlign", &params.affineAlign, "");
   clp.RegisterIntOption("affineExtend", &params.affineExtend, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterFlagOption("scaleMapQVByNClusters", &params.scaleMapQVByNumSignificantClusters, "", false);
-	clp.ParseCommandLine(argc, argv, params.readsFileNames);
+  clp.ParseCommandLine(argc, argv, params.readsFileNames);
   clp.CommandLineToString(argc, argv, commandLine);
 
   if (params.printVersion) {
@@ -3918,19 +3918,19 @@ int main(int argc, char* argv[]) {
   }
     
 
-	if (printVerboseHelp) {
-		cout << helpString << endl;
-		exit(0);
-	}
+  if (printVerboseHelp) {
+    cout << helpString << endl;
+    exit(0);
+  }
 
-	if (params.printDiscussion) {
-		PrintDiscussion();
-		exit(0);
-	}
-	if (argc < 3) {
-		cout << conciseHelpString;
-		exit(1);
-	}
+  if (params.printDiscussion) {
+    PrintDiscussion();
+    exit(0);
+  }
+  if (argc < 3) {
+    cout << conciseHelpString;
+    exit(1);
+  }
   
   int a, b;
   for (a = 0; a < 5; a++ ){
@@ -3963,17 +3963,17 @@ int main(int argc, char* argv[]) {
   
   FileOfFileNames::ExpandFileNameList(params.readsFileNames);
 
-	// The last reads file is the genome
-	if (params.readsFileNames.size() > 0) {
-		params.genomeFileName = params.readsFileNames[params.readsFileNames.size()-1];
-	}
+  // The last reads file is the genome
+  if (params.readsFileNames.size() > 0) {
+    params.genomeFileName = params.readsFileNames[params.readsFileNames.size()-1];
+  }
 
-	if (params.printDiscussion == true) {
-		PrintDiscussion();
-		exit(0);
-	}
-	params.MakeSane();
-	params.anchorParameters.verbosity = params.verbosity; 
+  if (params.printDiscussion == true) {
+    PrintDiscussion();
+    exit(0);
+  }
+  params.MakeSane();
+  params.anchorParameters.verbosity = params.verbosity; 
 
   //
   // The random number generator is used for subsampling for debugging
@@ -3998,18 +3998,18 @@ int main(int argc, char* argv[]) {
     metrics.SetStoreList();
   }
 
-	/*
-	 * If reading a separate region table, there is a 1-1 correspondence
-	 * between region table and bas file.
-	 */
-	if (params.readSeparateRegionTable) {
-		if (FileOfFileNames::IsFOFN(params.regionTableFileName)) {
-			FileOfFileNames::FOFNToList(params.regionTableFileName, params.regionTableFileNames);
-		}
-		else {
-			params.regionTableFileNames.push_back(params.regionTableFileName);
-		}
-	}
+  /*
+   * If reading a separate region table, there is a 1-1 correspondence
+   * between region table and bas file.
+   */
+  if (params.readSeparateRegionTable) {
+    if (FileOfFileNames::IsFOFN(params.regionTableFileName)) {
+      FileOfFileNames::FOFNToList(params.regionTableFileName, params.regionTableFileNames);
+    }
+    else {
+      params.regionTableFileNames.push_back(params.regionTableFileName);
+    }
+  }
 
   if (params.regionTableFileNames.size() != 0 and 
       params.regionTableFileNames.size() != params.readsFileNames.size() - 1) {
@@ -4017,148 +4017,148 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-	//	params.readsFileNames.pop_back();
-	if (params.readsFileNames.size() < 2) {
-		cout << "Error, you must provide at least one reads file and a genome file." <<endl;
-		exit(1);
-	}
+  //  params.readsFileNames.pop_back();
+  if (params.readsFileNames.size() < 2) {
+    cout << "Error, you must provide at least one reads file and a genome file." <<endl;
+    exit(1);
+  }
 
-	//  The input reads files must have file extensions.
-	for (int i = 0; i < params.readsFileNames.size()-1; i++) {
-		size_t dotPos = params.readsFileNames[i].find_last_of('.');
-		if (dotPos == string::npos) {
-			cout<<"ERROR, the input reads files must include file extensions."<<endl;
-			exit(1);
-		}
-	}
+  //  The input reads files must have file extensions.
+  for (int i = 0; i < params.readsFileNames.size()-1; i++) {
+    size_t dotPos = params.readsFileNames[i].find_last_of('.');
+    if (dotPos == string::npos) {
+      cout<<"ERROR, the input reads files must include file extensions."<<endl;
+      exit(1);
+    }
+  }
 
-	// -useQuality can not be used in combination with a fasta input
-	if (!params.ignoreQualities) {
-		for (int i = 0; i < params.readsFileNames.size()-1; i++) {
-			size_t dotPos = params.readsFileNames[i].find_last_of('.');
-			assert (dotPos != string::npos); //dotPos should have been checked above
-			string suffix = params.readsFileNames[i].substr(dotPos+1);
-			if (suffix == "fasta") {
-				cout<<"ERROR, you can not use -useQuality option when any of the input reads files are in multi-fasta format."<<endl; 
-				exit(1);
-			}
-		}
-	}
+  // -useQuality can not be used in combination with a fasta input
+  if (!params.ignoreQualities) {
+    for (int i = 0; i < params.readsFileNames.size()-1; i++) {
+      size_t dotPos = params.readsFileNames[i].find_last_of('.');
+      assert (dotPos != string::npos); //dotPos should have been checked above
+      string suffix = params.readsFileNames[i].substr(dotPos+1);
+      if (suffix == "fasta") {
+        cout<<"ERROR, you can not use -useQuality option when any of the input reads files are in multi-fasta format."<<endl; 
+        exit(1);
+      }
+    }
+  }
 
-	if (params.nProc > 1 and params.outFileName == "") {
-		cout << "ERROR: You must explicitly specify an output file name with the option -out "<<endl
-				 << "when aligning in parallel mode. "<<endl;
-		exit(1);
-	}
+  if (params.nProc > 1 and params.outFileName == "") {
+    cout << "ERROR: You must explicitly specify an output file name with the option -out "<<endl
+         << "when aligning in parallel mode. "<<endl;
+    exit(1);
+  }
 
-	parentPID = getpid();
+  parentPID = getpid();
 
 
-	SequenceIndexDatabase<FASTASequence> seqdb;
-	SeqBoundaryFtr<FASTASequence> seqBoundary(&seqdb);
+  SequenceIndexDatabase<FASTASequence> seqdb;
+  SeqBoundaryFtr<FASTASequence> seqBoundary(&seqdb);
 
-	//
-	// Initialize the sequence index database if it used. If it is not
-	// specified, it is initialized by default when reading a multiFASTA
-	// file.
-	//
-	if (params.useSeqDB) {
-		ifstream seqdbin;
-		CrucialOpen(params.seqDBName, seqdbin);
-		seqdb.ReadDatabase(seqdbin);
-	}
+  //
+  // Initialize the sequence index database if it used. If it is not
+  // specified, it is initialized by default when reading a multiFASTA
+  // file.
+  //
+  if (params.useSeqDB) {
+    ifstream seqdbin;
+    CrucialOpen(params.seqDBName, seqdbin);
+    seqdb.ReadDatabase(seqdbin);
+  }
 
-	//
-	// Make sure the reads file exists and can be opened before
-	// trying to read any of the larger data structures.
-	//
-	
+  //
+  // Make sure the reads file exists and can be opened before
+  // trying to read any of the larger data structures.
+  //
+  
 
-	FASTASequence   fastaGenome;
-	T_Sequence      genome;
-	FASTAReader     genomeReader;
+  FASTASequence   fastaGenome;
+  T_Sequence      genome;
+  FASTAReader     genomeReader;
 
-	// 
-	// The genome is in normal FASTA, or condensed (lossy homopolymer->unipolymer) 
-	// format.  Both may be read in using a FASTA reader.
-	//
-	if (!genomeReader.Init(params.genomeFileName)) {
-		cout << "Could not open genome file " << params.genomeFileName << endl;
-		exit(1);
-	}
+  // 
+  // The genome is in normal FASTA, or condensed (lossy homopolymer->unipolymer) 
+  // format.  Both may be read in using a FASTA reader.
+  //
+  if (!genomeReader.Init(params.genomeFileName)) {
+    cout << "Could not open genome file " << params.genomeFileName << endl;
+    exit(1);
+  }
 
   if (params.printSAM) {
     genomeReader.computeMD5 = true;
   }
-	//
-	// If no sequence title database is supplied, initialize one when
-	// reading in the reference, and consider a seqdb to be present.
-	//
-	if (!params.useSeqDB) {
-		genomeReader.ReadAllSequencesIntoOne(fastaGenome, &seqdb);
-		params.useSeqDB = true;
-	}
-	else {
-		genomeReader.ReadAllSequencesIntoOne(fastaGenome);
-	}
-	genomeReader.Close();
-	//
-	// The genome may have extra spaces in the fasta name. Get rid of those.
-	//
-	VectorIndex t;
-	for (t = 0; t < fastaGenome.titleLength; t++ ){
-		if (fastaGenome.title[t] == ' ') {
-			fastaGenome.titleLength = t;
-			fastaGenome.title[t] = '\0';
-			break;
-		}
-	}
-	genome.seq = fastaGenome.seq;
-	genome.length = fastaGenome.length;
-	genome.title = fastaGenome.title;
-	genome.titleLength = fastaGenome.titleLength;
-	genome.ToUpper();
+  //
+  // If no sequence title database is supplied, initialize one when
+  // reading in the reference, and consider a seqdb to be present.
+  //
+  if (!params.useSeqDB) {
+    genomeReader.ReadAllSequencesIntoOne(fastaGenome, &seqdb);
+    params.useSeqDB = true;
+  }
+  else {
+    genomeReader.ReadAllSequencesIntoOne(fastaGenome);
+  }
+  genomeReader.Close();
+  //
+  // The genome may have extra spaces in the fasta name. Get rid of those.
+  //
+  VectorIndex t;
+  for (t = 0; t < fastaGenome.titleLength; t++ ){
+    if (fastaGenome.title[t] == ' ') {
+      fastaGenome.titleLength = t;
+      fastaGenome.title[t] = '\0';
+      break;
+    }
+  }
+  genome.seq = fastaGenome.seq;
+  genome.length = fastaGenome.length;
+  genome.title = fastaGenome.title;
+  genome.titleLength = fastaGenome.titleLength;
+  genome.ToUpper();
 
 
-	DNASuffixArray sarray;
-	TupleCountTable<T_GenomeSequence, DNATuple> ct;
+  DNASuffixArray sarray;
+  TupleCountTable<T_GenomeSequence, DNATuple> ct;
 
-	int listTupleSize;
-	
-	ofstream outFile;
+  int listTupleSize;
+  
+  ofstream outFile;
   outFile.exceptions(ostream::failbit);
-	ofstream unalignedOutFile;
-	BWT bwt;
-	
-	if (params.useBwt) {
-		if (bwt.Read(params.bwtFileName) == 0) {
-			cout << "ERROR! Could not read the BWT file. " << params.bwtFileName << endl;
-			exit(1);
-		}
-	}
-	else {
-		if (!params.useSuffixArray) {
-			//
-			// There was no explicit specification of a suffix
-			// array on the command line, so build it on the fly here.
-			//
-			genome.ToThreeBit();		
-			vector<int> alphabet;
-			sarray.InitThreeBitDNAAlphabet(alphabet);
-			sarray.LarssonBuildSuffixArray(genome.seq, genome.length, alphabet);
-			if (params.minMatchLength > 0) {
-				if (params.anchorParameters.useLookupTable == true) {
+  ofstream unalignedOutFile;
+  BWT bwt;
+  
+  if (params.useBwt) {
+    if (bwt.Read(params.bwtFileName) == 0) {
+      cout << "ERROR! Could not read the BWT file. " << params.bwtFileName << endl;
+      exit(1);
+    }
+  }
+  else {
+    if (!params.useSuffixArray) {
+      //
+      // There was no explicit specification of a suffix
+      // array on the command line, so build it on the fly here.
+      //
+      genome.ToThreeBit();    
+      vector<int> alphabet;
+      sarray.InitThreeBitDNAAlphabet(alphabet);
+      sarray.LarssonBuildSuffixArray(genome.seq, genome.length, alphabet);
+      if (params.minMatchLength > 0) {
+        if (params.anchorParameters.useLookupTable == true) {
           if (params.lookupTableLength > params.minMatchLength) {
             params.lookupTableLength = params.minMatchLength;
           }
-					sarray.BuildLookupTable(genome.seq, genome.length, params.lookupTableLength);
-				}
-			}
-			genome.ConvertThreeBitToAscii();
-			params.useSuffixArray = 1;
+          sarray.BuildLookupTable(genome.seq, genome.length, params.lookupTableLength);
+        }
+      }
+      genome.ConvertThreeBitToAscii();
+      params.useSuffixArray = 1;
     }
-		else if (params.useSuffixArray) {
-			if (sarray.Read(params.suffixArrayFileName)) {
+    else if (params.useSuffixArray) {
+      if (sarray.Read(params.suffixArrayFileName)) {
         if (params.minMatchLength != 0) {
           params.listTupleSize = min(8, params.minMatchLength);
         }
@@ -4175,77 +4175,77 @@ int main(int argc, char* argv[]) {
              << " Make sure it is generated with the latest version of sawriter." << endl;
         exit(1);
       }
-		}
-	}
-	
+    }
+  }
+  
   if (params.minMatchLength < sarray.lookupPrefixLength) {
     cerr << "WARNING. The value of -minMatch " << params.minMatchLength << " is less than the smallest searched length of " << sarray.lookupPrefixLength << ".  Setting -minMatch to " << sarray.lookupPrefixLength << "." << endl;
     params.minMatchLength = sarray.lookupPrefixLength;
   }
 
-	//
-	// It is required to have a tuple count table
-	// for estimating the background frequencies
-	// for word matching. 
-	// If one is specified on the command line, simply read
-	// it in.  If not, this is operating under the mode 
-	// that everything is computed from scratch.
-	//
+  //
+  // It is required to have a tuple count table
+  // for estimating the background frequencies
+  // for word matching. 
+  // If one is specified on the command line, simply read
+  // it in.  If not, this is operating under the mode 
+  // that everything is computed from scratch.
+  //
   long l;
   TupleMetrics saLookupTupleMetrics;
-	if (params.useCountTable) {
-		ifstream ctIn;
-		CrucialOpen(params.countTableName, ctIn, std::ios::in | std::ios::binary);
-		ct.Read(ctIn);
-		saLookupTupleMetrics = ct.tm;
+  if (params.useCountTable) {
+    ifstream ctIn;
+    CrucialOpen(params.countTableName, ctIn, std::ios::in | std::ios::binary);
+    ct.Read(ctIn);
+    saLookupTupleMetrics = ct.tm;
 
-	} else {
-		saLookupTupleMetrics.Initialize(params.lookupTableLength);
-		ct.InitCountTable(saLookupTupleMetrics);
-		ct.AddSequenceTupleCountsLR(genome);
-	}
-	TitleTable titleTable;
+  } else {
+    saLookupTupleMetrics.Initialize(params.lookupTableLength);
+    ct.InitCountTable(saLookupTupleMetrics);
+    ct.AddSequenceTupleCountsLR(genome);
+  }
+  TitleTable titleTable;
 
-	if (params.useTitleTable) {
-		ofstream titleTableOut;
-		CrucialOpen(params.titleTableName, titleTableOut);
-		//
-		// When using a sequence index database, the title table is simply copied 
-		// from the sequencedb. 
-		//
-		if (params.useSeqDB) {
-			titleTable.Copy(seqdb.names, seqdb.nSeqPos-1);
-			titleTable.ResetTableToIntegers(seqdb.names, seqdb.nameLengths, seqdb.nSeqPos-1);
-		}
-		else {
-			//
-			// No seqdb, so there is just one sequence. Still the user specified a title
-			// table, so just the first sequence in the fasta file should be used. 
-			//
-			titleTable.Copy(&fastaGenome.title, 1);
-			titleTable.ResetTableToIntegers(&genome.title, &genome.titleLength, 1);
-			fastaGenome.titleLength = strlen(genome.title);
-		}
-		titleTable.Write(titleTableOut);
-	}
-	else {
-		if (params.useSeqDB) {
-			//
-			// When using a sequence index database, but not the titleTable,
-			// it is necessary to truncate the titles at the first space to
-			// be compatible with the way other alignment programs interpret
-			// fasta titles.  When printing the title table, there is all
-			// sorts of extra storage space, so the full line is stored.
-			//
-			seqdb.SequenceTitleLinesToNames();
-		}
-	}
+  if (params.useTitleTable) {
+    ofstream titleTableOut;
+    CrucialOpen(params.titleTableName, titleTableOut);
+    //
+    // When using a sequence index database, the title table is simply copied 
+    // from the sequencedb. 
+    //
+    if (params.useSeqDB) {
+      titleTable.Copy(seqdb.names, seqdb.nSeqPos-1);
+      titleTable.ResetTableToIntegers(seqdb.names, seqdb.nameLengths, seqdb.nSeqPos-1);
+    }
+    else {
+      //
+      // No seqdb, so there is just one sequence. Still the user specified a title
+      // table, so just the first sequence in the fasta file should be used. 
+      //
+      titleTable.Copy(&fastaGenome.title, 1);
+      titleTable.ResetTableToIntegers(&genome.title, &genome.titleLength, 1);
+      fastaGenome.titleLength = strlen(genome.title);
+    }
+    titleTable.Write(titleTableOut);
+  }
+  else {
+    if (params.useSeqDB) {
+      //
+      // When using a sequence index database, but not the titleTable,
+      // it is necessary to truncate the titles at the first space to
+      // be compatible with the way other alignment programs interpret
+      // fasta titles.  When printing the title table, there is all
+      // sorts of extra storage space, so the full line is stored.
+      //
+      seqdb.SequenceTitleLinesToNames();
+    }
+  }
 
-	ostream  *outFilePtr = &cout;
-	ofstream outFileStrm;
-	ofstream unalignedFile;
-	ostream *unalignedFilePtr = NULL;
-	ofstream metricsOut, lcpBoundsOut;
+  ostream  *outFilePtr = &cout;
+  ofstream outFileStrm;
+  ofstream unalignedFile;
+  ostream *unalignedFilePtr = NULL;
+  ofstream metricsOut, lcpBoundsOut;
   ofstream anchorFileStrm;
   ofstream clusterOut, *clusterOutPtr;
  
@@ -4262,10 +4262,10 @@ int main(int argc, char* argv[]) {
     clusterOutPtr = NULL;
   }
 
-	if (params.outFileName != "") {
-		CrucialOpen(params.outFileName, outFileStrm, std::ios::out);
-		outFilePtr = &outFileStrm;
-	}
+  if (params.outFileName != "") {
+    CrucialOpen(params.outFileName, outFileStrm, std::ios::out);
+    outFilePtr = &outFileStrm;
+  }
 
   if (params.printHeader) {
     switch(params.printFormat) {
@@ -4278,65 +4278,65 @@ int main(int argc, char* argv[]) {
     }
   }
 
-	if (params.printUnaligned == true) {
-		CrucialOpen(params.unalignedFileName, unalignedFile, std::ios::out);
-		unalignedFilePtr = &unalignedFile;
-	}
-	
-	if (params.metricsFileName != "") {
-		CrucialOpen(params.metricsFileName, metricsOut);
-	}
+  if (params.printUnaligned == true) {
+    CrucialOpen(params.unalignedFileName, unalignedFile, std::ios::out);
+    unalignedFilePtr = &unalignedFile;
+  }
+  
+  if (params.metricsFileName != "") {
+    CrucialOpen(params.metricsFileName, metricsOut);
+  }
 
   if (params.lcpBoundsFileName != "") {
     CrucialOpen(params.lcpBoundsFileName, lcpBoundsOut);
     //    lcpBoundsOut << "pos depth width lnwidth" << endl;
   }
-	
-	//
-	// Configure the mapping database.
-	//
+  
+  //
+  // Configure the mapping database.
+  //
 
-	MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapdb = new MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple>[params.nProc];
+  MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapdb = new MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple>[params.nProc];
 
-	int procIndex;
-	pthread_attr_t *threadAttr = new pthread_attr_t[params.nProc];
-	//  MappingSemaphores semaphores;
-	//
-	// When there are multiple processes running along, sometimes there
-	// are semaphores to worry about.
-	//
+  int procIndex;
+  pthread_attr_t *threadAttr = new pthread_attr_t[params.nProc];
+  //  MappingSemaphores semaphores;
+  //
+  // When there are multiple processes running along, sometimes there
+  // are semaphores to worry about.
+  //
 
-	if (params.nProc > 1) {
-		semaphores.InitializeAll();
-	}
-	for (procIndex = 0; procIndex < params.nProc; procIndex++ ){
-		pthread_attr_init(&threadAttr[procIndex]);
-	}
+  if (params.nProc > 1) {
+    semaphores.InitializeAll();
+  }
+  for (procIndex = 0; procIndex < params.nProc; procIndex++ ){
+    pthread_attr_init(&threadAttr[procIndex]);
+  }
 
-	//
-	// Start the mapping jobs.
-	//
-	int readsFileIndex = 0;
-	if (params.subsample < 1) {
-		InitializeRandomGeneratorWithTime();
-		reader = new ReaderAgglomerate(params.subsample);
-	}
-	else {
-		reader = new ReaderAgglomerate(params.startRead, params.stride);
-	}
+  //
+  // Start the mapping jobs.
+  //
+  int readsFileIndex = 0;
+  if (params.subsample < 1) {
+    InitializeRandomGeneratorWithTime();
+    reader = new ReaderAgglomerate(params.subsample);
+  }
+  else {
+    reader = new ReaderAgglomerate(params.startRead, params.stride);
+  }
   //  In case the input is fasta, make all bases in upper case.
   reader->SetToUpper();
 
 
-	regionTableReader = new HDFRegionTableReader;
-	RegionTable regionTable;
+  regionTableReader = new HDFRegionTableReader;
+  RegionTable regionTable;
   //
   // Store lists of how long it took to map each read.
   //
   metrics.clocks.SetStoreList(true);
-	if (params.useCcs) {
-		reader->UseCCS();
-	}
+  if (params.useCcs) {
+    reader->UseCCS();
+  }
 
   
   if (params.printSAM) {
@@ -4362,61 +4362,61 @@ int main(int argc, char* argv[]) {
     *outFilePtr << pgString << endl;
   }
 
-	
-	for (readsFileIndex = 0; readsFileIndex < params.readsFileNames.size()-1; readsFileIndex++ ){ 
-		params.readsFileIndex = readsFileIndex;
+  
+  for (readsFileIndex = 0; readsFileIndex < params.readsFileNames.size()-1; readsFileIndex++ ){ 
+    params.readsFileIndex = readsFileIndex;
 
-		//
-		// Configure the reader to use the correct read and region
-		// file names.
-		// 
-		reader->SetReadFileName(params.readsFileNames[params.readsFileIndex]);
+    //
+    // Configure the reader to use the correct read and region
+    // file names.
+    // 
+    reader->SetReadFileName(params.readsFileNames[params.readsFileIndex]);
 
-		//
-		// Initialize using already set file names.
-		//
-		int initReturnValue = reader->Initialize();		
+    //
+    // Initialize using already set file names.
+    //
+    int initReturnValue = reader->Initialize();    
     string changeListIdString;
     reader->hdfBasReader.GetChangeListID(changeListIdString);
     ChangeListID changeListId(changeListIdString);
     params.qvScaleType = DetermineQVScaleFromChangeListID(changeListId);
-		if (reader->FileHasZMWInformation() and params.useRegionTable) {
-			if (params.readSeparateRegionTable) {
-				if (regionTableReader->Initialize(params.regionTableFileNames[params.readsFileIndex]) == 0) {
-					cout << "ERROR! Could not read the region table " << params.regionTableFileNames[params.readsFileIndex] <<endl;
-					exit(1);
-				}
-				params.useRegionTable = true;
-			}
-			else {
-				if (reader->HasRegionTable()) {
-					if (regionTableReader->Initialize(params.readsFileNames[params.readsFileIndex]) == 0) {
-						cout << "ERROR! Could not read the region table " << params.readsFileNames[params.readsFileIndex] <<endl;
-						exit(1);
-					}
-					params.useRegionTable = true;
-				}
-				else {
-					params.useRegionTable = false;
-				}
-			}
-		}
-		else {
-			params.useRegionTable = false;
-		}
+    if (reader->FileHasZMWInformation() and params.useRegionTable) {
+      if (params.readSeparateRegionTable) {
+        if (regionTableReader->Initialize(params.regionTableFileNames[params.readsFileIndex]) == 0) {
+          cout << "ERROR! Could not read the region table " << params.regionTableFileNames[params.readsFileIndex] <<endl;
+          exit(1);
+        }
+        params.useRegionTable = true;
+      }
+      else {
+        if (reader->HasRegionTable()) {
+          if (regionTableReader->Initialize(params.readsFileNames[params.readsFileIndex]) == 0) {
+            cout << "ERROR! Could not read the region table " << params.readsFileNames[params.readsFileIndex] <<endl;
+            exit(1);
+          }
+          params.useRegionTable = true;
+        }
+        else {
+          params.useRegionTable = false;
+        }
+      }
+    }
+    else {
+      params.useRegionTable = false;
+    }
 
-		/*
-		 * Check to see if there is a region table. If there is a separate
-		 * region table, use that (over the region table in the bas
-		 * file).  If there is a region table in the bas file, use that,
-		 * without having to specify a region table on the command line. 
-		 */
-		if (params.useRegionTable) {
-			regionTable.Reset();
-			regionTableReader->ReadTable(regionTable);
-			regionTableReader->Close();
-			regionTable.SortTableByHoleNumber();
-		}
+    /*
+     * Check to see if there is a region table. If there is a separate
+     * region table, use that (over the region table in the bas
+     * file).  If there is a region table in the bas file, use that,
+     * without having to specify a region table on the command line. 
+     */
+    if (params.useRegionTable) {
+      regionTable.Reset();
+      regionTableReader->ReadTable(regionTable);
+      regionTableReader->Close();
+      regionTable.SortTableByHoleNumber();
+    }
 
 #ifdef USE_GOOGLE_PROFILER
     char *profileFileName = getenv("CPUPROFILE");
@@ -4428,11 +4428,11 @@ int main(int argc, char* argv[]) {
     }
 #endif
 
-		if (initReturnValue > 0) {
-			if (params.nProc == 1) {
-				mapdb[0].Initialize(&sarray, &genome, &seqdb, &ct, &index, params, reader, &regionTable, 
+    if (initReturnValue > 0) {
+      if (params.nProc == 1) {
+        mapdb[0].Initialize(&sarray, &genome, &seqdb, &ct, &index, params, reader, &regionTable, 
                             outFilePtr, unalignedFilePtr, &anchorFileStrm, clusterOutPtr);
-				mapdb[0].bwtPtr = &bwt;
+        mapdb[0].bwtPtr = &bwt;
         if (params.fullMetricsFileName != "") {
           mapdb[0].metrics.SetStoreList(true);
         }
@@ -4443,19 +4443,19 @@ int main(int argc, char* argv[]) {
           mapdb[0].lcpBoundsOutPtr = NULL;
         }
 
-				MapReads(&mapdb[0]);
-				metrics.Collect(mapdb[0].metrics);
-			}
-			else {
-				pthread_t *threads = new pthread_t[params.nProc];
-				for (procIndex = 0; procIndex < params.nProc; procIndex++ ){ 
-					//
-					// Initialize thread-specific parameters.
-					//
+        MapReads(&mapdb[0]);
+        metrics.Collect(mapdb[0].metrics);
+      }
+      else {
+        pthread_t *threads = new pthread_t[params.nProc];
+        for (procIndex = 0; procIndex < params.nProc; procIndex++ ){ 
+          //
+          // Initialize thread-specific parameters.
+          //
             
-					mapdb[procIndex].Initialize(&sarray, &genome, &seqdb, &ct, &index, params, reader, &regionTable, 
+          mapdb[procIndex].Initialize(&sarray, &genome, &seqdb, &ct, &index, params, reader, &regionTable, 
                                       outFilePtr, unalignedFilePtr, &anchorFileStrm, clusterOutPtr);
-					mapdb[procIndex].bwtPtr      = &bwt;
+          mapdb[procIndex].bwtPtr      = &bwt;
           if (params.fullMetricsFileName != "") {
             mapdb[procIndex].metrics.SetStoreList(true);
           }
@@ -4474,45 +4474,45 @@ int main(int argc, char* argv[]) {
             mapdb[procIndex].params.outFileName = outNameStream.str();
             CrucialOpen(mapdb[procIndex].params.outFileName, *outPtr, std::ios::out);
           }
-					pthread_create(&threads[procIndex], &threadAttr[procIndex], (void* (*)(void*))MapReads, &mapdb[procIndex]);
-				}
-				for (procIndex = 0; procIndex < params.nProc; procIndex++) {
-					pthread_join(threads[procIndex], NULL);
-				}
-				for (procIndex = 0; procIndex < params.nProc; procIndex++) {
-					metrics.Collect(mapdb[procIndex].metrics);
+          pthread_create(&threads[procIndex], &threadAttr[procIndex], (void* (*)(void*))MapReads, &mapdb[procIndex]);
+        }
+        for (procIndex = 0; procIndex < params.nProc; procIndex++) {
+          pthread_join(threads[procIndex], NULL);
+        }
+        for (procIndex = 0; procIndex < params.nProc; procIndex++) {
+          metrics.Collect(mapdb[procIndex].metrics);
           if (params.outputByThread) {
             delete mapdb[procIndex].outFilePtr;
           }
-				}
-			}
-		}
-		reader->Close();
-	}
+        }
+      }
+    }
+    reader->Close();
+  }
   
   delete reader;
 
-	fastaGenome.Free();
+  fastaGenome.Free();
 #ifdef USE_GOOGLE_PROFILER
   ProfilerStop();
 #endif
 
-	if (mapdb != NULL) {
-		delete[] mapdb;
-	}
-	if (threadAttr != NULL) {
-		delete[] threadAttr;
-	}
-	seqdb.FreeDatabase();
-	delete regionTableReader;
-	if (params.metricsFileName != "") {
-		metrics.PrintSummary(metricsOut);
-	}
+  if (mapdb != NULL) {
+    delete[] mapdb;
+  }
+  if (threadAttr != NULL) {
+    delete[] threadAttr;
+  }
+  seqdb.FreeDatabase();
+  delete regionTableReader;
+  if (params.metricsFileName != "") {
+    metrics.PrintSummary(metricsOut);
+  }
   if (params.fullMetricsFileName != "") {
     metrics.PrintFullList(fullMetricsFile);
   }
-	if (params.outFileName != "") {
-		outFileStrm.close();
-	}
-	return 0;
+  if (params.outFileName != "") {
+    outFileStrm.close();
+  }
+  return 0;
 }
