@@ -3493,7 +3493,6 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
           allReadAlignments.SetSequence(subreadIndex, ccsRead.unrolledRead);
 
           int alignmentIndex;
-          
           //
           // Align all subreads to the positions that the de novo
           // sequence has aligned to.
@@ -3524,161 +3523,84 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
             idsScoreFn.globalDeletionPrior = params.globalDeletionPrior;
             idsScoreFn.substitutionPrior   = params.substitutionPrior;
 
-            DistanceMatrixScoreFunction<DNASequence, FASTQSequence> distScoreFn;
-            distScoreFn.del = params.deletion;
-            distScoreFn.ins = params.insertion;
-            distScoreFn.InitializeScoreMatrix(SMRTDistanceMatrix);
-          
-            /*
-             * Determine the strand to align the subread strand to.
-             */
-            if (alignment->tStrand == passDirection) {
-              //
-              // The alignment is in the same direction as the subread.  Easy.
-              //
-              T_AlignmentCandidate exploded;
-              int explodedScore;
-              bool computeProbIsFalse = false; 
-              // need to make this more compact...
-              explodedScore = GuidedAlign(subread, ccsAlignedForwardRefSequence,
-                                          idsScoreFn, 12,
-                                          params.sdpIns, params.sdpDel, params.indelRate,
-                                          mappingBuffers,
-                                          exploded,  
-                                          // Use a small tuple size
-                                          Local, computeProbIsFalse, 6);
+            //
+            // Determine the strand to align the subread strand to.
+            //
+            T_AlignmentCandidate exploded;
+            bool sameAlignmentPassDirection = (alignment->tStrand == passDirection);
+            bool computeProbIsFalse = false;
+            DNASequence & ccsAlignedRefSequence = (sameAlignmentPassDirection?
+                ccsAlignedForwardRefSequence:ccsAlignedReverseRefSequence);
+            //
+            // In the previous code, different parameters bandSize=10,
+            // alignType=Global, sdpTupleSize=4 (instead of 12, Local and 6) 
+            // were used for different alignment & pass direction. In fact, 
+            // the same parameters should be used for both.
+            //
+            int explodedScore = GuidedAlign(subread, ccsAlignedRefSequence,
+                idsScoreFn, 12, params.sdpIns, params.sdpDel, 
+                params.indelRate, mappingBuffers, exploded,
+                Local, computeProbIsFalse, 6);
 
-              if (params.verbosity > 0) {
-                  cout << "StickPrintAlignment subread-reference alignment which has" 
-                       << " the same direction as the ccs-reference alignment. " 
-                       << " subreadId "<< subreadIndex
-                       << ", alignmentId " << alignmentIndex << endl;
-                  cout << "subread: " << endl;
-                  ((DNASequence) subread).PrintSeq(cout);
-                  cout << endl;
-                  cout << "ccsAlignedForwardRefSeq " << endl;
-                  ((DNASequence) ccsAlignedForwardRefSequence).PrintSeq(cout);
-                  StickPrintAlignment(exploded,
-                                    (DNASequence&) subread,
-                                    (DNASequence&) ccsAlignedForwardRefSequence,
-                                    cout,
-                                    exploded.qAlignedSeqPos, exploded.tAlignedSeqPos);
-              }
-                
-              if (exploded.blocks.size() > 0) {
-                ComputeAlignmentStats(exploded, subread.seq, ccsAlignedForwardRefSequence.seq, SMRTDistanceMatrix, params.indel, params.indel );
-                if (exploded.score <= params.maxScore) {
-                  //
-                  // The coordinates of the alignment should be
-                  // relative to the reference sequence (the specified chromosome,
-                  // not the whole genome). 
-                  //
-                  exploded.qStrand = 0;
-                  exploded.tStrand = 0; 
-                  exploded.qLength = ccsRead.unrolledRead.length;
-                  exploded.tLength = alignment->tLength;
-                  exploded.tAlignedSeq.Copy(ccsAlignedForwardRefSequence); 
-                  exploded.tAlignedSeqPos = (passDirection == 0)?
-                          (alignment->tAlignedSeqPos):
-                          (exploded.tLength - alignment->tAlignedSeqPos - alignment->tAlignedSeqLength);
-                  exploded.tAlignedSeqLength = alignment->tAlignedSeqLength;
-                  exploded.qAlignedSeq.ReferenceSubstring(subread);
-                  exploded.qAlignedSeqPos = passStartBase;
-                  exploded.qAlignedSeqLength = passNumBases;
-                  exploded.mapQV = alignment->mapQV;
-                
-                  //
-                  // Assign the name of this subread.
-                  //
-                  exploded.tName = alignment->tName;
-                  stringstream namestrm;
-                  namestrm << "/" << passStartBase << "_" << passStartBase + passNumBases;
-                  exploded.qName = string(ccsRead.unrolledRead.title) + namestrm.str();
-                
-                  //
-                  // Don't call AssignRefContigLocation as the coordinates
-                  // of the alignment is already relative to the chromosome coordiantes.
-                  //
-                  // AssignRefContigLocation(exploded, seqdb, genome);
-
-                  //
-                  // Save this alignment for printing later.
-                  //
-                  T_AlignmentCandidate *alignmentPtr = new T_AlignmentCandidate;
-                  *alignmentPtr = exploded;
-                  allReadAlignments.AddAlignmentForSeq(subreadIndex, alignmentPtr);
-                } // End of exploded score <= maxScore.
-              } // End of exploded.blocks.size() > 0.
-            } // The subread has the same pass direction as strand of ccs alignment.
-            else { // The subread has reverse pass direction as strand of ccs alignment.
-              int pos = 0;
-              T_AlignmentCandidate explodedrc;
-              int explodedRCScore;
-              bool computeProbIsFalse = false;
-              explodedRCScore = GuidedAlign(subread, ccsAlignedReverseRefSequence,
-                                            idsScoreFn, 10,
-                                            params.sdpIns, params.sdpDel, params.indelRate,
-                                            mappingBuffers,
-                                            explodedrc,  
-                                            Global, computeProbIsFalse, 4);
-
-              int explodedrcscore = explodedrc.score;
-              if (params.verbosity > 0) {
+            if (params.verbosity > 0) {
                 cout << "StickPrintAlignment subread-reference alignment which has" 
-                     << " different direction as the ccs-reference alignment. " 
-                     << " subreadId "<< subreadIndex
-                     << ", alignmentId " << alignmentIndex << endl;
+                     << " the " << (sameAlignmentPassDirection?"same":"different")
+                     << " direction as the ccs-reference alignment. " << endl;
                 cout << "subread: " << endl;
                 ((DNASequence) subread).PrintSeq(cout);
                 cout << endl;
-                cout << "ccsAlignedReverseRefSequence " << endl;
-                ((DNASequence) ccsAlignedReverseRefSequence).PrintSeq(cout);
-                StickPrintAlignment(explodedrc,
-                                    (DNASequence&) subread,
-                                    (DNASequence&) ccsAlignedReverseRefSequence,
-                                    cout,
-                                    explodedrc.qAlignedSeqPos, explodedrc.tAlignedSeqPos);
-              }
-              if (explodedrc.blocks.size() > 0) {
-                ComputeAlignmentStats(explodedrc, subread.seq, ccsAlignedReverseRefSequence.seq, SMRTDistanceMatrix, params.indel, params.indel );
+                cout << "ccsAlignedRefSeq " << endl;
+                ((DNASequence) ccsAlignedRefSequence).PrintSeq(cout);
+                StickPrintAlignment(exploded, (DNASequence&) subread,
+                                    (DNASequence&) ccsAlignedRefSequence,
+                                    cout, exploded.qAlignedSeqPos, 
+                                    exploded.tAlignedSeqPos);
+            }
+                
+            if (exploded.blocks.size() > 0) {
+              ComputeAlignmentStats(exploded, subread.seq, 
+                                    ccsAlignedRefSequence.seq, SMRTDistanceMatrix, 
+                                    params.indel, params.indel );
+              if (exploded.score <= params.maxScore) {
+                //
+                // The coordinates of the alignment should be
+                // relative to the reference sequence (the specified chromosome,
+                // not the whole genome). 
+                //
+                exploded.qStrand = 0;
+                exploded.tStrand = sameAlignmentPassDirection?0:1; 
+                exploded.qLength = ccsRead.unrolledRead.length;
+                exploded.tLength = alignment->tLength;
+                exploded.tAlignedSeq.Copy(ccsAlignedRefSequence); 
+                exploded.tAlignedSeqPos = (passDirection == 0)?
+                    (alignment->tAlignedSeqPos):
+                    (exploded.tLength - alignment->tAlignedSeqPos 
+                     - alignment->tAlignedSeqLength);
+                exploded.tAlignedSeqLength = alignment->tAlignedSeqLength;
 
-                if (explodedrc.score <= params.maxScore) {
-                  explodedrc.qStrand = 0;
-                  explodedrc.tStrand = 1;
-                  //
-                  // The subread-reference alignment should have the opposite 
-                  // direction of the de_novo_ccs-reference alignment.
-                  //
-                  explodedrc.qLength = ccsRead.unrolledRead.length;
-                  explodedrc.tLength = alignment->tLength;
-                  explodedrc.tAlignedSeq.Copy(ccsAlignedReverseRefSequence);
+                exploded.qAlignedSeq.ReferenceSubstring(subread);
+                exploded.qAlignedSeqPos = passStartBase;
+                exploded.qAlignedSeqLength = passNumBases;
+                exploded.mapQV = alignment->mapQV;
+                exploded.tName = alignment->tName;
 
-                  explodedrc.qAlignedSeq.ReferenceSubstring(subread);
-                  explodedrc.tAlignedSeqPos = (passDirection == 0)?
-                          (alignment->tAlignedSeqPos):
-                          (explodedrc.tLength - alignment->tAlignedSeqPos - alignment->tAlignedSeqLength);
-                  explodedrc.tAlignedSeqLength = alignment->tAlignedSeqLength;
-                  explodedrc.qAlignedSeqPos = passStartBase;
-                  explodedrc.mapQV = alignment->mapQV;
+                stringstream namestrm;
+                namestrm << "/" << passStartBase << "_" << passStartBase + passNumBases;
+                exploded.qName = string(ccsRead.unrolledRead.title) + namestrm.str();
+                
+                //
+                // Don't call AssignRefContigLocation as the coordinates
+                // of the alignment is already relative to the chromosome coordiantes.
+                //
 
-                  explodedrc.tName = alignment->tName;
-                  stringstream namestrm;
-                  namestrm << "/" << passStartBase << "_" << passStartBase + passNumBases;
-                  explodedrc.qName = string(ccsRead.unrolledRead.title) + namestrm.str();
-
-                  //
-                  // Don't call AssignRefContigLocation as the coordinates
-                  // of the alignment is already relative to the chromosom 
-                  // coordinates.
-                  // AssignRefContigLocation(explodedrc, seqdb, genome);
-                  //
-
-                  T_AlignmentCandidate *alignmentPtr = new T_AlignmentCandidate;
-                  *alignmentPtr = explodedrc;
-                  allReadAlignments.AddAlignmentForSeq(subreadIndex, alignmentPtr);
-                } // End of explodedrc.score <= maxScore.
-              } // End of if (exploderc block size > 0).
-            } // The subread has the opposite pass direction as strand of the ccs alignment.
+                //
+                // Save this alignment for printing later.
+                //
+                T_AlignmentCandidate *alignmentPtr = new T_AlignmentCandidate;
+                *alignmentPtr = exploded;
+                allReadAlignments.AddAlignmentForSeq(subreadIndex, alignmentPtr);
+              } // End of exploded score <= maxScore.
+            } // End of exploded.blocks.size() > 0.
           } // End of aligning a subread to where the de novo ccs has aligned to.
         } // End of aligning all subreads to where the de novo ccs has aligned to
       } // End of if readIsCCS.
