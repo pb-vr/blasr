@@ -69,6 +69,11 @@ template<typename T_Alignment, typename T_QuerySequence, typename T_TargetSequen
 		textStr  = textStrRC;
 	}
 					
+    // Headers of m5 format are: 
+    //   queryId queryLength queryStart queryEnd queryStrand 
+    //   targetId targetLength targetStart targetEnd targetStrand 
+    //   score numOfMatches numOfMismatches numOfInsertions numOfDeletions
+    //   mapQV alignedQuery alignedMatch alignedTarget
 	out << queryStr << " " 
 			<< alignStr << " "
 			<< textStr ;

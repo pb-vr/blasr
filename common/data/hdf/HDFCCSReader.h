@@ -207,10 +207,6 @@ class HDFCCSReader : public T_HDFBasReader<T_Sequence> {
 				ccsSequence.passStartBase.resize(ccsSequence.numPasses);
 				passStartBaseArray.Read(curPassPos,    curPassPos + ccsSequence.numPasses, &ccsSequence.passStartBase[0]);
 			}
-			if (this->includedFields["PassDirection"]) {
-				ccsSequence.passDirection.resize(ccsSequence.numPasses);
-				passDirectionArray.Read(curPassPos,    curPassPos + ccsSequence.numPasses, &ccsSequence.passDirection[0]);
-			}
 			if (this->includedFields["PassStartPulse"]) {
 				ccsSequence.passStartPulse.resize(ccsSequence.numPasses);
 				passStartPulseArray.Read(curPassPos,   curPassPos + ccsSequence.numPasses, &ccsSequence.passStartPulse[0]);
