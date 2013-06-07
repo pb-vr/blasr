@@ -18,13 +18,13 @@ using namespace std;
 typedef unsigned char Nucleotide;
 
 class SMRTSequence : public FASTQSequence {
- public:
-	int16_t xy[2];
-	int holeNumber;
-	ZMWGroupEntry zmwData;
-	PlatformType platform;
-	HalfWord *preBaseFrames;
-	HalfWord *widthInFrames;
+public:
+  int16_t xy[2];
+  int holeNumber;
+  ZMWGroupEntry zmwData;
+  PlatformType platform;
+  HalfWord *preBaseFrames;
+  HalfWord *widthInFrames;
   //
   // The following are fields that are read in from the pulse file.
   // Because they are not standard in bas.h5 files, these fields
@@ -36,14 +36,14 @@ class SMRTSequence : public FASTQSequence {
   HalfWord *meanSignal, *maxSignal, *midSignal;
   float *classifierQV;
   unsigned int *startFrame;
-	int *pulseIndex;
+  int *pulseIndex;
   DNALength lowQualityPrefix, lowQualitySuffix;
 
   void SetNull() {
-		pulseIndex    = NULL;
-		preBaseFrames = NULL;
-		widthInFrames = NULL;
-		xy[0] = 0; xy[1] = 0;
+    pulseIndex    = NULL;
+    preBaseFrames = NULL;
+    widthInFrames = NULL;
+    xy[0] = 0; xy[1] = 0;
     // These are not allocted by default.
     meanSignal = maxSignal = midSignal = NULL;
     classifierQV = NULL;
@@ -52,20 +52,22 @@ class SMRTSequence : public FASTQSequence {
     // By default, allow the entire read.
     lowQualityPrefix = lowQualitySuffix = 0;
   }
+  
   SMRTSequence() : FASTQSequence() {
-      holeNumber = -1;
+    holeNumber = -1;
     SetNull();
-	}
-	void Allocate(DNALength length) {
-		FASTQSequence::AllocateRichQualityValues(length);
-		seq           = new Nucleotide[length];
-		qual.Allocate(length);
-		preBaseFrames = new HalfWord[length];
-		widthInFrames = new HalfWord[length];
-		pulseIndex    = new int[length];
-		subreadEnd    = length;
+  }
+
+  void Allocate(DNALength length) {
+    FASTQSequence::AllocateRichQualityValues(length);
+    seq           = new Nucleotide[length];
+    qual.Allocate(length);
+    preBaseFrames = new HalfWord[length];
+    widthInFrames = new HalfWord[length];
+    pulseIndex    = new int[length];
+    subreadEnd    = length;
     deleteOnExit  = true;
-	}
+  }
 
   void SetSubreadTitle(SMRTSequence &subread, DNALength subreadStart, DNALength  subreadEnd) {
     stringstream titleStream;
@@ -108,7 +110,7 @@ class SMRTSequence : public FASTQSequence {
     subread.deleteOnExit = false;
   }
 
-	void Copy(const SMRTSequence &rhs) {
+  void Copy(const SMRTSequence &rhs) {
     Copy(rhs, 0, rhs.length);
   }
     
@@ -154,81 +156,85 @@ class SMRTSequence : public FASTQSequence {
         memcpy(pulseIndex, rhs.pulseIndex, sizeof(int) * length);
       }
     }
-	}
-	
-	SMRTSequence& operator=(const SMRTSequence &rhs) {
-		Copy(rhs);
-		return *this;
-	}
+  }
   
+  SMRTSequence& operator=(const SMRTSequence &rhs) {
+    Copy(rhs);
+    return *this;
+  }
   
-	void Free() {
-		FASTQSequence::Free();
+  void Free() {
+    FASTQSequence::Free();
     if (deleteOnExit == true) {
-      if (preBaseFrames != NULL) {
+      if (preBaseFrames)  {
         delete[] preBaseFrames;
         preBaseFrames = NULL;
       }
-      if (widthInFrames != NULL) {
+      if (widthInFrames) {
         delete[] widthInFrames;
         widthInFrames = NULL;
       }
-      if (pulseIndex != NULL) {
+      if (pulseIndex) {
         delete[] pulseIndex;
         pulseIndex = NULL;
       }
-      if (startFrame != NULL) {
+      if (startFrame) {
         delete[] startFrame;
         startFrame = NULL;
       }
+      // meanSignal, maxSignal, midSignal and classifierQV
+      // need to be handled separatedly.
     }
-	}
-			
-	bool StoreXY(int16_t xyP[]) {
-		xy[0] = xyP[0];
-		xy[1] = xyP[1];
-		return true;
-	}
+    xy[0] = 0; xy[1] = 0;
+    lowQualityPrefix = lowQualitySuffix = 0;
+    holeNumber = -1;
+  }
+      
+  bool StoreXY(int16_t xyP[]) {
+    xy[0] = xyP[0];
+    xy[1] = xyP[1];
+    return true;
+  }
 
-	bool StorePlatformType(PlatformId pid ){
-		if (pid == AstroPlatform) {
-			platform = Astro;
-		}
-		if (pid == SpringfieldPlatform) {
-			platform = Springfield;
-		}
-	}
+  bool StorePlatformType(PlatformId pid ){
+    if (pid == AstroPlatform) {
+      platform = Astro;
+    }
+    if (pid == SpringfieldPlatform) {
+      platform = Springfield;
+    }
+  }
 
-	bool StorePlatformType(PlatformType ptype) {
-		platform = ptype;
-		return true;
-	}
+  bool StorePlatformType(PlatformType ptype) {
+    platform = ptype;
+    return true;
+  }
 
-	bool StoreHoleNumber(int holeNumberP){ 
-		holeNumber = holeNumberP;
-		return true;
-	}
+  bool StoreHoleNumber(int holeNumberP){ 
+    holeNumber = holeNumberP;
+    return true;
+  }
   
   bool StoreHoleStatus(unsigned int s) {
     zmwData.holeStatus = s;
     return true;
   }
-	
-	bool StoreZMWData(ZMWGroupEntry &data) {
-		zmwData = data;
-		return true;
-	}
+  
+  bool StoreZMWData(ZMWGroupEntry &data) {
+    zmwData = data;
+    return true;
+  }
 
-	bool GetXY(int xyP[]) {
-		xyP[0] = xy[0];
-		xyP[1] = xy[1];
-		return true;
-	}
+  bool GetXY(int xyP[]) {
+    xyP[0] = xy[0];
+    xyP[1] = xy[1];
+    return true;
+  }
 
-	bool GetHoleNumber(int& holeNumberP) {
-		holeNumberP = holeNumber;
-		return true;
-	}
+  bool GetHoleNumber(int& holeNumberP) {
+    holeNumberP = holeNumber;
+    return true;
+  }
 };
 
 #endif

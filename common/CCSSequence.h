@@ -3,6 +3,7 @@
 
 #include "SMRTSequence.h"
 #include "Enumerations.h"
+#include "utils/VectorUtils.h"
 //
 // A CCS Sequence is both a SMRTSequence itself, and contains a list of SMRTSequences.
 //
@@ -21,8 +22,18 @@ class CCSSequence : public SMRTSequence {
 	//
 	SMRTSequence      unrolledRead;
 	void Free() {
+        numPasses = 0;
+        numConsensusBases = 0;
 		SMRTSequence::Free();
 		unrolledRead.Free();
+        ClearMemory(passStartPulse);
+        ClearMemory(passNumPulses);
+        ClearMemory(passStartBase);
+        ClearMemory(passNumBases);
+        ClearMemory(passDirection);
+        ClearMemory(adapterHitBefore);
+        ClearMemory(adapterHitAfter);
+        ClearMemory(adapterHitConfidence);
 	}
 	int GetStorageSize() {
 		return SMRTSequence::GetStorageSize() + unrolledRead.GetStorageSize();

@@ -112,6 +112,7 @@ class AlignmentCandidate : public Alignment {
             << ", tTitle: " << tTitle << ", qTitle: " << qTitle 
             << ")." << endl;
         out << "  query: " << qTitle << ", "  
+            << "qName: " << qName << ","
             << "qStrand: " << qStrand << ", " 
             << "qPos: " << qPos << ", "
             << "qLen: " << qLength << ", "
@@ -119,6 +120,7 @@ class AlignmentCandidate : public Alignment {
             << "qAlignedSeqPos:" << qAlignedSeqPos << ", "
             << "qAlignedSeqLen:" << qAlignedSeqLength << endl
             << "  target: " << tTitle << ", "  
+            << "tName: " << tName << ","
             << "tStrand: " << tStrand << ", " 
             << "tPos: " << tPos << ", "
             << "tLen: " << tLength << ", "

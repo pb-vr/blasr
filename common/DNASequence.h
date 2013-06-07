@@ -81,7 +81,7 @@ class DNASequence {
     }
   }
 
-  // Copie FROM
+  // Copie FROM rhs to this DNASequence. 
 	typedef Nucleotide T_Block;
 	DNASequence &Copy(const DNASequence &rhs, DNALength rhsPos=0, DNALength rhsLength=0) {
 		if (length != 0) {
