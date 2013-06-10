@@ -59,6 +59,7 @@
 #include "datastructures/reads/ReadInterval.h"
 #include "utils/FileOfFileNames.h"
 #include "utils/RegionUtils.h"
+//#include "utils/RandomUtils.h"
 #include "qvs/QualityTransform.h"
 #include "files/ReaderAgglomerate.h"
 #include "files/CCSIterator.h"
@@ -91,10 +92,10 @@ MappingSemaphores semaphores;
  * Declare global structures that are shared between threads.
  */
 
-ostream *outFilePtr;
+ostream *outFilePtr = NULL;
 //ofstream clOut, nsOut, mcOut;
 
-HDFRegionTableReader *regionTableReader;
+HDFRegionTableReader *regionTableReader = NULL;
 
 typedef SMRTSequence T_Sequence;
 typedef FASTASequence T_GenomeSequence;
@@ -104,7 +105,8 @@ typedef DNATuple T_Tuple;
 typedef LISPValueWeightor<T_GenomeSequence, DNATuple, vector<ChainedMatchPos> >  PValueWeightor;
 typedef LISSMatchFrequencyPValueWeightor<T_GenomeSequence, DNATuple, vector<ChainedMatchPos> >  MultiplicityPValueWeightor;
 
-ReaderAgglomerate *reader;
+ReaderAgglomerate *reader = NULL;
+//RandomIntKeeper * randomIntKeeper = NULL;
 
 typedef MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> MappingIPC;
 
@@ -513,9 +515,9 @@ void SetHelp(string &str) {
              << "               Keep up to 'n' candidates for the best alignment.  A large value of n will slow mapping" << endl
              << "               because the slower dynamic programming steps are applied to more clusters of anchors" <<endl
              << "               which can be a rate limiting step when reads are very long."<<endl
-//           << "   -placeRandomly (false)" << endl
-//           << "               When there are multiple positions to map a read with equal alignment scores, place the" << endl
-//           << "               read randomly at one of them.  The default is to place the read at the first." <<endl
+             << "   -placeRepeatsRandomly (false)" << endl
+             << "               When there are multiple positions to map a read with equal alignment scores, place the" << endl
+             << "               read randomly at one of them." <<endl
              << endl
              << "  Options for Refining Hits." << endl
 //             << "   -indelRate i (0.30)" << endl
@@ -2276,7 +2278,6 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
       DeleteAlignments(alignmentPtrs, 0);
     }
 
-
     //
     // Record some metrics that show how long this took to run per base.
     //
@@ -2843,43 +2844,40 @@ void PrintAlignment(T_AlignmentCandidate &alignment, SMRTSequence &fullRead, Map
 
 vector<T_AlignmentCandidate*>
 SelectAlignmentsToPrint(vector<T_AlignmentCandidate*> alignmentPtrs,
-                        MappingParameters & params) {
+                        MappingParameters & params,
+                        const int & associatedRandInt) {
   //
-  // Select all alignments, unless the parameter placeRandomly is set.
+  // Select all alignments, unless the parameter placeRepeatsRandomly is set.
   // In this case only one read is selected and it is selected from all
   // equally top scoring hits.
   //
   UInt i;
   int optScore;
   int nOpt = 0;
-
+  int startIndex = 0;
+  int endIndex = 0;
+ 
   if (params.placeRandomly) {
     if (alignmentPtrs.size() > 0) {
+      std::sort(alignmentPtrs.begin(), alignmentPtrs.end(), 
+                SortAlignmentPointersByScore());
       optScore = alignmentPtrs[0]->score;
       nOpt = 1;
       // First find the minimum score, and count how many times it
       // exists
       for (i = 1; i < alignmentPtrs.size(); i++) { 
-        if (alignmentPtrs[i]->score < optScore) {
-          optScore = alignmentPtrs[i]->score;
-          nOpt = 1;
-        }
-        else if (alignmentPtrs[i]->score == optScore) {
+        assert(alignmentPtrs[i]->score >= optScore);
+        if (alignmentPtrs[i]->score == optScore) {
           nOpt++;
         }
       }
-    }
-  }
 
-  int optIndex = 0;
-  int startIndex = 0;
-  int endIndex = 0;
-  if (params.placeRandomly) {
-    startIndex = RandomInt(nOpt);
-    assert(startIndex < nOpt);
-    endIndex = startIndex + 1;
-  }
-  else {
+      // Select a random item from all equally top scoring hits:
+      // alignmentPtrs[0...nOpt-1].
+      startIndex = associatedRandInt % nOpt;
+      endIndex = startIndex + 1;
+    }
+  } else {
     startIndex = 0;
     endIndex   = MIN(params.nBest, alignmentPtrs.size());
   }
@@ -2950,8 +2948,7 @@ void PrintAlignments(vector<T_AlignmentCandidate*> alignmentPtrs,
 }
 
 template<typename T_Sequence>
-bool GetNextReadThroughSemaphore(ReaderAgglomerate &reader, MappingParameters &params, T_Sequence &read, AlignmentContext &context) {
-
+bool GetNextReadThroughSemaphore(ReaderAgglomerate &reader, MappingParameters &params, T_Sequence &read, AlignmentContext &context, int & associatedRandInt) {
   //
   // Grab the value of the semaphore for debugging purposes.
   //
@@ -2976,7 +2973,7 @@ bool GetNextReadThroughSemaphore(ReaderAgglomerate &reader, MappingParameters &p
   // CCS Reads are read differently from other reads.  Do static casting here
   // of this.
   //
-  if (reader.GetNext(read) == 0) {
+  if (reader.GetNext(read, associatedRandInt) == 0) {
     returnValue = false;
   }
 
@@ -2993,8 +2990,6 @@ bool GetNextReadThroughSemaphore(ReaderAgglomerate &reader, MappingParameters &p
     sem_post(&semaphores.reader);
 #endif
   }
-
-
   return returnValue;
 }
 
@@ -3025,7 +3020,7 @@ void PrintAlignmentPtrs(vector <T_AlignmentCandidate*> & alignmentPtrs) {
 
 //template<typename T_SuffixArray, typename T_GenomeSequence, typename T_Tuple>
 void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) { 
-  
+  ofstream threadOut;
   //
   // Step 1, initialize local pointers to map data 
   // for programming shorthand.
@@ -3071,16 +3066,16 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
   //
   MappingBuffers mappingBuffers;
   while (true) {
-
     //
     // Scan the next read from input.  This may either be a CCS read,
     // or regular read (though this may be aligned in whole, or by
     // subread).
     //
-
     AlignmentContext alignmentContext;
+    // Associate each sequence to read with a determined random int.
+    int associatedRandInt = 0;
     if (mapData->reader->GetFileType() == HDFCCS) {
-      if (GetNextReadThroughSemaphore(*mapData->reader, params, ccsRead, alignmentContext) == false) {
+      if (GetNextReadThroughSemaphore(*mapData->reader, params, ccsRead, alignmentContext, associatedRandInt) == false) {
         break;
       }
       else {
@@ -3097,7 +3092,7 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
       }
     }
     else {
-      if (GetNextReadThroughSemaphore(*mapData->reader, params, smrtRead, alignmentContext) == false) {
+      if (GetNextReadThroughSemaphore(*mapData->reader, params, smrtRead, alignmentContext, associatedRandInt) == false) {
         break;
       }
       else {
@@ -3365,9 +3360,14 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
             params.storeMapQV) {
           StoreMapQVs(subreadSequence, alignmentPtrs, params, mappingBuffers, subreadSequence.title);
         }
-        
-        allReadAlignments.AddAlignmentsForSeq(intvIndex, alignmentPtrs);
 
+        // 
+        // Select alignments for this subread interval.
+        //
+        vector<T_AlignmentCandidate*> selectedAlignmentPtrs =
+        SelectAlignmentsToPrint(alignmentPtrs, params, 
+                                associatedRandInt);
+        allReadAlignments.AddAlignmentsForSeq(intvIndex, selectedAlignmentPtrs);
 
         //
         // Move reference from subreadSequence, which will be freed at
@@ -3391,8 +3391,8 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
           subreadSequence.Free();
           subreadSequenceRC.Free();
         }
-      }
-    } // End of if (readIsCCS == false and params.mapSubreadsSeparately) 
+      } // End of looping over all subread intervals.
+    } // End of if (readIsCCS == false and params.mapSubreadsSeparately).
     else {
       //
       // The read must be mapped as a whole, even if it contains subreads.
@@ -3405,6 +3405,11 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
       MapRead(smrtRead, smrtReadRC, 
               genome, sarray, *bwtPtr, seqBoundary, ct, seqdb, params, mapData->metrics,
               alignmentPtrs, mappingBuffers, mapData);
+      // 
+      // Select de novo ccs-reference alignments for subreads to align to.
+      //
+      vector<T_AlignmentCandidate*> selectedAlignmentPtrs =
+      SelectAlignmentsToPrint(alignmentPtrs, params, associatedRandInt);
 
       //
       // Just one sequence is aligned.  There is one primary hit, and
@@ -3416,7 +3421,7 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
         // Record some information for proper SAM Annotation.
         //
         allReadAlignments.Resize(1);
-        allReadAlignments.AddAlignmentsForSeq(0, alignmentPtrs);
+        allReadAlignments.AddAlignmentsForSeq(0, selectedAlignmentPtrs);
         if (params.useCcsOnly) {
           allReadAlignments.alignMode = CCSDeNovo;
         }
@@ -3426,6 +3431,12 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
         allReadAlignments.SetSequence(0, smrtRead);
       }
       else if (readIsCCS) {
+        if (params.verbosity >= 3) {
+          stringstream ss;
+          ss << getpid() << "." << pthread_self();
+          string threadLogFileName = ss.str() + ".log";
+          threadOut.open(threadLogFileName.c_str(), ios::out|ios::app);
+        }
         //
         // Align ccs reads.
         //
@@ -3473,22 +3484,16 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
         subreadIterator->Reset();
         int subreadIndex;
 
-        // 
-        // Select de novo ccs-reference alignments for subreads to align to.
-        //
-        vector<T_AlignmentCandidate*> selectedAlignmentPtrs =
-        SelectAlignmentsToPrint(alignmentPtrs, params);
-
         //
         // Realign all subreads to selected reference locations.
         //
         for (subreadIndex = 0; subreadIndex < subreadIterator->GetNumPasses(); subreadIndex++) {
-          subreadIterator->GetNext(passDirection, passStartBase, passNumBases);
-          if (passNumBases <= 0) { continue; }
+          int retval = subreadIterator->GetNext(passDirection, passStartBase, passNumBases);
+          assert(retval == 1);
+          if (passNumBases <= params.minReadLength) { continue; }
 
           subread.ReferenceSubstring(ccsRead.unrolledRead, passStartBase, passNumBases-1);
           subread.CopyTitle(ccsRead.title);
-          //allReadAlignments.SetSequence(subreadIndex, subread);
           // The unrolled alignment should be relative to the entire read.
           allReadAlignments.SetSequence(subreadIndex, ccsRead.unrolledRead);
 
@@ -3542,18 +3547,24 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
                 params.indelRate, mappingBuffers, exploded,
                 Local, computeProbIsFalse, 6);
 
-            if (params.verbosity > 0) {
-                cout << "StickPrintAlignment subread-reference alignment which has" 
+            if (params.verbosity >= 3) {
+                threadOut << "zmw " << smrtRead.zmwData.holeNumber
+                     << ", subreadIndex " << subreadIndex
+                     << ", passDirection " << passDirection
+                     << ", passStartBase " << passStartBase
+                     << ", passNumBases " << passNumBases
+                     << ", alignmentIndex " << alignmentIndex << endl
+                     << "StickPrintAlignment subread-reference alignment which has" 
                      << " the " << (sameAlignmentPassDirection?"same":"different")
                      << " direction as the ccs-reference alignment. " << endl;
-                cout << "subread: " << endl;
-                ((DNASequence) subread).PrintSeq(cout);
-                cout << endl;
-                cout << "ccsAlignedRefSeq " << endl;
-                ((DNASequence) ccsAlignedRefSequence).PrintSeq(cout);
+                threadOut << "subread: " << endl;
+                ((DNASequence) subread).PrintSeq(threadOut);
+                threadOut << endl;
+                threadOut << "ccsAlignedRefSeq: " << endl;
+                ((DNASequence) ccsAlignedRefSequence).PrintSeq(threadOut);
                 StickPrintAlignment(exploded, (DNASequence&) subread,
                                     (DNASequence&) ccsAlignedRefSequence,
-                                    cout, exploded.qAlignedSeqPos, 
+                                    threadOut, exploded.qAlignedSeqPos, 
                                     exploded.tAlignedSeqPos);
             }
                 
@@ -3600,10 +3611,16 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
                 *alignmentPtr = exploded;
                 allReadAlignments.AddAlignmentForSeq(subreadIndex, alignmentPtr);
               } // End of exploded score <= maxScore.
+              if (params.verbosity >= 3) {
+                threadOut << "exploded score: " << exploded.score << endl
+                          << "exploded alignment: "<< endl;
+                exploded.Print(threadOut);
+                threadOut << endl;
+              }
             } // End of exploded.blocks.size() > 0.
           } // End of aligning a subread to where the de novo ccs has aligned to.
         } // End of aligning all subreads to where the de novo ccs has aligned to
-      } // End of if readIsCCS.
+      } // End of if readIsCCS and !params.useCcsOnly 
     } // End of if not (readIsCCS == false and params.mapSubreadsSeparately) 
 
     int subreadIndex;
@@ -3630,8 +3647,7 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
         alignmentContext.nextSubreadDir = allReadAlignments.subreadAlignments[subreadIndex+1][0]->qStrand;
         alignmentContext.rNext = allReadAlignments.subreadAlignments[subreadIndex+1][0]->tName;
         alignmentContext.hasNextSubreadPos = true;
-      }
-      else {
+      } else {
         alignmentContext.nextSubreadPos = 0;
         alignmentContext.nextSubreadDir = 0;
         alignmentContext.rNext = "";
@@ -3639,17 +3655,12 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
       }
         
       if (allReadAlignments.subreadAlignments[subreadIndex].size() > 0) {
-        int alnIndex;
-        vector<T_AlignmentCandidate*> selectedAlignmentPtrs =
-        SelectAlignmentsToPrint(allReadAlignments.subreadAlignments[subreadIndex], 
-                                params);
-        PrintAlignments(selectedAlignmentPtrs, 
-                        allReadAlignments.subreads[subreadIndex], // the source read
-                        // for these alignments
-                        params, *mapData->outFilePtr,
-                        alignmentContext);   
-      }
-      else {
+          PrintAlignments(allReadAlignments.subreadAlignments[subreadIndex], 
+                          allReadAlignments.subreads[subreadIndex], // the source read
+                          // for these alignments
+                          params, *mapData->outFilePtr,
+                          alignmentContext);   
+      } else {
         //
         // Print the unaligned sequences.
         //
@@ -3672,7 +3683,6 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
           }
         }
       }
-
     }
     
     allReadAlignments.Clear();
@@ -3700,6 +3710,7 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
   if (params.nProc > 1) {
     pthread_exit(NULL); 
   }
+  threadOut.close();
 }
 
 float ComputePMatch(float accuracy, int anchorLength) {
@@ -3790,7 +3801,7 @@ int main(int argc, char* argv[]) {
   clp.RegisterFlagOption("allowAdjacentIndels", &params.forPicard, "");
   clp.RegisterFlagOption("onegap", &params.separateGaps, "");
   clp.RegisterFlagOption("allowAdjacentIndels", &params.forPicard, "");
-  clp.RegisterFlagOption("placeRandomly", &params.placeRandomly, "");
+  clp.RegisterFlagOption("placeRepeatsRandomly", &params.placeRandomly, "");
   clp.RegisterIntOption("randomSeed", &params.randomSeed, "", CommandLineParser::Integer);
   clp.RegisterFlagOption("extend", &params.extendAlignments, "");
   clp.RegisterIntOption("branchExpand", &params.anchorParameters.branchExpand, "", CommandLineParser::NonNegativeInteger);
@@ -4418,6 +4429,16 @@ int main(int argc, char* argv[]) {
       regionTable.SortTableByHoleNumber();
     }
 
+    //
+    // For Base/Pulse files which contain zmw data, generate (or refresh) 
+    // a random integer for each zmw and keep these random integers in 
+    // memory, so that each zmw is associated with a deterministic random 
+    // value.
+    //
+    //if (params.placeRandomly and reader->FileHasZMWInformation()) {
+    //    randomIntKeeper = new RandomIntKeeper(reader->NumZmwEntries());
+    //}
+
 #ifdef USE_GOOGLE_PROFILER
     char *profileFileName = getenv("CPUPROFILE");
     if (profileFileName != NULL) {
@@ -4490,7 +4511,8 @@ int main(int argc, char* argv[]) {
     reader->Close();
   }
   
-  delete reader;
+  if (!reader) {delete reader; reader = NULL;}
+  //if (!randomIntKeeper) {delete randomIntKeeper; randomIntKeeper = NULL;}
 
   fastaGenome.Free();
 #ifdef USE_GOOGLE_PROFILER

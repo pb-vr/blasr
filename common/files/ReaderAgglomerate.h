@@ -133,7 +133,7 @@ class ReaderAgglomerate : public BaseSequenceIO {
 		}
     return false;
 	}
-		
+
 	int Initialize() {
 		int init = 1;
 		switch(fileType) {
@@ -302,6 +302,30 @@ class ReaderAgglomerate : public BaseSequenceIO {
 			Advance(stride-1);
 		return numRecords;
 	}
+
+    int GetNext(FASTASequence &seq, int & randNum) {
+        // Associate each sequence to read with a random int. 
+        randNum = rand();
+        return GetNext(seq);
+    }
+
+    int GetNext(FASTQSequence &seq, int & randNum) {
+        // Associate each sequence to read with a random int. 
+        randNum = rand();
+        return GetNext(seq);
+    }
+
+	int GetNext(CCSSequence &seq, int & randNum) {
+        // Associate each sequence to read with a random int. 
+        randNum = rand();
+        return GetNext(seq);
+    }
+
+	int GetNext(SMRTSequence &seq, int & randNum) {
+        // Associate each sequence to read with a random int. 
+        randNum = rand();
+        return GetNext(seq);
+    }
 
 	int Advance(int nSteps) {
     int i;
