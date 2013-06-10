@@ -16,8 +16,18 @@ public:
     seqPtr         = _seqPtr;
     regionTablePtr = _regionTablePtr;
     curPass = 0;
+    numPasses = 0;
     subreadIntervals.clear();
     readIntervalDirection.clear();
+
+    int hqRegionStart, hqRegionEnd, hqRegionScore;
+    hqRegionStart = hqRegionEnd = hqRegionScore = 0;
+    bool hasHQRegion = LookupHQRegion(seqPtr->zmwData.holeNumber, *regionTablePtr,
+                                      hqRegionStart, hqRegionEnd, hqRegionScore);
+    if (not hasHQRegion) {
+        return; // Don't bother if there is no HQ region.
+    }
+
     /*
        Since this iterator covers all passes, and not just those
        included in the ccs, the the regions need to be loaded.
@@ -87,10 +97,42 @@ public:
       int curSubreadDir = readIntervalDirection[lastAssignedSubread-1];
       assert(curSubreadDir == 0 or curSubreadDir == 1);
       for (i = lastAssignedSubread; i < subreadIntervals.size(); i++) {
-        curSubreadDir = ! curSubreadDir;
+        curSubreadDir = (curSubreadDir==0)?1:0;
         readIntervalDirection[i] = curSubreadDir;
       }
     }
+    
+    //
+    // So far, subreadIntervals have been sorted and each assigned a passDirection.
+    // But since all or part of a subreadInterval may not be in the HQ region,
+    // we need to trim low quality regions from subreads, remove subreads which do 
+    // not have any high quality regions from subreadIntervals and their corresponding
+    // pass directions from readIntervalDirection. 
+    // Note that don't use vector.erase() whenever possible, as it's extreamly slow. 
+    //
+    vector<ReadInterval> subreadIntervals2;
+    vector<int>          readIntervalDirection2;
+    for(i = 0; i < subreadIntervals.size(); i++) {
+        int thisStart = subreadIntervals[i].start; 
+        int thisEnd   = subreadIntervals[i].end;
+        if (thisStart >= hqRegionEnd or
+            thisEnd   <= hqRegionStart) {
+            // The overall subread is in low quality region.
+        } else {
+            if (thisStart <= hqRegionStart) {
+                subreadIntervals[i].start = hqRegionStart; 
+            }
+            if (thisEnd   > hqRegionEnd) {
+                subreadIntervals[i].end   = hqRegionEnd; 
+            }
+            subreadIntervals2.push_back(subreadIntervals[i]);
+            readIntervalDirection2.push_back(readIntervalDirection[i]);
+        }
+    }
+    subreadIntervals = subreadIntervals2;
+    readIntervalDirection = readIntervalDirection2;
+
+    // Update number of passes. 
     numPasses = subreadIntervals.size();
   }
 
