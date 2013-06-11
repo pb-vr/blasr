@@ -1,4 +1,5 @@
 INCLUDEDIRS ?= .
+CC ?= gcc
 
 bin/%.o: %.cpp
 	$(CPP) $(INCLUDEDIRS) $(CPPOPTS) -c $<  -o $@
@@ -16,7 +17,7 @@ init:
 
 make.dep:
 				@ -rm -f make.dep
-				gcc -MM *.cpp  $(INCLUDEDIRS) > make.dep 
+				$(CC) -MM *.cpp  $(INCLUDEDIRS) > make.dep 
 				$(PBCPP_DIR)/MoveODependenciesToBin.pl make.dep make.dep2
 				mv make.dep2 make.dep							 
 

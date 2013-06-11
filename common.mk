@@ -12,11 +12,14 @@ HDF5LIBCPP = hdf5_cpp
 
 GCCOPTS = -O3 -Wno-div-by-zero
 
+CC  ?= gcc
+CXX ?= g++
+
 CPPOPTS = $(GCCOPTS) $(INCLUDEDIRS)
 CCOPTS  = $(GCCOPTS) $(INCLUDEDIRS)  
-CPP = g++
+CPP = $(CXX)
 
-ifeq ($(shell gcc -dumpversion | awk -F '.' '$$1*100+$$2>404{print "yes"}'),yes)
+ifeq ($(shell $(CC) -dumpversion | awk -F '.' '$$1*100+$$2>404{print "yes"}'),yes)
     CPPOPTS += -fpermissive
 endif
 ifneq ($(shell uname -s),Darwin)
