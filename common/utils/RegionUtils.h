@@ -242,6 +242,70 @@ void CollectSubreadIntervals(T_Sequence &read, RegionTable *regionTablePtr, vect
 	sort(subreadIntervals.begin(), subreadIntervals.end(), OrderRegionsByReadStart());
 }
 
+
+// Given a vecotr of ReadInterval objects and their corresponding 
+// directions, intersect each object with an interval 
+// [hqStart, hqEnd), if there is no intersection or the intersected
+// interval is less than minIntervalLength, remove this object and
+// their corresponding directions; otherwise, replace this object 
+// with the intersected interval and keep their directions. 
+// Return index of the (left-most) longest subread interval in the
+// updated vector.
+int GetHighQualitySubreadsIntervals(vector<ReadInterval> & subreadIntervals, 
+                                    vector<int> & subreadDirections,
+                                    int hqStart, int hqEnd, 
+                                    int minIntervalLength = 0) {
+    // Avoid using vector.erase() when possible, as it is slow.
+    int ret = -1;
+    int maxLength = 0;
+    assert(subreadIntervals.size() == subreadDirections.size());
+    vector<ReadInterval> subreadIntervals2; 
+    vector<int> subreadDirections2;
+    for(int i = 0; i < int(subreadIntervals.size()); i++) {
+        int & thisStart = subreadIntervals[i].start;
+        int & thisEnd   = subreadIntervals[i].end;
+        if (thisStart >= hqEnd or thisEnd <= hqStart) {
+            continue;
+        } 
+        if (thisStart < hqStart and thisEnd > hqStart) {
+            thisStart = hqStart;
+        }
+        if (thisStart < hqEnd   and thisEnd > hqEnd  ) {
+            thisEnd   = hqEnd;
+        }
+        if (thisEnd - thisStart >= minIntervalLength) {
+            if (maxLength < thisEnd - thisStart) {
+                ret = subreadIntervals2.size();
+                maxLength = thisEnd - thisStart;
+            }
+            subreadIntervals2.push_back(subreadIntervals[i]);
+            subreadDirections2.push_back(subreadDirections[i]);
+        }
+    }
+    subreadIntervals  = subreadIntervals2;
+    subreadDirections = subreadDirections2;
+    return ret;
+}
+
+// Create a vector of n directions consisting of interleaved 0 and 1s.
+void CreateDirections(vector<int> & directions, const int & n) {
+    directions.clear();
+    directions.resize(n);
+    for(int i = 0; i < n; i++) {
+        directions[i] = i % 2;
+    }
+}
+
+// Flop all directions in the given vector, if flop is true.
+void UpdateDirections(vector<int> & directions, bool flop = false) {
+  if (not flop) return;
+  for (int i = 0; i < int(directions.size()); i++) {
+    assert(directions[i] == 0 or directions[i] == 1);
+    directions[i] = (directions[i] == 0)?1:0;
+  }
+}
+
+
 template<typename T_Sequence>
 int RemoveLowQualitySubreads(T_Sequence &read, RegionTable *regionTablePtr, vector<ReadInterval> &subreadIntervals, int highQualityStart, int highQualityEnd ) {
   

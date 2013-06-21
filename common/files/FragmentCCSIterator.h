@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "../datastructures/reads/RegionTable.h"
+#include "../utils/RegionUtils.h"
 #include "CCSIterator.h"
 
 using namespace std;
@@ -33,6 +34,8 @@ public:
        included in the ccs, the the regions need to be loaded.
     */
     CollectSubreadIntervals(*seqPtr, regionTablePtr, subreadIntervals);
+    if (subreadIntervals.size() == 0) { return;}
+
     readIntervalDirection.resize(subreadIntervals.size());
     fill(readIntervalDirection.begin(), readIntervalDirection.end(), 2);
 
@@ -42,12 +45,7 @@ public:
     // some wiggle although in practice they coordinates of the pass
     // start base and the template should always match up. 
     //
-    
     int i, j;
-    bool ccsSubreadFound = false;
-    int firstCCSReadPos;
-    int firstCCSReadDir;
-    int firstInsertThatIsACCSSubread = -1;
     for (i = 0; i < subreadIntervals.size(); i++) {
       for (j = 0; j < seqPtr->passStartBase.size(); j++) {
         if (abs(((int)subreadIntervals[i].start)  - ((int)seqPtr->passStartBase[j])) < 10) {
@@ -62,43 +60,29 @@ public:
            readIntervalDirection[firstAssignedSubread] == 2) { 
       firstAssignedSubread++; 
     }
-    
-    int lastAssignedSubread = subreadIntervals.size();
-    while (lastAssignedSubread > 0 and readIntervalDirection[lastAssignedSubread-1] == 2) {
-      lastAssignedSubread--;
-    }
-    
-    bool allFullInsertsAreSubreads = true;
-    for (i = firstAssignedSubread; i < lastAssignedSubread; i++) {
-      if (readIntervalDirection[i] == 2) {
-        // Find a read interval whose direction is unknown.
-        // This should happen very rarely, just assign 0 as 
-        // its direction for now.
-        readIntervalDirection[i] = 0;
-        allFullInsertsAreSubreads = false;
-        break;
-      }
+    if (firstAssignedSubread == subreadIntervals.size()) {
+        // None of the subread has been assigned a direction, guess.
+        firstAssignedSubread = 0;
+        readIntervalDirection[0] = 0;
     }
 
-    // if (allFullInsertsAreSubreads == false) {
-    //    cerr  << "WARNING, there are ccs reads that do not include all full length inserts." << endl;
-    // }
-    
+    // Assign directions to intervals to the left of the first assigned.
     if (firstAssignedSubread < subreadIntervals.size() and subreadIntervals.size() > 0) {
       int curSubreadDir = readIntervalDirection[firstAssignedSubread];
-            assert(curSubreadDir == 0 or curSubreadDir == 1);
+      assert(curSubreadDir == 0 or curSubreadDir == 1);
       for (i = firstAssignedSubread - 1; i >= 0; i--) {
         curSubreadDir = (curSubreadDir==0)?1:0;
         readIntervalDirection[i] = curSubreadDir;
       }
     }
-    if (lastAssignedSubread > 0 and 
-        lastAssignedSubread < subreadIntervals.size() and subreadIntervals.size() > 0){ 
-      int curSubreadDir = readIntervalDirection[lastAssignedSubread-1];
-      assert(curSubreadDir == 0 or curSubreadDir == 1);
-      for (i = lastAssignedSubread; i < subreadIntervals.size(); i++) {
-        curSubreadDir = (curSubreadDir==0)?1:0;
-        readIntervalDirection[i] = curSubreadDir;
+
+    // Assign directions to intervals which are to the right of the first 
+    // assigned and whose direction is unknown.
+    for (i = firstAssignedSubread + 1; i < subreadIntervals.size(); i++) {
+      int & di = readIntervalDirection[i];
+      int   dp = readIntervalDirection[i-1]; 
+      if (di != 0 and di != 1) {
+        di = (dp==0)?1:0; 
       }
     }
     
@@ -108,30 +92,10 @@ public:
     // we need to trim low quality regions from subreads, remove subreads which do 
     // not have any high quality regions from subreadIntervals and their corresponding
     // pass directions from readIntervalDirection. 
-    // Note that don't use vector.erase() whenever possible, as it's extreamly slow. 
     //
-    vector<ReadInterval> subreadIntervals2;
-    vector<int>          readIntervalDirection2;
-    for(i = 0; i < subreadIntervals.size(); i++) {
-        int thisStart = subreadIntervals[i].start; 
-        int thisEnd   = subreadIntervals[i].end;
-        if (thisStart >= hqRegionEnd or
-            thisEnd   <= hqRegionStart) {
-            // The overall subread is in low quality region.
-        } else {
-            if (thisStart <= hqRegionStart) {
-                subreadIntervals[i].start = hqRegionStart; 
-            }
-            if (thisEnd   > hqRegionEnd) {
-                subreadIntervals[i].end   = hqRegionEnd; 
-            }
-            subreadIntervals2.push_back(subreadIntervals[i]);
-            readIntervalDirection2.push_back(readIntervalDirection[i]);
-        }
-    }
-    subreadIntervals = subreadIntervals2;
-    readIntervalDirection = readIntervalDirection2;
-
+    GetHighQualitySubreadsIntervals(subreadIntervals, 
+                                    readIntervalDirection,
+                                    hqRegionStart, hqRegionEnd);
     // Update number of passes. 
     numPasses = subreadIntervals.size();
   }
