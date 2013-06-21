@@ -107,7 +107,7 @@ class AlignmentCandidate : public Alignment {
 	}
 
     void Print(ostream & out = cout) {
-        out << "Print an AlignmentCandidate object (mapQV " 
+        out << "An AlignmentCandidate object (mapQV " 
             << mapQV << ", clusterscore " << clusterScore 
             << ", tTitle: " << tTitle << ", qTitle: " << qTitle 
             << ")." << endl;

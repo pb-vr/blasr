@@ -439,7 +439,7 @@ namespace SAMOutput {
     // "XL" aligned read length 
     // "XQ" query sequence length
     // "XT" # of continues reads, always 1 for blasr 
-    // "NM" # of subreads 
+    // "NM" edit distance 
     // "FI" read alignment start position (1 based) 
     //
     samFile << "XS:i:" << alignment.QAlignStart() + 1 - prefixSoftClip << "\t";

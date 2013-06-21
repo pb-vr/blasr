@@ -20,7 +20,7 @@ For example:
 > make
 
 
-3. The executables will be in cpp/alignment/bin/blasr
+3. The executables will be in alignment/bin/blasr
 
 Running BLASR
 
