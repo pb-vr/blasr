@@ -225,19 +225,19 @@ public:
             out << "  subreadAlignment group [" << i << "/" 
                 << subreadAlignments.size() << "] has "
                 << subreadAlignments[i].size() << " alignments." << endl;
-            /* subreads may have been freed or not initialized when 
-             * being printed. 
             for(int j = 0; j < subreadAlignments[i].size(); j++) {
                 out << "    [" << i << "][" << j << "/" 
                     << subreadAlignments[i].size() << "]" << endl;
                 subreadAlignments[i][j]->Print(out);
-            } */
+            } 
         }
+        /* subreads may have been freed or not initialized when 
+             * being printed. 
         for (int i = 0; i < subreads.size(); i++) {
             out << "  subread [" << i << "/" << subreads.size()
                 << "]: ";
             subreads[i].Print(out);
-        }
+        } */
         out << "  read: ";
         read.Print(out);
         out << endl << endl;
@@ -3557,7 +3557,11 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
             params.minSubreadLength); // minimum read length.
 
       // Flop all directions if direction of the longest subread is 1.
-      UpdateDirections(subreadDirections, subreadDirections[longestIntvIndex] == 1);
+      if (longestIntvIndex >= 0 and 
+          longestIntvIndex < subreadDirections.size() and
+          subreadDirections[longestIntvIndex] == 1) {
+        UpdateDirections(subreadDirections, true);
+      }
 
       int startIndex = 0;
       int endIndex = subreadIntervals.size();
