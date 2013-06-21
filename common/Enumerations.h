@@ -31,6 +31,6 @@ typedef enum T_PulseMetricType {
 } PulseMetricType;
 
 
-typedef enum T_AlignMode { NoAlignMode, Fullread, Subread, CCSDeNovo, CCSFullPass, CCSAllPass } AlignMode;
+typedef enum T_AlignMode { NoAlignMode, Fullread, Subread, CCSDeNovo, CCSFullPass, CCSAllPass, ZmwSubreads } AlignMode;
 
 #endif

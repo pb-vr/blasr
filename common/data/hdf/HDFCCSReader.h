@@ -234,6 +234,7 @@ class HDFCCSReader : public T_HDFBasReader<T_Sequence> {
 		// unrolled read, since an unrolled read is called for each zmw.
 		//
 		retVal = ((T_HDFBasReader<SMRTSequence>*)this)->GetNext(ccsSequence.unrolledRead);
+        ccsSequence.zmwData = ccsSequence.unrolledRead.zmwData;
 		ccsSequence.CopyTitle(ccsSequence.unrolledRead.title);
     string newTitle = string(ccsSequence.title) + string("/ccs");
     ccsSequence.CopyTitle(newTitle.c_str());

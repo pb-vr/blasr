@@ -124,16 +124,22 @@ public:
     subseq.title = rhs.title;
     subseq.titleLength = strlen(rhs.title);
     if (rhs.length == 0) {
-      if (preBaseFrames != NULL) { delete[] preBaseFrames;}
-      preBaseFrames = NULL;
-      if (widthInFrames != NULL) { delete[] widthInFrames;} 
-      widthInFrames = NULL;
-      if (pulseIndex != NULL) { delete[] pulseIndex; }
+      if (preBaseFrames != NULL) { 
+        delete[] preBaseFrames;
+        preBaseFrames = NULL;
+      }
+      if (widthInFrames != NULL) {
+        delete[] widthInFrames;
+        widthInFrames = NULL;
+      }
+      if (pulseIndex != NULL) {
+        delete[] pulseIndex;
+        pulseIndex = NULL;
+      }
       ((FASTQSequence*)this)->Copy(subseq);
       //
       // Make sure that no values of length 0 are allocated by returning here.
       //
-      return;
     }
     else {
       
@@ -142,7 +148,6 @@ public:
       assert(rhsPos < rhs.length);
       
       ((FASTQSequence*)this)->Copy(subseq);
-      zmwData = rhs.zmwData;
       if (rhs.preBaseFrames != NULL) {
         preBaseFrames = new HalfWord[length];
         memcpy(preBaseFrames, rhs.preBaseFrames, length*sizeof(HalfWord));
@@ -156,8 +161,15 @@ public:
         memcpy(pulseIndex, rhs.pulseIndex, sizeof(int) * length);
       }
     }
+    zmwData = rhs.zmwData;
   }
   
+  void Print(ostream &out) {
+    out << "SMRTSequence for zmw " << zmwData.holeNumber
+        << ", [" << subreadStart << ", " << subreadEnd << ")" << endl;
+    DNASequence::Print(out);
+  }
+
   SMRTSequence& operator=(const SMRTSequence &rhs) {
     Copy(rhs);
     return *this;

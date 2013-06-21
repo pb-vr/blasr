@@ -118,6 +118,7 @@ class MappingParameters {
 	string regionTableFileName;
 	//float averageMismatchScore;
 	bool mapSubreadsSeparately;
+    bool mapSubreadsOfZmwTogether;
 	bool useRegionTable;
 	bool useHQRegionTable;
 	bool printUnaligned;
@@ -265,6 +266,7 @@ class MappingParameters {
 		readSeparateRegionTable = false;
 		regionTableFileName = "";
 		mapSubreadsSeparately=true;
+        mapSubreadsOfZmwTogether=false;
 		useRegionTable = true;
 		useHQRegionTable=true;
 		printUnaligned = false;
@@ -334,6 +336,7 @@ class MappingParameters {
     }
 
 		if (nCandidates < nBest) {
+            cout << "Warning: resetting nCandidates to nBest " << nBest << endl;
       nCandidates = nBest;
 		}
 
@@ -343,6 +346,16 @@ class MappingParameters {
            << "the bestn parameter must be greater than one." << endl;
       exit(1);
     }
+
+    if (mapSubreadsOfZmwTogether) {
+      if (useCcs) {
+        mapSubreadsOfZmwTogether = false;
+      } else {
+        useRegionTable   = true;
+        useHQRegionTable = true;
+      }
+    }
+
 		if (sdpFilterType > 1) {
 			cout << "Warning: using new filter method for SDP alignments.  The parameter is " << endl
 					 << "either 0 or 1, but " << sdpFilterType << " was specified." << endl;
