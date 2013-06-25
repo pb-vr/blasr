@@ -342,9 +342,8 @@ class MappingParameters {
 
 
     if (placeRandomly and nBest == 1) {
-      cout << "ERROR. When attempting to select equivalently scoring reads at random " << endl
-           << "the bestn parameter must be greater than one." << endl;
-      exit(1);
+      cout << "Warning: When attempting to select equivalently scoring reads at random " << endl
+           << "the bestn parameter should be greater than one." << endl;
     }
 
     if (mapSubreadsOfZmwTogether) {
