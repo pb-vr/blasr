@@ -59,7 +59,6 @@
 #include "datastructures/reads/ReadInterval.h"
 #include "utils/FileOfFileNames.h"
 #include "utils/RegionUtils.h"
-//#include "utils/RandomUtils.h"
 #include "qvs/QualityTransform.h"
 #include "files/ReaderAgglomerate.h"
 #include "files/CCSIterator.h"
@@ -78,7 +77,7 @@
 #define MAX_PHRED_SCORE 254
 #define MAPQV_END_ALIGN_WIGGLE 5
 
-//#define USE_GOOGLE_PROFILER
+// #define USE_GOOGLE_PROFILER
 
 #ifdef USE_GOOGLE_PROFILER
 #include "gperftools/profiler.h"
@@ -4218,14 +4217,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  if (params.nProc > 1 and params.outFileName == "") {
-    cout << "ERROR: You must explicitly specify an output file name with the option -out "<<endl
-         << "when aligning in parallel mode. "<<endl;
-    exit(1);
-  }
-
   parentPID = getpid();
-
 
   SequenceIndexDatabase<FASTASequence> seqdb;
   SeqBoundaryFtr<FASTASequence> seqBoundary(&seqdb);
