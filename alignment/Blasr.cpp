@@ -521,8 +521,8 @@ void SetHelp(string &str) {
              << "               Keep up to 'n' candidates for the best alignment.  A large value of n will slow mapping" << endl
              << "               because the slower dynamic programming steps are applied to more clusters of anchors" <<endl
              << "               which can be a rate limiting step when reads are very long."<<endl
-             << "   -mapSubreadsOfZmwTogether(false)" << endl
-             << "               Map all subreads of a zmw (hole) to where the longest subread of the zmw " << endl
+             << "   -concordant(false)" << endl
+             << "               Map all subreads of a zmw (hole) to where the longest full pass subread of the zmw " << endl
              << "               aligned to. This requires to use the region table and hq regions." << endl
              << "               This option only works when reads are in base or pulse h5 format." << endl
              << endl
@@ -2787,7 +2787,6 @@ void StoreMapQVs(SMRTSequence &read,
       }
 
     }
-    //    cout << endl;
   }
 
   for (i = 0; i < assigned.size(); i++) {
@@ -3026,6 +3025,49 @@ void PrintAlignmentPtrs(vector <T_AlignmentCandidate*> & alignmentPtrs,
     out << endl;
 }
 
+// Extend target aligned sequence of the input alignement to both ends
+// by flankSize bases. Update alignment->tAlignedSeqPos, 
+// alignment->tAlignedSeqLength and alignment->tAlignedSeq.
+void ExtendTAlignedSeq(T_AlignmentCandidate * alignment,
+                       SequenceIndexDatabase<FASTQSequence> &seqdb,
+                       DNASequence & genome,
+                       int flankSize) {
+  assert(alignment != NULL and alignment->tIsSubstring);
+
+  UInt forwardTPos, newTAlignedSeqPos, newTAlignedSeqLen;
+  // New aligned start position relative to this chromosome, with 
+  // the same direction as alignment->tStrand.
+  newTAlignedSeqPos = UInt((alignment->tAlignedSeqPos > flankSize)?
+          (alignment->tAlignedSeqPos - flankSize): 0);
+  newTAlignedSeqLen = min(alignment->tAlignedSeqPos + alignment->tAlignedSeqLength +
+          flankSize, alignment->tLength) - newTAlignedSeqPos;
+  
+  if (alignment->tStrand ==0) {
+    forwardTPos = newTAlignedSeqPos; 
+  } else {
+    forwardTPos = alignment->tLength - newTAlignedSeqPos - 1;
+  }
+
+  // Find where this chromosome is in the genome.
+  int seqIndex = seqdb.GetIndexOfSeqName(alignment->tName);
+  assert(seqIndex != -1);
+  UInt newGenomePos = seqdb.ChromosomePositionToGenome(seqIndex, forwardTPos);
+
+  if (alignment->tIsSubstring == false) {
+    alignment->tAlignedSeq.Free();
+  }
+  alignment->tAlignedSeqPos = newTAlignedSeqPos;
+  alignment->tAlignedSeqLength = newTAlignedSeqLen;
+  if (alignment->tStrand == 0) {
+    alignment->tAlignedSeq.ReferenceSubstring(genome, newGenomePos, newTAlignedSeqLen);
+  } else {
+    // Copy and then reverse complement.
+    genome.MakeRC(alignment->tAlignedSeq, 
+            newGenomePos + 1 - alignment->tAlignedSeqLength, 
+            alignment->tAlignedSeqLength);
+    alignment->tIsSubstring = false;
+  }
+}
 
 // Align a subread of a SMRT sequence to target sequence of an alignment.
 // Input:
@@ -3515,6 +3557,7 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
       // (not readIsCCS and not -noSplitSubreads)
       vector<ReadInterval> subreadIntervals;
       vector<int>          subreadDirections;
+      vector<ReadInterval> adapterIntervals; 
       //
       // Determine endpoints of this subread in the main read.
       //
@@ -3529,10 +3572,11 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
       }
       else {
         // 
-        // Grab the subread intervals from the entire region table to
+        // Grab the subread & adapter intervals from the entire region table to
         // iterate over.
         //
         CollectSubreadIntervals(smrtRead, mapData->regionTablePtr, subreadIntervals, params.byAdapter);
+        CollectAdapterIntervals(smrtRead, mapData->regionTablePtr, adapterIntervals);
       }
 
       // The assumption is that neighboring subreads must have the opposite 
@@ -3546,29 +3590,37 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
       // and their corresponding dirctions, if they are shorter than the 
       // user specified minimum read length or do not intersect with hq 
       // region at all. Finally, return index of the (left-most) longest
-      // subread interval in the updated vector.
+      // subread in the updated vector.
       //
-      int longestIntvIndex = GetHighQualitySubreadsIntervals(
+      int longestSubreadIndex = GetHighQualitySubreadsIntervals(
             subreadIntervals, // a vector of subread intervals.
             subreadDirections, // a vector of subread directions.
             smrtRead.lowQualityPrefix, // hq region start pos.
             smrtRead.length - smrtRead.lowQualitySuffix, // hq end pos.
             params.minSubreadLength); // minimum read length.
+      
+      // Get index of the (left-most) longest full-pass subread which has
+      // both adapters.
+      int longestFullSubreadIndex = GetLongestFullSubreadIndex(
+          subreadIntervals, adapterIntervals);
+
+      int bestSubreadIndex = (longestFullSubreadIndex >= 0)?
+          longestFullSubreadIndex:longestSubreadIndex;
 
       // Flop all directions if direction of the longest subread is 1.
-      if (longestIntvIndex >= 0 and 
-          longestIntvIndex < subreadDirections.size() and
-          subreadDirections[longestIntvIndex] == 1) {
+      if (bestSubreadIndex >= 0 and 
+          bestSubreadIndex < subreadDirections.size() and
+          subreadDirections[bestSubreadIndex] == 1) {
         UpdateDirections(subreadDirections, true);
       }
 
       int startIndex = 0;
       int endIndex = subreadIntervals.size();
 
-      if (params.mapSubreadsOfZmwTogether) {
+      if (params.concordant) {
         // Only the longest subread will be aligned in the first round.
-        startIndex = max(startIndex, longestIntvIndex);
-        endIndex   = min(endIndex, longestIntvIndex + 1);
+        startIndex = max(startIndex, bestSubreadIndex);
+        endIndex   = min(endIndex, bestSubreadIndex + 1);
       }
 
       //
@@ -3685,41 +3737,50 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
       } // End of looping over subread intervals within [startIndex, endIndex).
 
       allReadAlignments.Print(threadOut);
-      if (params.mapSubreadsOfZmwTogether) {
+      if (params.concordant) {
         allReadAlignments.read = smrtRead;
         allReadAlignments.alignMode = ZmwSubreads;
 
-        for (intvIndex = 0; intvIndex < subreadIntervals.size(); intvIndex++) {
-          if (intvIndex == startIndex) continue; 
-          int passDirection = subreadDirections[intvIndex];
-          int passStartBase = subreadIntervals[intvIndex].start;
-          int passNumBases  = subreadIntervals[intvIndex].end - passStartBase;
-          if (passNumBases <= params.minReadLength) {continue;}
-
-          mapData->metrics.numReads++;
-          SMRTSequence subread;
-          subread.ReferenceSubstring(smrtRead, passStartBase, passNumBases);
-          subread.CopyTitle(smrtRead.title);
-          // The unrolled alignment should be relative to the entire read.
-          allReadAlignments.SetSequence(intvIndex, smrtRead);
-  
+        if (startIndex >= 0 && 
+            startIndex < allReadAlignments.subreadAlignments.size()) {
           vector<T_AlignmentCandidate*> selectedAlignmentPtrs =
-            allReadAlignments.subreadAlignments[startIndex];
+              allReadAlignments.subreadAlignments[startIndex];
 
-          for (int alnIndex = 0; alnIndex < selectedAlignmentPtrs.size(); alnIndex++) {
-            T_AlignmentCandidate * alignment = selectedAlignmentPtrs[alnIndex];
-            if (alignment->score > params.maxScore) break;
-            AlignSubreadToAlignmentTarget(allReadAlignments, 
-                                          subread,
-                                          smrtRead,
-                                          alignment,
-                                          passDirection, 
-                                          subreadIntervals[intvIndex],
-                                          intvIndex,
-                                          params, mappingBuffers, threadOut);
-          } // End of aligning this subread to each selected alignment.
-        } // End of aligning each subread to where the longest subread aligned to. 
-      } // End of if params.mapSubreadsOfZmwTogether
+          for(int alignmentIndex = 0; alignmentIndex < selectedAlignmentPtrs.size(); 
+              alignmentIndex++) {
+            ExtendTAlignedSeq(selectedAlignmentPtrs[alignmentIndex], 
+                              seqdb, genome, params.flankSize);
+          }
+
+          for (intvIndex = 0; intvIndex < subreadIntervals.size(); intvIndex++) {
+            if (intvIndex == startIndex) continue; 
+            int passDirection = subreadDirections[intvIndex];
+            int passStartBase = subreadIntervals[intvIndex].start;
+            int passNumBases  = subreadIntervals[intvIndex].end - passStartBase;
+            if (passNumBases <= params.minReadLength) {continue;}
+
+            mapData->metrics.numReads++;
+            SMRTSequence subread;
+            subread.ReferenceSubstring(smrtRead, passStartBase, passNumBases);
+            subread.CopyTitle(smrtRead.title);
+            // The unrolled alignment should be relative to the entire read.
+            allReadAlignments.SetSequence(intvIndex, smrtRead);
+
+            for (int alnIndex = 0; alnIndex < selectedAlignmentPtrs.size(); alnIndex++) {
+              T_AlignmentCandidate * alignment = selectedAlignmentPtrs[alnIndex];
+              if (alignment->score > params.maxScore) break;
+              AlignSubreadToAlignmentTarget(allReadAlignments, 
+                                            subread,
+                                            smrtRead,
+                                            alignment,
+                                            passDirection, 
+                                            subreadIntervals[intvIndex],
+                                            intvIndex,
+                                            params, mappingBuffers, threadOut);
+            } // End of aligning this subread to each selected alignment.
+          } // End of aligning each subread to where the longest subread aligned to. 
+        } // End of if startIndex >= 0 and < subreadAlignments.size()
+      } // End of if params.concordant
     } // End of if (readIsCCS == false and params.mapSubreadsSeparately).
     else { // if (readIsCCS or (not readIsCCS and -noSplitSubreads) )
       //
@@ -3738,7 +3799,6 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
       //
       vector<T_AlignmentCandidate*> selectedAlignmentPtrs =
       SelectAlignmentsToPrint(alignmentPtrs, params, associatedRandInt);
-
 
       //
       // Just one sequence is aligned.  There is one primary hit, and
@@ -3761,6 +3821,13 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
         allReadAlignments.SetSequence(0, smrtRead);
       }
       else if (readIsCCS) { // if -useccsall or -useccs 
+        // Flank alignment candidates to both ends.
+        for(int alignmentIndex = 0; alignmentIndex < selectedAlignmentPtrs.size(); 
+          alignmentIndex++) {
+          ExtendTAlignedSeq(selectedAlignmentPtrs[alignmentIndex],
+                            seqdb, genome, params.flankSize);
+        }
+
         //
         // Align the ccs subread to where the denovo sequence mapped (explode).
         //
@@ -4044,7 +4111,8 @@ int main(int argc, char* argv[]) {
   clp.RegisterIntOption("nCandidates", &params.nCandidates, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterFlagOption("useTemp", (bool*) &params.tempDirectory, "");
   clp.RegisterFlagOption("noSplitSubreads", &params.mapSubreadsSeparately, "");
-  clp.RegisterFlagOption("mapSubreadsOfZmwTogether", &params.mapSubreadsOfZmwTogether, "");
+  clp.RegisterFlagOption("concordant", &params.concordant, "");
+  clp.RegisterIntOption("flankSize", &params.flankSize, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterIntOption("subreadMapType", &params.subreadMapType, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterStringOption("titleTable", &params.titleTableName, "");
   clp.RegisterFlagOption("useSensitiveSearch", &params.doSensitiveSearch, "");
@@ -4586,10 +4654,10 @@ int main(int argc, char* argv[]) {
     if (reader->GetFileType() != HDFCCS and 
         reader->GetFileType() != HDFBase and
         reader->GetFileType() != HDFPulse and
-        params.mapSubreadsOfZmwTogether) {
-        cout << "WARNING! Option mapSubreadsOfZmwTogether is only enabled when "
+        params.concordant) {
+        cout << "WARNING! Option concordant is only enabled when "
              << "input reads are in PacBio base h5 or pulse h5 format." << endl;
-        params.mapSubreadsOfZmwTogether = false;
+        params.concordant = false;
     }
 
 

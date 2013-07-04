@@ -127,6 +127,7 @@ class AlignmentCandidate : public Alignment {
             << "tAlignLength: " << tAlignLength << ", "
             << "tAlignedSeqPos:" << tAlignedSeqPos << ", " 
             << "tAlignedSeqLen:" << tAlignedSeqLength << endl;
+        tAlignedSeq.Print(out);
     }
  
  AlignmentCandidate(const AlignmentCandidate &rhs) {

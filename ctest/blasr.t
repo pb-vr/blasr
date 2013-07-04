@@ -86,5 +86,11 @@ Test Sam out nm tag
 Test -useccsall with bestn = 1
   $ $EXEC $DATDIR/ccstest.fofn $DATDIR/ccstest_ref.fasta -bestn 1 -useccsall -sam -out $OUTDIR/useccsall.sam -holeNumbers 76772
   $ tail -n+9 $OUTDIR/useccsall.sam | md5sum 
-  645cff7b2c92d64c522a3c40688a11b0  -
+  8f9cba19d956a140b359e89db714bbf4  -
+
+Test -concordant
+#By default flank to both ends by 40 bases.
+  $ $EXEC $DATDIR/ecoli_lp.fofn $DATDIR/ecoli_reference.fasta -concordant -sam -out $OUTDIR/concordant.sam -nproc 8
+  $ tail -n+9 $OUTDIR/concordant.sam | sort | md5sum
+  28c64b141227c15b4e25849ae29348fe  -
 

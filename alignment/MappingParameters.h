@@ -118,7 +118,8 @@ class MappingParameters {
 	string regionTableFileName;
 	//float averageMismatchScore;
 	bool mapSubreadsSeparately;
-    bool mapSubreadsOfZmwTogether;
+    bool concordant;
+    int  flankSize;
 	bool useRegionTable;
 	bool useHQRegionTable;
 	bool printUnaligned;
@@ -266,7 +267,8 @@ class MappingParameters {
 		readSeparateRegionTable = false;
 		regionTableFileName = "";
 		mapSubreadsSeparately=true;
-        mapSubreadsOfZmwTogether=false;
+        concordant=false;
+        flankSize=40;
 		useRegionTable = true;
 		useHQRegionTable=true;
 		printUnaligned = false;
@@ -346,9 +348,9 @@ class MappingParameters {
            << "the bestn parameter should be greater than one." << endl;
     }
 
-    if (mapSubreadsOfZmwTogether) {
+    if (concordant) {
       if (useCcs) {
-        mapSubreadsOfZmwTogether = false;
+        concordant = false;
       } else {
         useRegionTable   = true;
         useHQRegionTable = true;

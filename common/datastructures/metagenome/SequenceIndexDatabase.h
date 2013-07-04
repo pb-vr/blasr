@@ -50,6 +50,16 @@ class SequenceIndexDatabase {
     assert(seqIndex < nSeqPos-1);
     return seqStartPos[seqIndex+1] - seqStartPos[seqIndex] - 1;
   }
+
+  // Return index of a reference sequence with name "seqName".
+  int GetIndexOfSeqName(string seqName) {
+    for(int i = 0; i < nSeqPos - 1; i++) {
+      if (seqName == string(names[i])) {
+        return i;
+      }
+    }
+    return -1;
+  }
   
   void GetName(int seqIndex, string &name) {
     assert(seqIndex < nSeqPos-1);
@@ -204,6 +214,7 @@ class SequenceIndexDatabase {
 
 	void SequenceTitleLinesToNames() {
 		int seqIndex;
+        vector<string> tmpNameArray;
 		for (seqIndex = 0; seqIndex < nSeqPos-1; seqIndex++) {
 			string tmpName;
 			AssignUntilFirstSpace(names[seqIndex], nameLengths[seqIndex], tmpName);
@@ -212,7 +223,19 @@ class SequenceIndexDatabase {
 			strcpy(names[seqIndex], tmpName.c_str());
 			names[seqIndex][tmpName.size()] = '\0';
 			nameLengths[seqIndex] = tmpName.size();
+
+            tmpNameArray.push_back(tmpName);
 		}
+        // Make sure that reference names are unique.
+        sort(tmpNameArray.begin(), tmpNameArray.end());
+        for(int j = 0; j < tmpNameArray.size() - 1; j++) {
+            if (tmpNameArray[j] == tmpNameArray[j+1]) {
+                cout << "Error, reference with name \"" 
+                     << tmpNameArray[j] 
+                     << "\" in the reference genome is not unique"<<endl;
+                exit(1);
+            }
+        }
 	}
 
 	VectorIndex AddSequence(TSeq &sequence) {

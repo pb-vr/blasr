@@ -243,6 +243,28 @@ void CollectSubreadIntervals(T_Sequence &read, RegionTable *regionTablePtr, vect
 }
 
 
+// Get all adapter intervals of a ZMW.
+// Input:
+//   read - read.zmwData.holeNumber specifies the zmw.
+//   regionTablePtr - a pointer to a region table.
+// Output:
+//   adapterIntervals - where to assign all adapter intervals of the zmw
+template<typename T_Sequence>
+void CollectAdapterIntervals(T_Sequence &read, RegionTable *regionTablePtr, vector<ReadInterval> &adapterIntervals) {
+  assert(regionTablePtr != NULL);
+  int regionLowIndex = 0, regionHighIndex = 0;
+  regionTablePtr->LookupRegionsByHoleNumber(read.zmwData.holeNumber, regionLowIndex, regionHighIndex);
+  for (int regionIndex = regionLowIndex; regionIndex < regionHighIndex; regionIndex++) {
+    if (regionTablePtr->GetType(regionIndex) ==  Adapter) {
+      adapterIntervals.push_back(ReadInterval(
+          regionTablePtr->table[regionIndex].row[RegionAnnotation::RegionStart],
+          regionTablePtr->table[regionIndex].row[RegionAnnotation::RegionEnd],
+          regionTablePtr->table[regionIndex].row[RegionAnnotation::RegionScore]));
+    }
+  }
+}
+
+
 // Given a vecotr of ReadInterval objects and their corresponding 
 // directions, intersect each object with an interval 
 // [hqStart, hqEnd), if there is no intersection or the intersected
@@ -287,6 +309,37 @@ int GetHighQualitySubreadsIntervals(vector<ReadInterval> & subreadIntervals,
     return ret;
 }
 
+// Given a vector of subreads and a vector of adapters, return
+// index of the (left-most) longest subread which has both
+// adapters before & after itself.
+int GetLongestFullSubreadIndex(vector<ReadInterval> & subreadIntervals,
+                               vector<ReadInterval> & adapterIntervals) {
+  int longestLength = 0;
+  int index = -1; // Index of the longest fullpass subread.
+  for(int i = 0; i < subreadIntervals.size(); i++) {
+    ReadInterval & subread = subreadIntervals[i];
+    bool ladapter = false, radapter = false;
+    for(int j = 0; j < adapterIntervals.size(); j++) {
+      ReadInterval & adapter = adapterIntervals[j];
+      if (abs(subread.start - adapter.end) < 10) {
+          ladapter = true;
+      } else if(abs(subread.end - adapter.start) < 10) {
+          radapter = true;
+      }
+      if (ladapter && radapter) {
+        if (longestLength < subread.end - subread.start) {
+          longestLength = subread.end - subread.start;
+          index = i;
+        } else {
+          break;
+        }
+      }
+    }
+  }
+  return index;
+}
+
+
 // Create a vector of n directions consisting of interleaved 0 and 1s.
 void CreateDirections(vector<int> & directions, const int & n) {
     directions.clear();
@@ -302,23 +355,6 @@ void UpdateDirections(vector<int> & directions, bool flop = false) {
   for (int i = 0; i < int(directions.size()); i++) {
     assert(directions[i] == 0 or directions[i] == 1);
     directions[i] = (directions[i] == 0)?1:0;
-  }
-}
-
-
-template<typename T_Sequence>
-int RemoveLowQualitySubreads(T_Sequence &read, RegionTable *regionTablePtr, vector<ReadInterval> &subreadIntervals, int highQualityStart, int highQualityEnd ) {
-  
-  int i;
-  for (i = 0; i < subreadIntervals.size();) {
-    if (highQualityStart > subreadIntervals[i].end or highQualityEnd < subreadIntervals[i].start) {
-      subreadIntervals.erase(subreadIntervals.begin() + i);
-    }
-    else {
-      if (highQualityStart > subreadIntervals[i].start and highQualityStart < subreadIntervals[i].end) {
-        subreadIntervals[i].start = highQualityStart;
-      }        
-    }
   }
 }
 

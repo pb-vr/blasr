@@ -26,6 +26,7 @@ class CCSSequence : public SMRTSequence {
         numConsensusBases = 0;
 		SMRTSequence::Free();
 		unrolledRead.Free();
+        /*
         ClearMemory(passStartPulse);
         ClearMemory(passNumPulses);
         ClearMemory(passStartBase);
@@ -34,6 +35,7 @@ class CCSSequence : public SMRTSequence {
         ClearMemory(adapterHitBefore);
         ClearMemory(adapterHitAfter);
         ClearMemory(adapterHitConfidence);
+        */
 	}
 	int GetStorageSize() {
 		return SMRTSequence::GetStorageSize() + unrolledRead.GetStorageSize();
