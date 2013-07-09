@@ -247,7 +247,6 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
 		//
 		if (HDFPulseDataFile::Initialize(rootGroupPtr) == 0) return 0;
     
-
 		//
 		// Open the base group, this contains all the required information.  
 		//
@@ -255,7 +254,6 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
     if (readBasesFromCCS) {
       baseCallsGroupName = "ConsensusBaseCalls";
     }
-
     if (pulseDataGroup.ContainsObject(baseCallsGroupName) == 0 or
         baseCallsGroup.Initialize(pulseDataGroup.group, baseCallsGroupName) == 0) {
       return 0;
@@ -381,7 +379,13 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
 		if (includedFields["DeletionTag"] and deletionTagArray.InitializeForReading(baseCallsGroup, "DeletionTag")     == false) return 0;
 		if (includedFields["SubstitutionQV"] and substitutionQVArray.InitializeForReading(baseCallsGroup, "SubstitutionQV")  == false) return 0;
 		if (includedFields["SubstitutionTag"] and substitutionTagArray.InitializeForReading(baseCallsGroup, "SubstitutionTag") == false) return 0;
-		if (includedFields["PreBaseFrames"] and preBaseFramesArray.InitializeForReading(baseCallsGroup, "PreBaseFrames")   == false) return 0;
+		// if (includedFields["PreBaseFrames"] and preBaseFramesArray.InitializeForReading(baseCallsGroup, "PreBaseFrames")   == false) return 0;
+        
+        if (baseCallsGroup.ContainsObject("PreBaseFrames")) {
+            if (preBaseFramesArray.InitializeForReading(baseCallsGroup, "PreBaseFrames") == false) return 0;
+        } else {
+            includedFields["PreBaseFrames"] = false;
+        }
     
 
     //
@@ -476,8 +480,8 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
 		return 1;
 	}
 
-	int Initialize(string hdfBasFileName,
-                   const H5::FileAccPropList & fileAccPropList = H5::FileAccPropList::DEFAULT) {
+    int InitializeHDFFile(string hdfBasFileName, 
+            const H5::FileAccPropList & fileAccPropList = H5::FileAccPropList::DEFAULT) { 
 		/*
 		 * Initialize access to the HDF file.  For reading bas files, this
 		 * involves:
@@ -491,9 +495,16 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
 			return 0;
 		}
 		rootGroupPtr = &rootGroup;
-		return Initialize();
-	}
+        return 1;
+    }
 
+	int Initialize(string hdfBasFileName,
+            const H5::FileAccPropList & fileAccPropList = H5::FileAccPropList::DEFAULT) {
+        int init = InitializeHDFFile(hdfBasFileName, fileAccPropList);
+        if (init == 0) return 0;
+		return Initialize();
+    }
+   
 	int GetNumReads() {
 		return nReads;
 	}

@@ -3028,7 +3028,7 @@ void PrintAlignmentPtrs(vector <T_AlignmentCandidate*> & alignmentPtrs,
 // Extend target aligned sequence of the input alignement to both ends
 // by flankSize bases. Update alignment->tAlignedSeqPos, 
 // alignment->tAlignedSeqLength and alignment->tAlignedSeq.
-void ExtendTAlignedSeq(T_AlignmentCandidate * alignment,
+void FlankTAlignedSeq(T_AlignmentCandidate * alignment,
                        SequenceIndexDatabase<FASTQSequence> &seqdb,
                        DNASequence & genome,
                        int flankSize) {
@@ -3422,8 +3422,8 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
     AlignmentContext alignmentContext;
     // Associate each sequence to read in with a determined random int.
     int associatedRandInt = 0;
-
-    if (mapData->reader->GetFileType() == HDFCCS) {
+    if (mapData->reader->GetFileType() == HDFCCS ||
+        mapData->reader->GetFileType() == HDFCCSONLY) { 
       if (GetNextReadThroughSemaphore(*mapData->reader, params, ccsRead, alignmentContext, associatedRandInt) == false) {
         break;
       }
@@ -3748,7 +3748,7 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
 
           for(int alignmentIndex = 0; alignmentIndex < selectedAlignmentPtrs.size(); 
               alignmentIndex++) {
-            ExtendTAlignedSeq(selectedAlignmentPtrs[alignmentIndex], 
+            FlankTAlignedSeq(selectedAlignmentPtrs[alignmentIndex], 
                               seqdb, genome, params.flankSize);
           }
 
@@ -3824,8 +3824,8 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
         // Flank alignment candidates to both ends.
         for(int alignmentIndex = 0; alignmentIndex < selectedAlignmentPtrs.size(); 
           alignmentIndex++) {
-          ExtendTAlignedSeq(selectedAlignmentPtrs[alignmentIndex],
-                            seqdb, genome, params.flankSize);
+          FlankTAlignedSeq(selectedAlignmentPtrs[alignmentIndex],
+                           seqdb, genome, params.flankSize);
         }
 
         //
@@ -4609,6 +4609,13 @@ int main(int argc, char* argv[]) {
     // Initialize using already set file names.
     //
     int initReturnValue = reader->Initialize();    
+
+    // Check whether use ccs only.
+    if (reader->GetFileType() == HDFCCSONLY) {
+       params.useAllSubreadsInCcs = false;
+       params.useCcs = params.useCcsOnly = true;
+    }
+
     string changeListIdString;
     reader->hdfBasReader.GetChangeListID(changeListIdString);
     ChangeListID changeListId(changeListIdString);

@@ -7,6 +7,7 @@ typedef enum T_FileType {  Fasta,
 								 Fourbit,
 								 HDFBase,
 								 HDFCCS,
+                                 HDFCCSONLY,
 								 None
 } FileType;
 typedef enum T_Strand {Forward, Reverse} Strand;

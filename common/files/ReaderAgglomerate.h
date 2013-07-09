@@ -69,13 +69,15 @@ class ReaderAgglomerate : public BaseSequenceIO {
     if (fileType == Fasta || fileType == Fastq) {
       movieName = fileName;
     }
-    else if (fileType == HDFPulse || fileType == HDFBase || fileType == HDFCCS) {
+    else if (fileType == HDFPulse || fileType == HDFBase ||
+             fileType == HDFCCS || fileType == HDFCCSONLY) {
       movieName = hdfBasReader.GetMovieName();
     }
   }
 
   bool FileHasZMWInformation() {
-    return (fileType == HDFPulse || fileType == HDFBase || fileType == HDFCCS);
+    return (fileType == HDFPulse || fileType == HDFBase || 
+            fileType == HDFCCS || fileType == HDFCCSONLY);
   }
 
   void SkipReadQuality() {
@@ -126,6 +128,7 @@ class ReaderAgglomerate : public BaseSequenceIO {
     case HDFBase:
       return hdfBasReader.HasRegionTable();
       break;
+    case HDFCCSONLY:
     case HDFCCS:
       return hdfCcsReader.HasRegionTable();
       break;
@@ -141,6 +144,13 @@ class ReaderAgglomerate : public BaseSequenceIO {
       break;
     case Fastq:
       init = fastqReader.Init(fileName);
+      break;
+    case HDFCCSONLY:
+      ignoreCCS = false;
+      hdfCcsReader.SetReadBasesFromCCS();
+      hdfCcsReader.InitializeDefaultIncludedFields();
+      init = hdfCcsReader.Initialize(fileName);
+      if (init == 0) return 0;
       break;
     case HDFPulse:
     case HDFBase:
@@ -205,6 +215,7 @@ class ReaderAgglomerate : public BaseSequenceIO {
     case HDFBase:
       numRecords = hdfBasReader.GetNext(seq);
       break;
+    case HDFCCSONLY:
     case HDFCCS:
       cout << "ERROR! Reading CCS into a structure that cannot handle it." << endl;
       assert(0);
@@ -230,6 +241,7 @@ class ReaderAgglomerate : public BaseSequenceIO {
     case HDFBase:
       numRecords = hdfBasReader.GetNext(seq);
       break;
+    case HDFCCSONLY:
     case HDFCCS:
       cout << "ERROR! Reading CCS into a structure that cannot handle it." << endl;
       assert(0);
@@ -256,6 +268,10 @@ class ReaderAgglomerate : public BaseSequenceIO {
     case HDFPulse:
     case HDFBase:
       numRecords = hdfBasReader.GetNext(seq);
+      break;
+    case HDFCCSONLY:
+      cout << "ERROR! Reading CCS into a structure that cannot handle it." << endl;
+      assert(0);
       break;
     case HDFCCS:
       assert(ignoreCCS == false);
@@ -290,6 +306,7 @@ class ReaderAgglomerate : public BaseSequenceIO {
     case HDFBase:
       numRecords = hdfBasReader.GetNext(seq);
       break;
+    case HDFCCSONLY:
     case HDFCCS:
       numRecords = hdfCcsReader.GetNext(seq);
       break;
@@ -314,6 +331,7 @@ int Advance(int nSteps) {
     case HDFPulse:
     case HDFBase:
       return hdfBasReader.Advance(nSteps);
+    case HDFCCSONLY:
     case HDFCCS:
       return hdfCcsReader.Advance(nSteps);
     case Fastq:

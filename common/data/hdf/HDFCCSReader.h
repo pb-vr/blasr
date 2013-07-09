@@ -83,10 +83,11 @@ class HDFCCSReader : public T_HDFBasReader<T_Sequence> {
 		// First, initialize for reading the unrolled bases from this
 		// file.
 		//
-		if (this->T_HDFBasReader<T_Sequence>::Initialize(ccsBasFileName, fileAccPropList) == 0) {
-      cout << "Could not initialize ccs file " << ccsBasFileName << endl;
-    }
-		
+	  if (this->T_HDFBasReader<T_Sequence>::Initialize(ccsBasFileName, fileAccPropList) == 0) {
+        cout << "ERROR, Could not initialize ccs file " << ccsBasFileName << endl;
+        exit(1);
+      }
+
 		if (this->pulseDataGroup.ContainsObject("ConsensusBaseCalls") and
 				ccsGroup.Initialize(this->hdfBasFile, "PulseData/ConsensusBaseCalls") == 0) {
 			cout << "ERROR, attempting to read cicular consensus data from '" << ccsBasFileName 
@@ -170,7 +171,7 @@ class HDFCCSReader : public T_HDFBasReader<T_Sequence> {
 		numPassesArray.Read(readIndex, readIndex+1, &numPasses);
     return numPasses;
   }
-  
+
 	int GetNext(T_Sequence &ccsSequence) {
 		//
 		// Read in all ccs pass data.

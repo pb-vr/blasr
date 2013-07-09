@@ -47,6 +47,10 @@ class BaseSequenceIO {
 					type = HDFBase;
 					return 1;
 				}
+                else if (extension == "ccs.h5") {
+                    type = HDFCCSONLY;
+                    return 1;
+                }
 				else {
 					type = None;
 					return 0;

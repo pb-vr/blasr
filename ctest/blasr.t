@@ -88,9 +88,25 @@ Test -useccsall with bestn = 1
   $ tail -n+9 $OUTDIR/useccsall.sam | md5sum 
   8f9cba19d956a140b359e89db714bbf4  -
 
+
 Test -concordant
-#By default flank to both ends by 40 bases.
+  $ rm -rf $OUTDIR/concordant.sam
   $ $EXEC $DATDIR/ecoli_lp.fofn $DATDIR/ecoli_reference.fasta -concordant -sam -out $OUTDIR/concordant.sam -nproc 8
-  $ tail -n+9 $OUTDIR/concordant.sam | sort | md5sum
-  28c64b141227c15b4e25849ae29348fe  -
+  $ sed -n 6,110864p $OUTDIR/concordant.sam > $OUTDIR/tmp1 
+  $ sort $OUTDIR/tmp1 > $OUTDIR/tmp11
+  $ sed -n 6,110864p $STDDIR/concordant.sam > $OUTDIR/tmp2
+  $ sort $OUTDIR/tmp2 > $OUTDIR/tmp22
+  $ diff $OUTDIR/tmp11 $OUTDIR/tmp22
+
+  $ rm -rf $OUTDIR/tmp1 $OUTDIR/tmp2 $OUTDIR/tmp11 $OUTDIR/tmp22
+
+
+Test using *.ccs.h5 as input
+# The results should be exactly the same as 
+# blasr ccsasinput_bas.fofn $DATDIR/ccsasinput.fasta -m 4 -out tmp.m4 -useccsdenovo
+  $ rm -rf $OUTDIR/ccsasinput.m4
+  $ $EXEC $DATDIR/ccsasinput.fofn $DATDIR/ccsasinput.fasta -m 4 -out $OUTDIR/ccsasinput.m4
+  $ cat $OUTDIR/ccsasinput.m4 | md5sum
+  55295b4304c1cd1e79edb810bb048a4c  -
+
 
