@@ -66,13 +66,13 @@ bin/sawriter: bin/SAWriter.o
 	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@
 
 bin/pbmask: bin/Mask.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@ -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@ -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
 
 bin/guidedalign: bin/GuidedAlign.o
-	$(CPP) $(CPPOPTS) $^ $(STATIC) -o $@ -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz
+	$(CPP) $(CPPOPTS) $^ $(STATIC) -o $@ -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
 
 bin/extendAlign: bin/ExtendAlign.o
-	$(CPP) $(CPPOPTS) $^ $(STATIC) -o $@ -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz
+	$(CPP) $(CPPOPTS) $^ $(STATIC) -o $@ -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
 
 bin/saquery: bin/SAQuery.o
 	$(CPP) $(CPPOPTS) $^ $(STATIC) -o $@
@@ -139,7 +139,7 @@ bin/tabulateAlignment: bin/TabulateAlignment.o
 	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@
 
 bin/buildQualityValueProfile: bin/BuildQualityValueProfile.o
-	$(CPP) -g $(CPPOPTS) $< $(STATIC) -o $@ -lpthread -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz
+	$(CPP) -g $(CPPOPTS) $< $(STATIC) -o $@ -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread -ldl
 
 #
 # Set up a default value for the install dir if one does
