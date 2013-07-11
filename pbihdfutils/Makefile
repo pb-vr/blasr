@@ -101,7 +101,7 @@ bin/toAfg: bin/ToAfg.o
 bin/pls2fasta: bin/PulseToFasta.o
 	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
 
-bin/LoadPulses.o: LoadPulses2.cpp
+bin/LoadPulses.o: LoadPulses.cpp
 	$(CPP) $(INCLUDEDIRS) $(CPPOPTS) -fno-trapping-math -g -c $<  -o $@
 
 bin/loadPulses: bin/LoadPulses.o
