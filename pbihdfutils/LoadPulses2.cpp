@@ -2108,6 +2108,9 @@ int main(int argc, char* argv[]) {
                 numPassesMetric.resize(lookupTables.size());
                 UInt index = 0;  
                 for (index = 0; index < lookupTables.size(); index++) {
+                    if (lookupTables[index].skip) {
+                        continue;
+                    }
                     numPassesMetric[index] = hdfCcsReader.GetNumPasses(lookupTables[index].readIndex);
                 }
                 if (!cmpReader.alnInfoGroup.numPasses.IsInitialized()) {
