@@ -37,8 +37,8 @@ int main(int argc, char* argv[]) {
                          "represent the interval of the read that was "
                          "aligned.");
   clp.RegisterStringOption("readType", &readType, 
-                         "Set the read type: 'standard', 'strobe', or "
-                         "'cDNA'");
+                         "Set the read type: 'standard', 'strobe', 'CCS', "
+                         "or 'cDNA'");
   clp.RegisterIntOption("verbosity", &verbosity, 
                          "Set desired verbosity.", 
                          CommandLineParser::PositiveInteger);
@@ -60,9 +60,10 @@ int main(int argc, char* argv[]) {
 
   clp.ParseCommandLine(argc, argv);
 
-  if (readType != "standard" and readType != "strobe" and readType != "cDNA") {
+  if (readType != "standard" and readType != "strobe" and 
+      readType != "cDNA" and readType != "CCS") {
     cout << "ERROR. Read type '" << readType 
-         << "' must be one of either 'standard', 'strobe', or 'cDNA'" 
+         << "' must be one of either 'standard', 'strobe', 'cDNA' or 'CCS'." 
          << endl;
     exit(1);
   }
@@ -90,12 +91,10 @@ int main(int argc, char* argv[]) {
   AppendPerforceChangelist(PERFORCE_VERSION_STRING, versionString);
   cmpFile.fileLogGroup.AddEntry(command, log, program, GetTimestamp(), versionString);
 
-  if (readType == "cDNA" or readType == "strobe") {
-    //
-    // For now, fake cDNA as strobe.
-    //
-    cmpFile.SetReadType(readType);
-  }
+  //
+  // Set the readType
+  //
+  cmpFile.SetReadType(readType);
 
   //
   // Read necessary input.
