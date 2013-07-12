@@ -64,14 +64,4 @@ and a genome.
     * > sa2bwt hg19.fasta hg19.fasta.sa hg19.fasta.bwt
     * > blasr reads.bas.h5 hg19.fasta -bwt hg19.fasta.bwt
 
-<script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-13166584-21', 'github.com');
-  ga('send', 'pageview');
-
-</script>
-
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/036412483bfb92d2f18c1e62a34586b4 "githalytics.com")](http://githalytics.com/PacificBiosciences/blasr)
