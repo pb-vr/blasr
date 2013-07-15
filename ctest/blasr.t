@@ -109,4 +109,12 @@ Test using *.ccs.h5 as input
   $ cat $OUTDIR/ccsasinput.m4 | md5sum
   55295b4304c1cd1e79edb810bb048a4c  -
 
+Test -useccsall with Large genome.
+  $ BASFILE=/mnt/data3/vol53/2450530/0014/Analysis_Results/m130507_052228_42161_c100519212550000001823079909281305_s1_p0.3.bax.h5
+  $ REFDIR=/mnt/secondary/Smrtpipe/repository/hg19_M_sorted/sequence
+  $ REFFA=$REFDIR/hg19_M_sorted.fasta
+  $ REFSA=$REFDIR/hg19_M_sorted.fasta.sa
+  $ OUTFILE=$OUTDIR/intflow.m4
+  $ $EXEC $BASFILE $REFFA -out $OUTFILE -m 4 -sa $REFSA -holeNumbers 109020
+  $ diff $STDDIR/intflow.m4 $OUTFILE
 

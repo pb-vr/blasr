@@ -197,7 +197,7 @@ class DNASequence {
 		deleteOnExit = true;
 	}
 
-	void ReferenceSubstring(const DNASequence &rhs, int pos=0, int substrLength=0) {
+	void ReferenceSubstring(const DNASequence &rhs, UInt pos=0, int substrLength=0) {
 		//
 		// This makes a reference therefore it should not be deleted.
 		//
