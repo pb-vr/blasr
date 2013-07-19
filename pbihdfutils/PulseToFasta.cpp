@@ -122,7 +122,18 @@ int main(int argc, char* argv[]) {
 			reader.hdfBasReader.IncludeField("SimulatedCoordinate");
 			reader.hdfBasReader.IncludeField("SimulatedSequenceIndex");
 		}
-		reader.Initialize(plsFileNames[plsFileIndex]);
+
+        if (reader.SetReadFileName(plsFileNames[plsFileIndex]) == 0) {
+          cout << "ERROR, could not determine file type."
+               << plsFileNames[plsFileIndex] << endl;
+          exit(1);
+        }
+        if (reader.Initialize() == 0) {
+          cout << "ERROR, could not initialize file "
+               << plsFileNames[plsFileIndex] << endl;
+          exit(1);
+        }
+
 		DNALength simulatedCoordinate;
 		DNALength simulatedSequenceIndex;
 		reader.SkipReadQuality();

@@ -39,7 +39,7 @@ class BaseSequenceIO {
 			else if (extension == "h5") {
 				dotPos = fileName.rfind(".", dotPos-1); 
 				extension.assign(fileName, dotPos+1, fileName.size() - (dotPos + 1));
-				if (extension == "pls.h5") {
+				if (extension == "pls.h5" or extension == "plx.h5" ) {
 					type = HDFPulse;
 					return 1;
 				}
