@@ -1725,6 +1725,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
+    cerr << "[INFO] " << GetTimestamp() << " [loadPulses] started." << endl;
     //use byMetric by default unless byRead is specified.
     byMetric = true;
     if (byRead) {
@@ -2596,4 +2597,5 @@ int main(int argc, char* argv[]) {
     } // Done loading movies.
     
     cmpReader.Close();
+    cerr << "[INFO] " << GetTimestamp() << " [loadPulses] ended." << endl;
 }

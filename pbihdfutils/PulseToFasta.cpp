@@ -5,6 +5,8 @@
 #include "files/ReaderAgglomerate.h"
 #include "utils/FileOfFileNames.h"
 #include "utils/RegionUtils.h"
+#include "utils/TimeUtils.h"
+#include "utils/RegionUtils.h"
 #include "SMRTSequence.h"
 #include "utils.h"
 #include <string>
@@ -63,6 +65,7 @@ int main(int argc, char* argv[]) {
                         
   clp.ParseCommandLine(argc, argv);
 
+    cerr << "[INFO] " << GetTimestamp() << " [pls2fasta] started."  << endl;
 	if (trimByRegion and maskByRegion) {
 		cout << "ERROR! You cannot both trim and mask regions. Use one or the other." << endl;
 		exit(1);
@@ -326,4 +329,5 @@ int main(int argc, char* argv[]) {
     reader.Close();
     hdfRegionReader.Close();
   }
+  cerr << "[INFO] " << GetTimestamp() << " [pls2fasta] ended."  << endl;
 }

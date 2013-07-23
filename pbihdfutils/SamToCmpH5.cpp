@@ -60,6 +60,8 @@ int main(int argc, char* argv[]) {
 
   clp.ParseCommandLine(argc, argv);
 
+  cerr << "[INFO] " << GetTimestamp() << " [samtoh5] started." << endl;
+
   if (readType != "standard" and readType != "strobe" and 
       readType != "cDNA" and readType != "CCS") {
     cout << "ERROR. Read type '" << readType 
@@ -192,5 +194,6 @@ int main(int argc, char* argv[]) {
       }*/
   }
 
+  cerr << "[INFO] " << GetTimestamp() << " [samtoh5] ended." << endl;
   return 0;
 }
