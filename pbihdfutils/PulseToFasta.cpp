@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
   CommandLineParser clp;
   bool printOnlyBest = false;
   clp.SetProgramName("pls2fasta");
-  clp.RegisterStringOption("file.pls.h5", &plsFileName, "Input pls/bas.h5 file.", true);
+  clp.RegisterStringOption("file.pls.h5", &plsFileName, "Input pls.h5/bax.h5/fofn file.", true);
   clp.RegisterStringOption("out.fasta", &fastaOutName, "Output fasta/fastq file.", true);
   clp.RegisterPreviousFlagsAsHidden();
   clp.RegisterFlagOption("trimByRegion", &trimByRegion, "Trim away low quality regions.");
@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
                         "A typical value would be between 750 and 800.  This does not apply to ccs reads.", CommandLineParser::NonNegativeInteger);
   clp.RegisterFlagOption("best", &printOnlyBest, "If a CCS sequence exists, print this.  Otherwise, print the longest"
                          "subread.  This does not support fastq.");
-  clp.SetProgramSummary("Converts bas.h5 files to fasta or fastq files. Although fasta files are provided"
+  clp.SetProgramSummary("Converts pls.h5/bax.h5/fofn files to fasta or fastq files. Although fasta files are provided"
                         " with every run, they are not trimmed nor split into subreads. This program takes "
                         "additional annotation information, such as the subread coordinates and high quality regions "
                         "and uses them to create fasta sequences that are substrings of all bases called. Most of the time "
