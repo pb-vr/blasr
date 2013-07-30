@@ -1973,7 +1973,7 @@ int main(int argc, char* argv[]) {
         // reference.  That shouldn't happen.
         // 
         if (m == cmpFile.movieInfo.name.size()) {
-            cout << "WARNING: The movie indexed in the compare file " << cmpFileMovieName << " is not listed in the file " << movieFileName << endl;
+            cout << "WARNING: Could not find any alignments for file " << movieFileNames[fofnMovieIndex] << endl;
             continue;
         }
 
