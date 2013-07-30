@@ -59,6 +59,7 @@
 #include "datastructures/reads/ReadInterval.h"
 #include "utils/FileOfFileNames.h"
 #include "utils/RegionUtils.h"
+#include "utils/TimeUtils.h"
 #include "qvs/QualityTransform.h"
 #include "files/ReaderAgglomerate.h"
 #include "files/CCSIterator.h"
@@ -214,6 +215,19 @@ public:
   void AddAlignmentsForSeq(int seqIndex, vector<T_AlignmentCandidate*> &seqAlignmentPtrs) {
     CheckSeqIndex(seqIndex);
     subreadAlignments[seqIndex].insert(subreadAlignments[seqIndex].end(), seqAlignmentPtrs.begin(), seqAlignmentPtrs.end());
+  }
+
+  // Copy all T_AlignmentCandidate objects (to which subreadAlignment[seqIndex]
+  // is pointing) to newly created objects, and then return pointers to the new
+  // objects.
+  vector<T_AlignmentCandidate*> CopySubreadAlignments(int seqIndex) {
+    vector<T_AlignmentCandidate*> ret;
+    for (int i=0; i<subreadAlignments[seqIndex].size(); i++) {
+      T_AlignmentCandidate * q = new T_AlignmentCandidate();
+      *q = *(subreadAlignments[seqIndex][i]);
+      ret.push_back(q);
+    }
+    return ret;
   }
 
   void Print(ostream &out=cout) { 
@@ -407,9 +421,14 @@ void SetHelp(string &str) {
              << "               precompute the ctab." <<endl << endl
              << "   -regionTable table" << endl
              << "               Read in a read-region table in HDF format for masking portions of reads." << endl
-             << "               This may be a single table if there is just one input file. " << endl
+             << "               This may be a single table if there is just one input file, " << endl
              << "               or a fofn.  When a region table is specified, any region table inside " << endl
              << "               the reads.bas.h5 or reads.bas.h5 files are ignored."<< endl
+//             << "   -ccsFofn ccsFofn" << endl
+//             << "               Read in a ciruclar consensus sequence (ccs) file in HDF format. " << endl
+//             << "               This may be a single ccs.h5 file if there is just one input file, " << endl
+//             << "               or a fofn. When a ccs file (or fofn) is specified, any ccs data inside the " << endl
+//             << "               read.bas.h5 file (or files) are ignored." << endl
              << endl 
              << " Options for modifying reads. There is ancilliary information about substrings of reads " << endl
              << "               that is stored in a 'region table' for each read file.  Because " << endl
@@ -489,7 +508,7 @@ void SetHelp(string &str) {
              << "               read randomly at one of them." <<endl
              << endl 
              << " Options for anchoring alignment regions. This will have the greatest effect on speed and sensitivity." << endl
-             << "   -minMatch m (10) " << endl
+             << "   -minMatch m (12) " << endl
              << "               Minimum seed length.  Higher minMatch will speed up alignment, " << endl
              << "               but decrease sensitivity." << endl
 //             << "   -maxExpand M (1)" << endl
@@ -3041,7 +3060,7 @@ void FlankTAlignedSeq(T_AlignmentCandidate * alignment,
           (alignment->tAlignedSeqPos - flankSize): 0);
   newTAlignedSeqLen = min(alignment->tAlignedSeqPos + alignment->tAlignedSeqLength +
           flankSize, alignment->tLength) - newTAlignedSeqPos;
-  
+
   if (alignment->tStrand ==0) {
     forwardTPos = newTAlignedSeqPos; 
   } else {
@@ -3744,7 +3763,7 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
         if (startIndex >= 0 && 
             startIndex < allReadAlignments.subreadAlignments.size()) {
           vector<T_AlignmentCandidate*> selectedAlignmentPtrs =
-              allReadAlignments.subreadAlignments[startIndex];
+              allReadAlignments.CopySubreadAlignments(startIndex);
 
           for(int alignmentIndex = 0; alignmentIndex < selectedAlignmentPtrs.size(); 
               alignmentIndex++) {
@@ -3779,6 +3798,11 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
                                             params, mappingBuffers, threadOut);
             } // End of aligning this subread to each selected alignment.
           } // End of aligning each subread to where the longest subread aligned to. 
+          for(int alignmentIndex = 0; alignmentIndex < selectedAlignmentPtrs.size(); 
+              alignmentIndex++) {
+            if (selectedAlignmentPtrs[alignmentIndex]) 
+              delete selectedAlignmentPtrs[alignmentIndex];
+          }
         } // End of if startIndex >= 0 and < subreadAlignments.size()
       } // End of if params.concordant
     } // End of if (readIsCCS == false and params.mapSubreadsSeparately).
@@ -3969,7 +3993,7 @@ int ComputeExpectedWaitingBases(float mean, float variance, float certainty) {
 
 
 int main(int argc, char* argv[]) {
-
+  cerr << "[INFO] " << GetTimestamp() << " [blasr] started." << endl;
   //
   // Configure parameters for refining alignments.
   //
@@ -4020,6 +4044,7 @@ int main(int argc, char* argv[]) {
   clp.RegisterStringOption("sa", &params.suffixArrayFileName, "");
   clp.RegisterStringOption("ctab", &params.countTableName, "" );
   clp.RegisterStringOption("regionTable", &params.regionTableFileName, "");
+  clp.RegisterStringOption("ccsFofn", &params.ccsFofnFileName, "");
   clp.RegisterIntOption("bestn", (int*) &params.nBest, "", CommandLineParser::PositiveInteger);
   clp.RegisterIntOption("limsAlign", &params.limsAlign, "", CommandLineParser::PositiveInteger);
   clp.RegisterFlagOption("printOnlyBest", &params.printOnlyBest, "");
@@ -4257,12 +4282,27 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  //  params.readsFileNames.pop_back();
+  // If reading a separate ccs fofn, there is a 1-1 corresponence 
+  // between ccs fofn and base file.
+  if (params.readSeparateCcsFofn) {
+    if (FileOfFileNames::IsFOFN(params.ccsFofnFileName)) {
+      FileOfFileNames::FOFNToList(params.ccsFofnFileName, params.ccsFofnFileNames);
+    }
+    else {
+      params.ccsFofnFileNames.push_back(params.ccsFofnFileName);
+    }
+  }
+  if (params.ccsFofnFileNames.size() != 0 and 
+      params.ccsFofnFileNames.size() != params.readsFileNames.size() - 1) {
+    cout << "Error, there are not the same number of ccs files as input files." << endl;
+    exit(1);
+  }
+    
   if (params.readsFileNames.size() < 2) {
     cout << "Error, you must provide at least one reads file and a genome file." <<endl;
     exit(1);
   }
-
+  
   //  The input reads files must have file extensions.
   for (int i = 0; i < params.readsFileNames.size()-1; i++) {
     size_t dotPos = params.readsFileNames[i].find_last_of('.');
@@ -4598,7 +4638,6 @@ int main(int argc, char* argv[]) {
   
   for (readsFileIndex = 0; readsFileIndex < params.readsFileNames.size()-1; readsFileIndex++ ){ 
     params.readsFileIndex = readsFileIndex;
-
     //
     // Configure the reader to use the correct read and region
     // file names.
@@ -4657,6 +4696,18 @@ int main(int argc, char* argv[]) {
       regionTableReader->Close();
       regionTable.SortTableByHoleNumber();
     }
+
+    //
+    // Check to see if there is a separate ccs fofn. If there is a separate
+    // ccs fofn, use that over the one in the bas file. 
+    //
+    //if (params.readSeparateCcsFofn and params.useCcs) {
+    //  if (reader->SetCCS(params.ccsFofnFileNames[params.readsFileIndex]) == 0) {
+    //    cout << "ERROR! Could not read the ccs file " 
+    //         << params.ccsFofnFileNames[params.readsFileIndex] << endl;
+    //    exit(1);
+    //  }
+    // }
 
     if (reader->GetFileType() != HDFCCS and 
         reader->GetFileType() != HDFBase and
@@ -4754,7 +4805,9 @@ int main(int argc, char* argv[]) {
     delete[] threadAttr;
   }
   seqdb.FreeDatabase();
-  delete regionTableReader;
+  if (regionTableReader) {
+    delete regionTableReader;
+  }
   if (params.metricsFileName != "") {
     metrics.PrintSummary(metricsOut);
   }
@@ -4764,5 +4817,6 @@ int main(int argc, char* argv[]) {
   if (params.outFileName != "") {
     outFileStrm.close();
   }
+  cerr << "[INFO] " << GetTimestamp() << " [blasr] ended." << endl;
   return 0;
 }

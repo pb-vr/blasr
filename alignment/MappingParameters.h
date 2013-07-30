@@ -39,6 +39,7 @@ class MappingParameters {
   QVScale qvScaleType;
 	vector<string> readsFileNames;
 	vector<string> regionTableFileNames;
+    vector<string> ccsFofnFileNames;
 	string tupleListName;
 	string posTableName;
 	string outFileName;
@@ -115,7 +116,9 @@ class MappingParameters {
 	bool useTitleTable;
 	string titleTableName;
 	bool readSeparateRegionTable;
+    bool readSeparateCcsFofn;
 	string regionTableFileName;
+    string ccsFofnFileName;
 	//float averageMismatchScore;
 	bool mapSubreadsSeparately;
     bool concordant;
@@ -220,7 +223,7 @@ class MappingParameters {
 		useCountTable = 0;
 		countTableName = "";
 		lookupTableLength = 8;
-		anchorParameters.minMatchLength = minMatchLength = 14;
+		anchorParameters.minMatchLength = minMatchLength = 12;
 		printFormat = SummaryPrint;
 		maxExpand = 0;
 		minExpand = 0;
@@ -265,7 +268,9 @@ class MappingParameters {
 		useTitleTable = false;
 		titleTableName  = "";
 		readSeparateRegionTable = false;
+        readSeparateCcsFofn = false;
 		regionTableFileName = "";
+        ccsFofnFileName = "";
 		mapSubreadsSeparately=true;
         concordant=false;
         flankSize=40;
@@ -408,6 +413,9 @@ class MappingParameters {
 			useRegionTable = true;
 			readSeparateRegionTable = true;
 		}
+        if (ccsFofnFileName != "") {
+            readSeparateCcsFofn = true;
+        }
 		if (nouseDetailedSDPAlignment == true) {
 			detailedSDPAlignment = false;
 		}
