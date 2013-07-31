@@ -4548,6 +4548,9 @@ int main(int argc, char* argv[]) {
     case(Interval):
       IntervalAlignmentPrinter::PrintHeader(*outFilePtr);
       break;
+    case(CompareSequencesParsable):
+      PrintCompareSequencesHeader(*outFilePtr);
+      break;
     }
   }
 

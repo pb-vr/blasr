@@ -6,6 +6,14 @@
 
 #include "VulgarAlignmentPrinter.h"
 
+void PrintCompareSequencesHeader(ostream &out) {
+  out << "qname qlength qstart qend qstrand "
+      << "tname tlength tstart tend tstrand "
+      << "score nummatch nummismatch numins numdel "
+      << "mapqv qalignedseq matchpattern talignedseq "
+      << endl;
+}
+
 template<typename T_Alignment, typename T_QuerySequence, typename T_TargetSequence>
 	void PrintCompareSequencesAlignment(T_Alignment &alignment, T_QuerySequence &qseq, T_TargetSequence &tseq, ostream &out, bool refForward=true) {
 
