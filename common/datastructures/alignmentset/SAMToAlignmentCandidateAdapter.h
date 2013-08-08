@@ -240,7 +240,6 @@ void SAMAlignmentsToCandidates(SAMAlignment &sam,
                                vector<AlignmentCandidate<> > &candidates, 
                                bool parseSmrtTitle = false,
                                bool keepRefAsForward = true) {
-
   //
   // First determine how many alignments there are from CIGAR string.
   //
@@ -298,18 +297,31 @@ void SAMAlignmentsToCandidates(SAMAlignment &sam,
     // may appear as subreads, and are offset from the start of the
     // subread.  By convention, the subread coordinates are embedded
     // in the title of the query, if it is a smrtTitle. 
-
+    // Two types of smrtTitle are supported:
+    // movie/zmw/start_end
+    // movie/zmw/start_end/start2_end2
     vector<string> values;
     ParseSeparatedList(sam.qName, values, '/');
     DNALength qStart = 0, qEnd = 0;
     bool worked = false;
-    if (values.size() == 3) {
+
+    if (values.size() >= 3) {
       vector<string> offsets;
       ParseSeparatedList(values[2], offsets, '_');
       if (offsets.size() == 2) {
         qStart = atoi(offsets[0].c_str());
         qEnd   = atoi(offsets[1].c_str());
-        worked = true;
+        if (values.size() == 3) {
+          worked = true;
+        } else if (values.size() == 4) {
+          offsets.clear();
+          ParseSeparatedList(values[3], offsets, '_');
+          if (offsets.size() == 2) {
+            qEnd   = qStart + atoi(offsets[1].c_str());
+            qStart = qStart + atoi(offsets[0].c_str());
+            worked = true;
+          }
+        }
       }
     }
     if (worked == false) {
