@@ -21,6 +21,9 @@ Set up the executable: loadPulses.
   $ rm -f $CMP_OUT_byread_1
   $ cp $CMP_IN_1 $CMP_OUT_byread_1
   $ $EXEC $BAS_IN_1 $CMP_OUT_byread_1 -metrics $METRICS -byread > $OUTDIR/tmp.log
+  [INFO] * [loadPulses] started. (glob)
+  [INFO] * [loadPulses] ended. (glob)
+
   $ h5diff $CMP_OUT_byread_1 $CMP_STDOUT_1
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
   \d+ differences found (re)
@@ -31,6 +34,8 @@ Set up the executable: loadPulses.
   $ rm -f $CMP_OUT_bymetric_1
   $ cp $CMP_IN_1 $CMP_OUT_bymetric_1
   $ $EXEC $BAS_IN_1 $CMP_OUT_bymetric_1 -metrics $METRICS -bymetric > $OUTDIR/tmp.log 
+  [INFO] * [loadPulses] started. (glob)
+  [INFO] * [loadPulses] ended. (glob)
   $ h5diff $CMP_OUT_bymetric_1 $CMP_STDOUT_1 
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
   \d+ differences found (re)
@@ -50,8 +55,10 @@ Set up the executable: loadPulses.
   $ rm -f  $CMP_OUT_byread_2
   $ cp $CMP_IN_2 $CMP_OUT_byread_2
   $ $EXEC $PLS_IN $CMP_OUT_byread_2 -metrics $METRICS -byread
+  [INFO] * [loadPulses] started. (glob)
   loading 2 alignments for movie 1
   loading 2 alignments for movie 2
+  [INFO] * [loadPulses] ended. (glob)
 
   $ h5diff $CMP_OUT_byread_2 $CMP_STDOUT_2
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
@@ -63,8 +70,10 @@ Set up the executable: loadPulses.
   $ rm -f $CMP_OUT_bymetric_2
   $ cp $CMP_IN_2 $CMP_OUT_bymetric_2
   $ $EXEC $PLS_IN $CMP_OUT_bymetric_2 -metrics $METRICS -bymetric 
+  [INFO] * [loadPulses] started. (glob)
   loading 2 alignments for movie 1
   loading 2 alignments for movie 2
+  [INFO] * [loadPulses] ended. (glob)
 
   $ h5diff $CMP_OUT_bymetric_2 $CMP_STDOUT_2 
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
@@ -84,6 +93,9 @@ Set up the executable: loadPulses.
   $ rm -f $CMP_OUT_SORTED_bymetric
   $ cp $CMP_IN_SORTED $CMP_OUT_SORTED_bymetric
   $ $EXEC $FOFN_IN $CMP_OUT_SORTED_bymetric -bymetric -metrics $METRICS > $OUTDIR/tmp.log
+  [INFO] * [loadPulses] started. (glob)
+  [INFO] * [loadPulses] ended. (glob)
+
   $ h5diff $CMP_OUT_SORTED_bymetric $CMP_STDOUT_SORTED 
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
   \d+ differences found (re)
@@ -95,6 +107,8 @@ Set up the executable: loadPulses.
   $ rm -f  $CMP_OUT_SORTED_byread
   $ cp $CMP_IN_SORTED $CMP_OUT_SORTED_byread
   $ $EXEC $FOFN_IN $CMP_OUT_SORTED_byread -byread -metrics $METRICS > $OUTDIR/tmp.log
+  [INFO] * [loadPulses] started. (glob)
+  [INFO] * [loadPulses] ended. (glob)
 
   $ h5diff $CMP_OUT_SORTED_bymetric $CMP_STDOUT_SORTED 
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
@@ -107,8 +121,9 @@ Set up the executable: loadPulses.
   $ FOFN_IN=$DATDIR/ecoli_lp.fofn
   $ CMP_IN_NOALN=$DATDIR/noaln_lp.cmp.h5
   $ $EXEC $FOFN_IN $CMP_IN_NOALN -byread -metrics $METRICS
+  [INFO] * [loadPulses] started. (glob)
   WARNING, there is no alignment in the cmp file.
-
+  [INFO] * [loadPulses] ended. (glob)
 
 #Test loadPulses -byMetric with a 'large' bas.h5 file of which the dataset size is greater than maxElements. 
   $ FOFN_IN=$DATDIR/ecoli_lp.fofn
@@ -121,11 +136,13 @@ Set up the executable: loadPulses.
   $ rm -f $CMP_OUT
   $ cp $CMP_IN $CMP_OUT
   $ $EXEC $FOFN_IN $CMP_OUT -bymetric -metrics $METRICS -maxElements $MAX_ELEMENTS
+  [INFO] * [loadPulses] started. (glob)
   Either the number of elements exceeds maxElement (140000000). Or the estimated memory 
   consumption exceeds maxMemory (4 GB).
   Loading pulses from .+ by read. (re)
   loading 2 alignments for movie 1
   loading 2 alignments for movie 2
+  [INFO] * [loadPulses] ended. (glob)
 
   $ h5diff $CMP_OUT $CMP_STDOUT
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
@@ -144,9 +161,11 @@ Set up the executable: loadPulses.
   $ rm -f $CMP_OUT
   $ cp $CMP_IN $CMP_OUT
   $ $EXEC $FOFN_IN $CMP_OUT -bymetric -metrics $METRICS 
+  [INFO] * [loadPulses] started. (glob)
   WARNING: There is insufficient data to compute metric: MergeQV in the file .+ It will be ignored. (re)
   loading 2 alignments for movie 1
   loading 2 alignments for movie 1
+  [INFO] * [loadPulses] ended. (glob)
 
   $ h5diff $CMP_OUT $CMP_STDOUT
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
@@ -164,8 +183,10 @@ Set up the executable: loadPulses.
   $ rm -f CMP_OUT
   $ cp $CMP_IN $CMP_OUT
   $ $EXEC $FOFN_IN $CMP_OUT -bymetric -metrics QualityValue
+  [INFO] * [loadPulses] started. (glob)
   loading 2182 alignments for movie 1
   loading 4494 alignments for movie 2
+  [INFO] * [loadPulses] ended. (glob)
 
   $ h5ls -r $CMP_OUT | grep "AlnInfo"
   /AlnInfo                 Group
