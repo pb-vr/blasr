@@ -472,6 +472,7 @@ class HDFPlsReader : public DatasetCollection, public HDFPulseDataFile  {
     assert(read.seq != NULL);
     int seqLength;
     
+    try{
     //
     // Find out how many pulses are called for this read.
 		zmwReader.numEventArray.Read(curRead, curRead+1, &seqLength);
@@ -520,7 +521,11 @@ class HDFPlsReader : public DatasetCollection, public HDFPulseDataFile  {
     
     curRead++;
     curPos += seqLength;
-    
+    } catch (DataSetIException e) {
+        cout << "ERROR, could not read pulse metrics for SMRTSequence "
+             << read.GetName() << endl;
+        exit(1);
+    }
 	}
 	
 

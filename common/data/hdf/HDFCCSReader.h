@@ -185,6 +185,7 @@ class HDFCCSReader : public T_HDFBasReader<T_Sequence> {
 		if (this->curBasePos == ccsBasReader.nBases) {
 			return 0;
 		}
+        try {
 		numPassesArray.Read(this->curRead, this->curRead+1, &ccsSequence.numPasses);
 		if (ccsSequence.numPasses > 0) {
 
@@ -239,6 +240,11 @@ class HDFCCSReader : public T_HDFBasReader<T_Sequence> {
 		ccsSequence.CopyTitle(ccsSequence.unrolledRead.title);
     string newTitle = string(ccsSequence.title) + string("/ccs");
     ccsSequence.CopyTitle(newTitle.c_str());
+        } catch (DataSetIException e) {
+            cout << "ERROR, could not read ccs data for CCS Sequence " 
+                 << ccsSequence.unrolledRead.title << endl; 
+            exit(1);
+        }
 		//		cout << "title: " << ccsSequence.title << endl;
 		if (retVal == 0) {
 			return 0;

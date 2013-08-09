@@ -521,7 +521,13 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
 		}
 	
 		int seqLength;
+        try {
 		seqLength = GetNextWithoutPosAdvance(seq);
+        } catch(DataSetIException e) {
+            cout << "ERROR, could not read base calls for FASTA Sequence "
+                 << seq.GetName() << endl;
+            exit(1);
+        }
 		curBasePos += seqLength;
 		seq.StorePlatformType(scanDataReader.platformId);
 		return 1;
@@ -529,6 +535,7 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
 
 	
 	int GetNext(FASTQSequence &seq) {
+        try {
 		if (curRead == nReads) {
 			return 0;
 		}
@@ -556,13 +563,18 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
 		}
 		if (includedFields["SubstitutionTag"]) {
 			GetNextSubstitutionTag(seq);
-		}
-    if (includedFields["MergeQV"]) {
-      GetNextMergeQV(seq);
-    }
-    seq.SetQVScale(qvScale);
+        }
+        if (includedFields["MergeQV"]) {
+            GetNextMergeQV(seq);
+        }
+        seq.SetQVScale(qvScale);
 		curBasePos += seqLength;
-		return 1;
+        } catch(DataSetIException e) {
+            cout << "ERROR, could not read quality metrics for FASTQ Sequence " 
+                 << seq.GetName() << endl;
+            exit(1);
+        }
+        return 1;
 	}
 
 //
@@ -581,6 +593,7 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
 	 // Getting next advances the curBasPos to the end of 
 	 // the current sequence. 
 	 //
+
 	 retVal = this->GetNext((FASTQSequence&)seq);
 	 //
 	 // Bail now if the file is already done
@@ -589,6 +602,7 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
 		 return 0;
 	 }
 
+     try {
 	 DNALength nextBasePos = curBasePos;
 	 curBasePos = curBasPosCopy;
 
@@ -602,7 +616,7 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
 	 if (includedFields["PulseIndex"]) { 
 		 GetNextPulseIndex(seq);
 	 }
-	 curBasePos = nextBasePos;
+     	 curBasePos = nextBasePos;
 	 
 	 //
 	 // By default, the subread of a read without subread information is
@@ -610,9 +624,14 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
 	 //
 	 seq.subreadStart = 0;
 	 seq.subreadEnd   = seq.length;
-	 zmwReader.GetNext(seq.zmwData);
-   seq.xy[0] = seq.zmwData.x;
-   seq.xy[1] = seq.zmwData.y;
+     zmwReader.GetNext(seq.zmwData);
+     seq.xy[0] = seq.zmwData.x;
+     seq.xy[1] = seq.zmwData.y;
+     } catch(DataSetIException e) {
+         cout << "ERROR, could not read pulse metrics for SMRTSequence " 
+              << seq.GetName() << endl;
+         exit(1);
+     }
 	 return retVal;
  }
  /*
