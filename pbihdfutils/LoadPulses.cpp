@@ -701,7 +701,7 @@ void GetSourceRead(CmpFile      & cmpFile,
     }
     // Read in the data from the pls file if it exists.
     if (usePulseFile) {
-        hdfPlsReader.GetReadAt(table.readIndex, sourceRead.pulseIndex, sourceRead);
+        hdfPlsReader.GetReadAt(table.holeNumber, sourceRead.pulseIndex, sourceRead);
     }
     // }
     // else {
@@ -1882,6 +1882,7 @@ int main(int argc, char* argv[]) {
             hdfPlsReader.Close();
         }
         cmpReader.Close();
+        cerr << "[INFO] " << GetTimestamp() << " [loadPulses] ended." << endl;
         exit(0);
     }
 
