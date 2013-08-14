@@ -19,6 +19,9 @@ class PulseBaseCommon {
 		return scanData.movieName;
 	}
 
+    map<char, int> GetBaseMap() {
+        return scanData.baseMap;
+    }
 };
 
 #endif

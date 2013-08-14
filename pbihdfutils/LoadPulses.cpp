@@ -33,7 +33,7 @@ typedef map<string, vector<string> > RequirementMap;
 
 
 char VERSION[] = "v1.1.0";
-char PERFORCE_VERSION_STRING[] = "$Change: 107666 $";
+char PERFORCE_VERSION_STRING[] = "$Change: 126356 $";
 
 // define default values for metrics
 const float NaN = 0.0/0.0;
@@ -1683,6 +1683,9 @@ int main(int argc, char* argv[]) {
     bool failOnMissingData = false;
     bool printVersion = false;
 
+    string versionStr(VERSION);
+    AppendPerforceChangelist(PERFORCE_VERSION_STRING, versionStr);
+
     CommandLineParser clp;
     clp.RegisterStringOption("basFileName", &movieFileName, 
             "The input {bas,pls}.h5 or input.fofn.", true);
@@ -1715,15 +1718,12 @@ int main(int argc, char* argv[]) {
             "Set a limit (in GB) on the memory to buffer data with -bymetric "
             "(default value: 4 GB). Use -byread if the limit is exceeded.",
              CommandLineParser::PositiveInteger);
-    clp.SetProgramSummary("Load pulse information such as inter pulse "
-            "distance, or quality information into the cmp.h5 file. This allows "
+    string progSummary = (string("loadPulses (version ") + versionStr + ") "
+            "loads pulse information such as inter pulse "
+            "distance, or quality information into the cmp.h5 file. This allows " 
             "one to analyze kinetic and quality information by alignment column.");
+    clp.SetProgramSummary(progSummary);
     clp.ParseCommandLine(argc, argv);
-
-    if (printVersion) {
-        cout << VERSION << endl;
-        exit(1);
-    }
 
     cerr << "[INFO] " << GetTimestamp() << " [loadPulses] started." << endl;
     //use byMetric by default unless byRead is specified.
@@ -1891,8 +1891,6 @@ int main(int argc, char* argv[]) {
 
     string commandLine;
     clp.CommandLineToString(argc, argv, commandLine);
-    string versionStr(VERSION);
-    AppendPerforceChangelist(PERFORCE_VERSION_STRING, versionStr);
     cmpReader.fileLogGroup.AddEntry(commandLine, "Loading pulse metrics", "loadPulses", GetTimestamp(), versionStr);
 
     //

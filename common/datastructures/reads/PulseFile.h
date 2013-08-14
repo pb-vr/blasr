@@ -34,6 +34,7 @@ class PulseFile : public PulseBaseCommon {
         // pulseStartPos must be 0; 
         // otherwise, pulseStartPos is pulseStartPositions[holeIndex]
 
+      map<char, int> baseMap = GetBaseMap();
       int i;
       if (signalNDims == 1) {
         for (i = 0; i < readLength; i++) {
@@ -42,7 +43,7 @@ class PulseFile : public PulseBaseCommon {
       }
       else {
         for (i = 0; i < readLength; i++) {
-          readData[i] = signalData[baseToPulseIndex[i]*4 + NucToHdfColumnOrder[readSeq[i]]];
+          readData[i] = signalData[baseToPulseIndex[i]*4 + baseMap[readSeq[i]]];
         }
       }
     }

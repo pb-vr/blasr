@@ -13,6 +13,7 @@ class HDFScanDataReader {
  public:
 	bool fileHasScanData, useRunCode;
 	HDFGroup scanDataGroup;
+    HDFGroup dyeSetGroup;
 	HDFGroup acqParamsGroup;
 	HDFGroup runInfoGroup;
 	bool initializedAcqParamsGroup, initializedRunInfoGroup;
@@ -23,6 +24,8 @@ class HDFScanDataReader {
 	HDFAtom<unsigned int> numFramesAtom;
 	HDFAtom<string> movieNameAtom;
 	HDFAtom<string> runCodeAtom;
+    HDFAtom<string> baseMapAtom;
+
 	//
 	// It is useful to cache the movie name in the reader since this is
 	// loaded once upon initialization, and may be fetched when loading
@@ -30,6 +33,7 @@ class HDFScanDataReader {
 	//
 	bool   useMovieName;
 	string movieName, runCode;
+    map<char, int> baseMap;
 	PlatformId platformId;
 	HDFScanDataReader() {
 		//
@@ -76,16 +80,19 @@ class HDFScanDataReader {
 		}
 		fileHasScanData = true;
 
-		if (scanDataGroup.ContainsObject("AcqParams") == 0) {
-			return 0;
-		}
-		if (acqParamsGroup.Initialize(scanDataGroup.group, "AcqParams") == 0) {
+        if (scanDataGroup.ContainsObject("DyeSet") == 0 or
+            dyeSetGroup.Initialize(scanDataGroup.group, "DyeSet") == 0) {
+            return 0;
+        }
+
+		if (scanDataGroup.ContainsObject("AcqParams") == 0 or
+		    acqParamsGroup.Initialize(scanDataGroup.group, "AcqParams") == 0) {
 			return 0;
 		}
 		initializedAcqParamsGroup = true;
 
 		if (scanDataGroup.ContainsObject("RunInfo") == 0 or
-				(runInfoGroup.Initialize(scanDataGroup.group, "RunInfo") == 0)) {
+			runInfoGroup.Initialize(scanDataGroup.group, "RunInfo") == 0) {
 			return 0;
 		}
 		initializedRunInfoGroup = true;
@@ -103,16 +110,23 @@ class HDFScanDataReader {
 		}
 
 		if (runInfoGroup.ContainsAttribute("RunCode") and
-				runCodeAtom.Initialize(runInfoGroup, "RunCode")) {
+			runCodeAtom.Initialize(runInfoGroup, "RunCode")) {
 			useRunCode = true;
 		}
+
+        //
+        // Load baseMap which maps bases (ATGC) to channel orders.
+        // This should always be present.
+        //
+        if (LoadBaseMap(baseMap) == 0)
+            return 0;
 
 		//
 		// Attempt to load the movie name.  This is not always present.
 		//
 		LoadMovieName(movieName);
-		
-		return 1;
+
+        return 1;
 	}
 
 	string GetMovieName() {
@@ -128,6 +142,7 @@ class HDFScanDataReader {
 		// All parameters below are required.
 		if (ReadPlatformId(scanData.platformId) == 0) return 0;
 		LoadMovieName(scanData.movieName);
+        LoadBaseMap(scanData.baseMap);
 		
 		if (useRunCode) {
 			runCodeAtom.Read(scanData.runCode);
@@ -165,7 +180,7 @@ class HDFScanDataReader {
 	int LoadMovieName(string &movieName) {
 		// Groups for building read names
 		if (runInfoGroup.ContainsAttribute("MovieName") and
-				movieNameAtom.Initialize(runInfoGroup, "MovieName")) {
+			movieNameAtom.Initialize(runInfoGroup, "MovieName")) {
 			useMovieName = true;
 			movieNameAtom.Read(movieName);
 			int e = movieName.size() - 1;
@@ -178,6 +193,27 @@ class HDFScanDataReader {
 		}
 	}
 
+    int LoadBaseMap(map<char, int> & baseMap) {
+        // Map bases to channel order in hdf pls file.
+        if (dyeSetGroup.ContainsAttribute("BaseMap") and
+            baseMapAtom.Initialize(dyeSetGroup, "BaseMap")) {
+            string baseMapStr;
+            baseMapAtom.Read(baseMapStr);
+            if (baseMapStr.size() != 4) {
+                cout << "ERROR, there are more than four types of bases "
+                     << "according to /ScanData/DyeSet/BaseMap." << endl;
+                exit(1);
+            }
+            baseMap.clear();
+            for(int i = 0; i < baseMapStr.size(); i++) {
+                baseMap[toupper(baseMapStr[i])] = i;
+                baseMap[tolower(baseMapStr[i])] = i;
+            }
+            return 1;
+        }
+        return 0;
+    }
+
 	void Close() {
 		if (useMovieName) {
 			movieNameAtom.dataspace.close();
@@ -185,7 +221,16 @@ class HDFScanDataReader {
 		if (useRunCode) {
 			runCodeAtom.dataspace.close();
 		}
+        if (useWhenStarted) {
+            whenStartedAtom.dataspace.close();
+        }
+        baseMapAtom.dataspace.close();
+	    platformIdAtom.dataspace.close();
+	    frameRateAtom.dataspace.close();
+	    numFramesAtom.dataspace.close();
+
 		scanDataGroup.Close();
+        dyeSetGroup.Close();
 		acqParamsGroup.Close();
 		runInfoGroup.Close();
 	}

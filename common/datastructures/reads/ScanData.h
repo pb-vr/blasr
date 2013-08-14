@@ -10,6 +10,7 @@ class ScanData {
 	unsigned int numFrames;
 	string movieName, runCode;
 	string whenStarted;
+    map<char, int> baseMap;
 	string GetMovieName() {
 		return movieName;
 	}

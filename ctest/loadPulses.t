@@ -24,7 +24,7 @@ Set up the executable: loadPulses.
   [INFO] * [loadPulses] started. (glob)
   [INFO] * [loadPulses] ended. (glob)
 
-  $ h5diff $CMP_OUT_byread_1 $CMP_STDOUT_1
+  $ h5diff -c $CMP_OUT_byread_1 $CMP_STDOUT_1
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
@@ -36,7 +36,7 @@ Set up the executable: loadPulses.
   $ $EXEC $BAS_IN_1 $CMP_OUT_bymetric_1 -metrics $METRICS -bymetric > $OUTDIR/tmp.log 
   [INFO] * [loadPulses] started. (glob)
   [INFO] * [loadPulses] ended. (glob)
-  $ h5diff $CMP_OUT_bymetric_1 $CMP_STDOUT_1 
+  $ h5diff -c $CMP_OUT_bymetric_1 $CMP_STDOUT_1 
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
@@ -60,7 +60,7 @@ Set up the executable: loadPulses.
   loading 2 alignments for movie 2
   [INFO] * [loadPulses] ended. (glob)
 
-  $ h5diff $CMP_OUT_byread_2 $CMP_STDOUT_2
+  $ h5diff -c $CMP_OUT_byread_2 $CMP_STDOUT_2
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
@@ -75,7 +75,7 @@ Set up the executable: loadPulses.
   loading 2 alignments for movie 2
   [INFO] * [loadPulses] ended. (glob)
 
-  $ h5diff $CMP_OUT_bymetric_2 $CMP_STDOUT_2 
+  $ h5diff -c $CMP_OUT_bymetric_2 $CMP_STDOUT_2 
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
@@ -96,7 +96,7 @@ Set up the executable: loadPulses.
   [INFO] * [loadPulses] started. (glob)
   [INFO] * [loadPulses] ended. (glob)
 
-  $ h5diff $CMP_OUT_SORTED_bymetric $CMP_STDOUT_SORTED 
+  $ h5diff -c $CMP_OUT_SORTED_bymetric $CMP_STDOUT_SORTED 
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
@@ -110,7 +110,7 @@ Set up the executable: loadPulses.
   [INFO] * [loadPulses] started. (glob)
   [INFO] * [loadPulses] ended. (glob)
 
-  $ h5diff $CMP_OUT_SORTED_bymetric $CMP_STDOUT_SORTED 
+  $ h5diff -c $CMP_OUT_SORTED_bymetric $CMP_STDOUT_SORTED 
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
@@ -144,7 +144,7 @@ Set up the executable: loadPulses.
   loading 2 alignments for movie 2
   [INFO] * [loadPulses] ended. (glob)
 
-  $ h5diff $CMP_OUT $CMP_STDOUT
+  $ h5diff -c $CMP_OUT $CMP_STDOUT
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
@@ -167,7 +167,7 @@ Set up the executable: loadPulses.
   loading 2 alignments for movie 1
   [INFO] * [loadPulses] ended. (glob)
 
-  $ h5diff $CMP_OUT $CMP_STDOUT
+  $ h5diff -c $CMP_OUT $CMP_STDOUT
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
