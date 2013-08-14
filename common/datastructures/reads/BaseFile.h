@@ -24,7 +24,6 @@ class CompareHoleXY {
 class BaseFile : public PulseBaseCommon {
  public:
 	vector<unsigned char> baseCalls;
-	vector<uint32_t> holeNumbers;
 	vector<uint8_t> holeStatus;
 	vector<HoleXY>   holeXY;
 	vector<uint16_t> basWidthInFrames;
@@ -56,23 +55,6 @@ class BaseFile : public PulseBaseCommon {
 		}
 	}
 
-	bool LookupReadIndexByHoleNumber(uint32_t holeNumber, int &readIndex) {
-		vector<uint32_t>::iterator holeIt;
-		if (holeNumbers.size() == 0) {
-			return false;
-		}
-		holeIt = lower_bound(holeNumbers.begin(), holeNumbers.end(), holeNumber);
-		if (holeIt == holeNumbers.end()) {
-			return false;
-		}
-		if (*holeIt == holeNumber) {
-			readIndex = holeIt - holeNumbers.begin();
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
   
   template<typename T>
     void CopyArray(vector<T> &fullArray, int pos, int length, T*dest) {

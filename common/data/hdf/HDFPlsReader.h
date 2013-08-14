@@ -27,7 +27,6 @@ using namespace std;
 class HDFPlsReader : public DatasetCollection, public HDFPulseDataFile  {
 	DNALength curPos;
 	int curRead;
-	int nReads;
 
 	HDFGroup pulseCallsGroup;
 
@@ -120,6 +119,8 @@ class HDFPlsReader : public DatasetCollection, public HDFPulseDataFile  {
 		if (!startFrameArray.Initialize(pulseCallsGroup, "StartFrame"))    return 0;
 		if (!plsWidthInFramesArray.Initialize(pulseCallsGroup, "WidthInFrames")) return 0;
 
+        curRead = 0;
+        nReads  = zmwReader.numEventArray.arrayLength;
 		return 1;
 	}
 
@@ -206,14 +207,21 @@ class HDFPlsReader : public DatasetCollection, public HDFPulseDataFile  {
         if (scanDataReader.fileHasScanData) {
             scanDataReader.Read(pulseFile.scanData);
         }
+        // Get hole numbers in PulseCalls/ZMW/HoleNumber. Note that
+        // PulseCalls/ZMW/HoleNumber and BaseCalls/ZMW/HoleNumber are
+        // not always identical.
+        GetAllHoleNumbers(pulseFile.holeNumbers);
+
         // By default, always get the num event.  This is used
         // later to copy reads from the pls file.
         GetAllNumEvent(pulseFile.numEvent);
+        assert(pulseFile.holeNumbers.size() == pulseFile.numEvent.size());
         if (pulseFile.numEvent.size() > 0) {
             pulseFile.pulseStartPositions.resize(pulseFile.numEvent.size());
             pulseFile.pulseStartPositions[0] = 0;
             for (int i = 1; i < pulseFile.numEvent.size(); i++) {
-                pulseFile.pulseStartPositions[i] = pulseFile.pulseStartPositions[i-1] + pulseFile.numEvent[i-1];
+                pulseFile.pulseStartPositions[i] = pulseFile.pulseStartPositions[i-1] +
+                                                   pulseFile.numEvent[i-1];
             }
         }
     }

@@ -16,11 +16,10 @@
  *                  offsetEnd     : offset enda
  *                  queryStart    : start position of query of this alignment 
  *                  queryEnd      : end position of query of this alignment 
- *                  readIndex     : index of this alignment in baseFile
+ *                  readIndex     : index of this alignment in baseFile.readStartPositions
  *                  readStart     : start position of this alignment in baseFile
  *                  readLength    : read length of this alignment in baseFile
- *                  baseToAlignmentMap
- *                                : keep all the baseToalignmentMap in memory
+ *                  plsReadIndex  : index of this alignment in pulseFile.pulseStartPositions
  *                  alignedSequence
  *                                : aligned sequence of this alignment
  *                  
@@ -69,7 +68,8 @@ public:
     // alignments[alignmentIndex].GetQueryStart/End()
 
     int   readIndex;              
-    // index of this alignment in baseFile
+    // index of this alignment in baseFile.readStartPositions
+    // = index of this hole number in BaseCalls/ZMW/HoleNumber
     // baseFile.LookupReadIndexByHoleNumber(holeNumber, out=readIndex)
     
     int   readStart;              
@@ -80,6 +80,10 @@ public:
     // read length of this alignment in baseFile
     // = baseFile.readStartPositions[readIndex+1] - readStart 
 
+    int   plsReadIndex;
+    // index of this alignment in pulseFile.pulseStartPositions
+    // = index of this hole number in PulseCalls/ZMW/HoleNumbers
+    // = pulseFile.LookupReadIndexByHoleNumber(holeNumber, out=plsReadIndex)
 
     // vector<int> baseToAlignmentMap; 
     // keep all the baseToAlignmentMap in memory for now
@@ -105,7 +109,8 @@ public:
                   const int  & queryEndP,
                   const int  & readIndexP,
                   const int  & readStartP,       
-                  const int  & readLengthP) {
+                  const int  & readLengthP,
+                  const int  & plsReadIndexP) {
         skip = skipP; 
         movieAlignmentIndex = movieAlignmentIndexP;
         alignmentIndex      = alignmentIndexP;
@@ -119,6 +124,7 @@ public:
         readIndex           = readIndexP;
         readStart           = readStartP;
         readLength          = readLengthP;
+        plsReadIndex        = plsReadIndexP;
     }
 
     void print() {
@@ -132,7 +138,8 @@ public:
              << ", offsetBegin    = " << offsetBegin    << ", offsetEnd     = " << offsetEnd
              << ", queryStart     = " << queryStart     << ", queryEnd      = " << queryEnd
              << ", readIndex      = " << readIndex      << ", readStart     = " << readStart
-             << ", readLength     = " << readLength     << endl;
+             << ", readLength     = " << readLength     << ", plsReadIndex  = " << plsReadIndex
+             << endl;
     }
 };
 #endif

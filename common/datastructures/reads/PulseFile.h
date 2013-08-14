@@ -10,18 +10,17 @@
 
 class PulseFile : public PulseBaseCommon {
  public:
-		unsigned int numFrames;
-		PlatformId platformId;
-		vector<unsigned int> startFrame;
-
-		vector<uint16_t> plsWidthInFrames;
+    unsigned int numFrames;
+    PlatformId platformId;
+    vector<unsigned int> startFrame;
+    vector<uint16_t> plsWidthInFrames;
     int midSignalNDims, maxSignalNDims, meanSignalNDims;
-		vector<uint16_t> midSignal;
-		vector<uint16_t> maxSignal;
-		vector<uint16_t> meanSignal; 
-		vector<int>      numEvent;
+    vector<uint16_t> midSignal;
+    vector<uint16_t> maxSignal;
+    vector<uint16_t> meanSignal; 
+    vector<int>      numEvent;
     vector<int>      pulseStartPositions;
-		vector<float>    classifierQV;
+    vector<float>    classifierQV;
 
     void CopySignal(HalfWord *signalData, // either a vector or matrix
                     int signalNDims,
@@ -66,14 +65,14 @@ class PulseFile : public PulseBaseCommon {
     }
 
 
-    void CopyReadAt(int holeNumber, 
-                    int *baseToPulseIndex, // index from pulse to base from the beginning of the read.
-                    SMRTSequence &read) {//, int readStartPos, int alignedSequenceLength) {
-
-      int pulseStartPos = pulseStartPositions[holeNumber];
+    // plsReadIndex: index of this hole number in /PulseCalls/ZMW/HoleNumber.
+    // baseToPulseIndex: index from pulse to base from the beginning of the read.
+    // read: a SMRTSequence.
+    void CopyReadAt(uint32_t plsReadIndex, int *baseToPulseIndex, SMRTSequence &read) {
+      int pulseStartPos = pulseStartPositions[plsReadIndex];
       bool allocResult;
       if (midSignal.size() > 0) {
-        assert(midSignal.size() > pulseStartPositions[holeNumber]);
+        assert(midSignal.size() > pulseStartPos);
         allocResult = Realloc(read.midSignal, read.length);
         CopySignal(&midSignal[0], 
                    midSignalNDims, 
@@ -84,7 +83,7 @@ class PulseFile : public PulseBaseCommon {
       }
 
       if (maxSignal.size() > 0) {
-        assert(maxSignal.size() > pulseStartPositions[holeNumber]);
+        assert(maxSignal.size() > pulseStartPos); 
         Realloc(read.maxSignal, read.length);
         CopySignal(&maxSignal[0], 
                    maxSignalNDims, 
@@ -95,7 +94,7 @@ class PulseFile : public PulseBaseCommon {
         }
 
       if (meanSignal.size() > 0) {
-        assert(meanSignal.size() > pulseStartPositions[holeNumber]);
+        assert(meanSignal.size() > pulseStartPos); 
         Realloc(read.meanSignal, read.length);
         CopySignal(&meanSignal[0], 
                    meanSignalNDims, 
@@ -117,6 +116,6 @@ class PulseFile : public PulseBaseCommon {
         StoreField(startFrame, baseToPulseIndex, read.startFrame, read.length);
       }
     }
-	};
+};
 
 #endif

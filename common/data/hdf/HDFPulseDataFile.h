@@ -113,6 +113,7 @@ class HDFPulseDataFile {
 
 	//
 	// Initialize all fields 
+    //
 	int Initialize() {
     preparedForRandomAccess = false;		
 		if (InitializePulseGroup() == 0) return 0;
@@ -124,8 +125,6 @@ class HDFPulseDataFile {
 				useScanData = true;
 			}
 		}
-
-
 		return 1;
 	}
 
@@ -133,7 +132,14 @@ class HDFPulseDataFile {
 		if (pulseDataGroup.Initialize(rootGroupPtr->group, pulseDataGroupName) == 0) return 0;
 		return 1;
 	}
-		
+
+	int GetAllHoleNumbers(vector<unsigned int> &holeNumbers) {
+		CheckMemoryAllocation(zmwReader.holeNumberArray.arrayLength, maxAllocNElements, "HoleNumbers (base)");
+		holeNumbers.resize(nReads);
+		zmwReader.holeNumberArray.Read(0,nReads, (unsigned int*)&holeNumbers[0]);
+		return holeNumbers.size();
+	}	
+
 	void Close() {
 		if (useScanData) {
 			scanDataReader.Close();

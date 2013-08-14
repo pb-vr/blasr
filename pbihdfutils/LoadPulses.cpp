@@ -33,7 +33,7 @@ typedef map<string, vector<string> > RequirementMap;
 
 
 char VERSION[] = "v1.1.0";
-char PERFORCE_VERSION_STRING[] = "$Change: 126356 $";
+char PERFORCE_VERSION_STRING[] = "$Change: 126407 $";
 
 // define default values for metrics
 const float NaN = 0.0/0.0;
@@ -533,14 +533,27 @@ string GetAlignedSequenceFromCmpFile(
 // Store info necessary for loading pulses to lookupTable.
 //
 void BuildLookupTable(
-        const int                        & movieAlignmentIndex,
-        CmpFile                          & cmpFile,
-        BaseFile                         & baseFile,
-        HDFCmpFile<CmpAlignment>         & cmpReader,
-        const vector<int>                & movieAlnIndex, 
-        const vector< pair<int,int> >    & toFrom,
-        const set<uint32_t>              & moviePartHoleNumbers,
-        MovieAlnIndexLookupTable         & lookupTable) {
+    const int                        & movieAlignmentIndex,
+    CmpFile                          & cmpFile,
+    BaseFile                         & baseFile,
+    const bool                       & usePulseFile,
+    PulseFile                        & pulseFile,
+    HDFCmpFile<CmpAlignment>         & cmpReader,
+    const vector<int>                & movieAlnIndex, 
+    const vector< pair<int,int> >    & toFrom,
+    const set<uint32_t>              & moviePartHoleNumbers,
+    MovieAlnIndexLookupTable         & lookupTable) {
+    //
+    // Query the cmp file for a way to look up a read based on
+    // coordinate information.  For Astro reads, the coords are
+    // based on x and y.  For Springfield, it is read index.  The
+    // base files should be able to look up reads by x,y or by
+    // index. 
+    //
+    if (cmpFile.platformId == Astro) {
+        cout << "ASTRO pulse loading is deprecated." << endl;
+        exit(1);
+    }
 
     int alignmentIndex = movieAlnIndex[toFrom[movieAlignmentIndex].second];
 
@@ -552,8 +565,10 @@ void BuildLookupTable(
     UInt holeNumber = cmpFile.alnInfo.alignments[alignmentIndex].GetHoleNumber();
     int alnGroupId  = cmpFile.alnInfo.alignments[alignmentIndex].GetAlnGroupId();
 
-    if (cmpReader.refGroupIdToArrayIndex.find(refGroupId) == cmpReader.refGroupIdToArrayIndex.end()) {
-        cout << "ERROR!  An alignment " << alignmentIndex << " is specified with reference group " << endl
+    if (cmpReader.refGroupIdToArrayIndex.find(refGroupId) == 
+        cmpReader.refGroupIdToArrayIndex.end()) {
+        cout << "ERROR! An alignment " << alignmentIndex 
+             << " is specified with reference group " << endl
              << refGroupId << " that is not found as an alignment group." << endl;
         exit(1);
     }
@@ -562,15 +577,19 @@ void BuildLookupTable(
     //
     // Now find the group containing the alignment.
     //
-    if (cmpReader.alnGroupIdToReadGroupName.find(alnGroupId) == cmpReader.alnGroupIdToReadGroupName.end()) {
-        cout << "ERROR!  An alignment " << alignmentIndex << " is specified with alignment group " << endl
+    if (cmpReader.alnGroupIdToReadGroupName.find(alnGroupId) == 
+        cmpReader.alnGroupIdToReadGroupName.end()) {
+        cout << "ERROR! An alignment " << alignmentIndex 
+             << " is specified with alignment group " << endl
              << alnGroupId << " that is not found." << endl;
+        exit(1);
     }
 
     string readGroupName = cmpReader.alnGroupIdToReadGroupName[alnGroupId];
     if (cmpReader.refAlignGroups[refGroupIndex]->experimentNameToIndex.find(readGroupName) == 
         cmpReader.refAlignGroups[refGroupIndex]->experimentNameToIndex.end()) {
-        cout << "ERROR!  An alignment " << alignmentIndex << " is specified with read group name " << endl
+        cout << "ERROR! An alignment " << alignmentIndex 
+             << " is specified with read group name " << endl
              << readGroupName << " that is not found." << endl;
         exit(1);
     }
@@ -586,65 +605,51 @@ void BuildLookupTable(
     int queryStart = cmpFile.alnInfo.alignments[alignmentIndex].GetQueryStart();
     int queryEnd   = cmpFile.alnInfo.alignments[alignmentIndex].GetQueryEnd();
 
+    bool skip = false;
+    int readIndex, readStart, readLength, plsReadIndex; 
+    readIndex = readStart = readLength = plsReadIndex = -1;
+    //
     // Since the movie may be split into multiple parts, look to see
     // if this hole number is one of the ones covered by this
     // set. If it is not, just continue. It will be loaded on
     // another pass through a different movie part.
     //
     if (moviePartHoleNumbers.find(holeNumber) == moviePartHoleNumbers.end()) {
-        //cout << "skip" << endl; 
-        lookupTable.SetValue(true,
-            movieAlignmentIndex, 
-            alignmentIndex,  
-            refGroupIndex,       
-            readGroupIndex,
-            holeNumber,
-            offsetBegin,         
-            offsetEnd,
-            queryStart,          
-            queryEnd,
-            -1, // readIndex
-            -1, // readStart         
-            -1);// readLength
-        return;
+        skip = true;
+    } else {
+        if (!baseFile.LookupReadIndexByHoleNumber(holeNumber, readIndex)) {
+            cout << "ERROR! Alignment has hole number " << holeNumber 
+                 << " that is not in the movie. " << endl;
+            exit(1); 
+        }
+        readStart  = baseFile.readStartPositions[readIndex];
+        readLength = baseFile.readStartPositions[readIndex+1] - 
+                     baseFile.readStartPositions[readIndex];
+        if (usePulseFile) {
+            if (!pulseFile.LookupReadIndexByHoleNumber(holeNumber, plsReadIndex)) {
+                cout << "ERROR! Alignment has  hole number " << holeNumber 
+                     << " that is not in the movie. " << endl;
+                exit(1);
+            }
+            assert(pulseFile.holeNumbers[plsReadIndex] ==
+                   baseFile.holeNumbers[readIndex]);
+        }
     }
-
-    //
-    // Query the cmp file for a way to look up a read based on
-    // coordinate information.  For Astro reads, the coords are
-    // based on x and y.  For Springfield, it is read index.  The
-    // base files should be able to look up reads by x,y or by
-    // index. 
-    //
-    int readIndex;
-
-    if (cmpFile.platformId == Astro) {
-        cout << "ASTRO pulse loading is deprecated." << endl;
-        exit(1);
-    }
-
-    if (baseFile.LookupReadIndexByHoleNumber(holeNumber, readIndex) == false) {
-        cout << "ERROR! Alignment has hole number " << holeNumber << " that is not in the movie. " << endl;
-        exit(1); 
-    }
-
-    int readStart  = baseFile.readStartPositions[readIndex];
-    int readLength = baseFile.readStartPositions[readIndex+1] - baseFile.readStartPositions[readIndex];
-
     // Save info to lookupTable
-    lookupTable.SetValue(false,           
+    lookupTable.SetValue(skip, // Skip processing this or not
         movieAlignmentIndex, 
         alignmentIndex,  
         refGroupIndex,       
         readGroupIndex,
-        holeNumber,
-        offsetBegin,         
-        offsetEnd,
-        queryStart,          
-        queryEnd,
-        readIndex,
-        readStart,           
-        readLength);
+        holeNumber,    // cmp.h5 /AlnInfo/AlnIndex column 7 
+        offsetBegin,   // cmp.h5 /AlnInfo/AlnIndex column 18
+        offsetEnd,     // cmp.h5 /AlnInfo/AlnIndex column 19
+        queryStart,    // cmp.h5 /AlnInfo/AlnIndex column 11 
+        queryEnd,      // cmp.h5 /AlnInfo/AlnIndex column 12 
+        readIndex,     // hole Index in BaseCalls/ZMW/HoleNumber
+        readStart,     // readStart in BaseCalls/* (e.g. *=Basecall)
+        readLength,    // readLength in BaseCalls/*
+        plsReadIndex); // readIndex in PulseCalls/ZMW/HoleNumber
 }
 
 //
@@ -657,7 +662,7 @@ void MapBaseToPulseIndex(
         vector<int>              & baseToPulseIndexMap) {
     baseToPulseIndexMap.resize(table.readLength);
 
-    int pulseStart = pulseFile.pulseStartPositions[table.readIndex];
+    int pulseStart = pulseFile.pulseStartPositions[table.plsReadIndex];
     //
     // Copy the subset of pulses that correspond to the ones called as bases.
     //
@@ -701,7 +706,7 @@ void GetSourceRead(CmpFile      & cmpFile,
     }
     // Read in the data from the pls file if it exists.
     if (usePulseFile) {
-        hdfPlsReader.GetReadAt(table.holeNumber, sourceRead.pulseIndex, sourceRead);
+        hdfPlsReader.GetReadAt(table.plsReadIndex, sourceRead.pulseIndex, sourceRead);
     }
     // }
     // else {
@@ -754,6 +759,8 @@ void BuildLookupTablesAndMakeSane(
         BuildLookupTable(movieAlignmentIndex,
             cmpFile, 
             baseFile,
+            usePulseFile,
+            pulseFile,
             cmpReader, 
             movieAlnIndex,
             toFrom,
@@ -1041,10 +1048,9 @@ void ClearCachedFields(
 bool ComputeStartFrameFromBase(
         BaseFile           & baseFile,
         HDFBasReader       & hdfBasReader,
-        bool                 useBaseFile,
+        const bool         & useBaseFile,
         MovieAlnIndexLookupTable & lookupTable,
         vector<UInt>       & newStartFrame) {
-
     newStartFrame.resize(lookupTable.readLength);
     if (useBaseFile and hdfBasReader.FieldIsIncluded("PreBaseFrames") 
         and hdfBasReader.includedFields["PreBaseFrames"]
@@ -1068,14 +1074,14 @@ bool ComputeStartFrameFromBase(
 bool ComputeStartFrameFromPulse(
         PulseFile          & pulseFile,
         HDFPlsReader       & hdfPlsReader,
-        bool                 usePulseFile,
+        const bool         & usePulseFile,
         MovieAlnIndexLookupTable & lookupTable,
         vector<int>        & baseToPulseIndexMap,
         vector<UInt>       & newStartFrame) {
     newStartFrame.resize(lookupTable.readLength);
     if (usePulseFile) {
         assert(pulseFile.startFrame.size() > 0);
-        hdfPlsReader.CopyFieldAt(pulseFile, "StartFrame", lookupTable.readIndex,
+        hdfPlsReader.CopyFieldAt(pulseFile, "StartFrame", lookupTable.plsReadIndex,
                 &baseToPulseIndexMap[0], &newStartFrame[0],
                 lookupTable.readLength);
         return true;
@@ -1264,6 +1270,7 @@ void WriteMetric(
             const UInt alignedSequenceLength         = lookupTable.offsetEnd - lookupTable.offsetBegin; 
             const UInt ungappedAlignedSequenceLength = lookupTable.queryEnd  - lookupTable.queryStart;
             const UInt   & readIndex                 = lookupTable.readIndex;
+            const UInt   & plsReadIndex              = lookupTable.plsReadIndex;
             const UInt   & readStart                 = lookupTable.readStart;
             const UInt   & readLength                = lookupTable.readLength;
             const UInt   & queryStart                = lookupTable.queryStart;
@@ -1372,7 +1379,7 @@ void WriteMetric(
                 // For the data used for this table, it is possible to simply
                 // reference the data for the bas file,  but for the pls file,
                 // it is necessary to copy since there is a packing of data.
-                hdfPlsReader.CopyFieldAt(pulseFile, "ClassifierQV", readIndex, 
+                hdfPlsReader.CopyFieldAt(pulseFile, "ClassifierQV", plsReadIndex, 
                         &baseToPulseIndexMap[queryStart], &newClassifierQV[0], 
                         ungappedAlignedSequenceLength);
                 
@@ -1443,7 +1450,7 @@ void WriteMetric(
                 vector<uint16_t> newWidthInFrames;
                 newWidthInFrames.resize(ungappedAlignedSequenceLength);
                 if (usePulseFile) {
-                    hdfPlsReader.CopyFieldAt(pulseFile, "WidthInFrames", readIndex,
+                    hdfPlsReader.CopyFieldAt(pulseFile, "WidthInFrames", plsReadIndex,
                             &baseToPulseIndexMap[queryStart], &newWidthInFrames[0], 
                             ungappedAlignedSequenceLength);
                 } else
@@ -1467,7 +1474,7 @@ void WriteMetric(
                 assert(usePulseFile);
                 vector<HalfWord> newMidSignal; 
                 newMidSignal.resize(ungappedAlignedSequenceLength);
-                hdfPlsReader.CopyFieldAt(pulseFile, "MidSignal", readIndex,
+                hdfPlsReader.CopyFieldAt(pulseFile, "MidSignal", plsReadIndex,
                         &baseToPulseIndexMap[queryStart], &newMidSignal[0],
                         ungappedAlignedSequenceLength, ungappedAlignedSequence);
 
@@ -1490,12 +1497,12 @@ void WriteMetric(
                     assert(pulseFile.plsWidthInFrames.size() > 0);
                     vector<UInt> newStartFrame;
                     newStartFrame.resize(readLength);
-                    hdfPlsReader.CopyFieldAt(pulseFile, "StartFrame", readIndex,
+                    hdfPlsReader.CopyFieldAt(pulseFile, "StartFrame", plsReadIndex,
                          &baseToPulseIndexMap[0], &newStartFrame[0], readLength);
 
                     vector<uint16_t> newWidthInFrames;
                     newWidthInFrames.resize(readLength);
-                    hdfPlsReader.CopyFieldAt(pulseFile, "WidthInFrames", readIndex,
+                    hdfPlsReader.CopyFieldAt(pulseFile, "WidthInFrames", plsReadIndex,
                          &baseToPulseIndexMap[0], &newWidthInFrames[0], readLength);
 
                     for (i = 0; i < ungappedAlignedSequenceLength; i++) {
@@ -1527,13 +1534,13 @@ void WriteMetric(
 
                 vector<uint16_t> newMeanSignal; 
                 newMeanSignal.resize(ungappedAlignedSequenceLength);
-                hdfPlsReader.CopyFieldAt(pulseFile, "MeanSignal", readIndex,
+                hdfPlsReader.CopyFieldAt(pulseFile, "MeanSignal", plsReadIndex,
                         &baseToPulseIndexMap[queryStart], &newMeanSignal[0], 
                         ungappedAlignedSequenceLength, ungappedAlignedSequence);
 
                 vector<uint16_t> newWidthInFrames;
                 newWidthInFrames.resize(ungappedAlignedSequenceLength);
-                hdfPlsReader.CopyFieldAt(pulseFile, "WidthInFrames", readIndex,
+                hdfPlsReader.CopyFieldAt(pulseFile, "WidthInFrames", plsReadIndex,
                         &baseToPulseIndexMap[queryStart], &newWidthInFrames[0], 
                         ungappedAlignedSequenceLength);
 
@@ -1928,8 +1935,8 @@ int main(int argc, char* argv[]) {
         PulseFile pulseFile;
 
         //
-        // Deprecate reading the entire bas.h5 file.
-        // Reads are scanned one by one or by metric,  instead of caching all. 
+        // Deprecate reading the entire bas.h5 file. Reads are scanned
+        // one by one or by metric, instead of caching all. 
         // It is still necessary to read in some of the datasets entirely,
         // in particular the start positions and hole numbers.
         //
@@ -2197,6 +2204,8 @@ int main(int argc, char* argv[]) {
                 BuildLookupTable(movieAlignmentIndex,
                     cmpFile,
                     baseFile,
+                    usePulseFile,
+                    pulseFile,
                     cmpReader,
                     movieIndexSets[movieIndex], 
                     toFrom,

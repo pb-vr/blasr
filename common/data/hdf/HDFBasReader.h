@@ -662,13 +662,6 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
 		basWidthInFramesArray.Read(0, nBases, &widthInFrames[0]);
 	}
 
-	int GetAllHoleNumbers(vector<unsigned int> &holeNumbers) {
-		CheckMemoryAllocation(zmwReader.holeNumberArray.arrayLength, maxAllocNElements, "HoleNumbers (base)");
-		holeNumbers.resize(nReads);
-		zmwReader.holeNumberArray.Read(0,nReads, (unsigned int*)&holeNumbers[0]);
-		return holeNumbers.size();
-	}
-
   int GetAllHoleStatus(vector<unsigned char> &holeStatus) {
 		CheckMemoryAllocation(zmwReader.holeStatusArray.arrayLength, maxAllocNElements, "HoleStatus (base)");
 		holeStatus.resize(nReads);
