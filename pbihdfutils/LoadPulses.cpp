@@ -1671,8 +1671,11 @@ void PrintUsage() {
 // The main function.
 //
 int main(int argc, char* argv[]) {
-    string cmpFileName, movieFileName;
+    string program = "loadPulses";
+    string versionStr(VERSION);
+    AppendPerforceChangelist(PERFORCE_VERSION_STRING, versionStr);
 
+    string cmpFileName, movieFileName;
     int argi = 3;
     int numMetrics = 8;
     map<string,bool> metricOptions;
@@ -1688,12 +1691,11 @@ int main(int argc, char* argv[]) {
     bool byRead = false;
     bool byMetric = false;
     bool failOnMissingData = false;
-    bool printVersion = false;
-
-    string versionStr(VERSION);
-    AppendPerforceChangelist(PERFORCE_VERSION_STRING, versionStr);
 
     CommandLineParser clp;
+    clp.SetProgramName(program);
+    clp.SetVersion(versionStr);
+
     clp.RegisterStringOption("basFileName", &movieFileName, 
             "The input {bas,pls}.h5 or input.fofn.", true);
     clp.RegisterStringOption("cmpFileName", &cmpFileName, 
@@ -1725,14 +1727,13 @@ int main(int argc, char* argv[]) {
             "Set a limit (in GB) on the memory to buffer data with -bymetric "
             "(default value: 4 GB). Use -byread if the limit is exceeded.",
              CommandLineParser::PositiveInteger);
-    string progSummary = (string("loadPulses (version ") + versionStr + ") "
-            "loads pulse information such as inter pulse "
+    string progSummary = ("Loads pulse information such as inter pulse "
             "distance, or quality information into the cmp.h5 file. This allows " 
             "one to analyze kinetic and quality information by alignment column.");
     clp.SetProgramSummary(progSummary);
     clp.ParseCommandLine(argc, argv);
 
-    cerr << "[INFO] " << GetTimestamp() << " [loadPulses] started." << endl;
+    cerr << "[INFO] " << GetTimestamp() << " [" << program << "] started." << endl;
     //use byMetric by default unless byRead is specified.
     byMetric = true;
     if (byRead) {
@@ -1889,7 +1890,7 @@ int main(int argc, char* argv[]) {
             hdfPlsReader.Close();
         }
         cmpReader.Close();
-        cerr << "[INFO] " << GetTimestamp() << " [loadPulses] ended." << endl;
+        cerr << "[INFO] " << GetTimestamp() << " [" << program << "] ended." << endl;
         exit(0);
     }
 
@@ -1898,7 +1899,7 @@ int main(int argc, char* argv[]) {
 
     string commandLine;
     clp.CommandLineToString(argc, argv, commandLine);
-    cmpReader.fileLogGroup.AddEntry(commandLine, "Loading pulse metrics", "loadPulses", GetTimestamp(), versionStr);
+    cmpReader.fileLogGroup.AddEntry(commandLine, "Loading pulse metrics", program, GetTimestamp(), versionStr);
 
     //
     // Group alignment indices by movie so that they may be processed one movie at a time
@@ -2605,5 +2606,5 @@ int main(int argc, char* argv[]) {
     } // Done loading movies.
     
     cmpReader.Close();
-    cerr << "[INFO] " << GetTimestamp() << " [loadPulses] ended." << endl;
+    cerr << "[INFO] " << GetTimestamp() << " [" << program << "] ended." << endl;
 }

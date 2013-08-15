@@ -15,8 +15,13 @@
 #include "CommandLineParser.h"
 
 using namespace std;
+char VERSION[] = "v1.0.0";
+char PERFORCE_VERSION_STRING[] = "$Change: 126414 $";
 
 int main(int argc, char* argv[]) {
+    string program = "pls2fasta";
+    string versionString = VERSION;
+    AppendPerforceChangelist(PERFORCE_VERSION_STRING, versionString);
 
 	string plsFileName, fastaOutName;
 	vector<string> plsFileNames;
@@ -39,8 +44,10 @@ int main(int argc, char* argv[]) {
   vector<int> holeNumbers;
   CommandLineParser clp;
   bool printOnlyBest = false;
-  clp.SetProgramName("pls2fasta");
-  clp.RegisterStringOption("file.pls.h5", &plsFileName, "Input pls.h5/bax.h5/fofn file.", true);
+
+  clp.SetProgramName(program);
+  clp.SetVersion(versionString);
+  clp.RegisterStringOption("in.pls.h5", &plsFileName, "Input pls.h5/bax.h5/fofn file.", true);
   clp.RegisterStringOption("out.fasta", &fastaOutName, "Output fasta/fastq file.", true);
   clp.RegisterPreviousFlagsAsHidden();
   clp.RegisterFlagOption("trimByRegion", &trimByRegion, "Trim away low quality regions.");
@@ -57,15 +64,16 @@ int main(int argc, char* argv[]) {
                         "A typical value would be between 750 and 800.  This does not apply to ccs reads.", CommandLineParser::NonNegativeInteger);
   clp.RegisterFlagOption("best", &printOnlyBest, "If a CCS sequence exists, print this.  Otherwise, print the longest"
                          "subread.  This does not support fastq.");
-  clp.SetProgramSummary("Converts pls.h5/bax.h5/fofn files to fasta or fastq files. Although fasta files are provided"
-                        " with every run, they are not trimmed nor split into subreads. This program takes "
-                        "additional annotation information, such as the subread coordinates and high quality regions "
-                        "and uses them to create fasta sequences that are substrings of all bases called. Most of the time "
-                        "you will want to trim low quality reads, so you should specify -trimByRegion.");
+  string description = ("Converts pls.h5/bax.h5/fofn files to fasta or fastq files. Although fasta files are provided"
+  " with every run, they are not trimmed nor split into subreads. This program takes "
+  "additional annotation information, such as the subread coordinates and high quality regions "
+  "and uses them to create fasta sequences that are substrings of all bases called. Most of the time "
+  "you will want to trim low quality reads, so you should specify -trimByRegion.");
+  clp.SetProgramSummary(description);
                         
   clp.ParseCommandLine(argc, argv);
 
-    cerr << "[INFO] " << GetTimestamp() << " [pls2fasta] started."  << endl;
+    cerr << "[INFO] " << GetTimestamp() << " [" << program << "] started."  << endl;
 	if (trimByRegion and maskByRegion) {
 		cout << "ERROR! You cannot both trim and mask regions. Use one or the other." << endl;
 		exit(1);
@@ -329,5 +337,5 @@ int main(int argc, char* argv[]) {
     reader.Close();
     hdfRegionReader.Close();
   }
-  cerr << "[INFO] " << GetTimestamp() << " [pls2fasta] ended."  << endl;
+  cerr << "[INFO] " << GetTimestamp() << " [" << program << "] ended."  << endl;
 }

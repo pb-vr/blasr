@@ -12,20 +12,29 @@
 #include <iostream>
 
 char VERSION[] = "v1.0.0";
-char PERFORCE_VERSION_STRING[] = "$Change: 107666 $";
+char PERFORCE_VERSION_STRING[] = "$Change: 126414 $";
 
 int main(int argc, char* argv[]) {
+  string program = "samtoh5";
+  string versionString = VERSION;
+  AppendPerforceChangelist(PERFORCE_VERSION_STRING, versionString);
   string samFileName, cmpFileName, refFileName;
   bool parseSmrtTitle = false;
   bool useShortRefName = false;
   CommandLineParser clp;
   string readType = "standard";
   int verbosity = 0;
-  clp.RegisterStringOption("file.sam", &samFileName, "Input SAM file.");
+
+  clp.SetProgramName(program);
+  clp.SetProgramSummary("Converts in.sam file to out.cmp.h5 file.");
+  clp.SetVersion(versionString);
+
+  clp.RegisterStringOption("in.sam", &samFileName, 
+                           "Input SAM file.", true);
   clp.RegisterStringOption("reference.fasta", &refFileName, 
-                           "Reference used to generate reads.");
-  clp.RegisterStringOption("file.cmp.h5", &cmpFileName, 
-                           "Output cmp.h5 file.");
+                           "Reference used to generate reads.", true);
+  clp.RegisterStringOption("out.cmp.h5", &cmpFileName, 
+                           "Output cmp.h5 file.", true);
   clp.RegisterPreviousFlagsAsHidden();
   clp.RegisterFlagOption("smrtTitle", &parseSmrtTitle, 
                          "Use this option when converting alignments "
@@ -46,21 +55,17 @@ int main(int argc, char* argv[]) {
                          "Use abbreviated reference names obtained "
                          "from file.sam instead of using full names "
                          "from reference.fasta.");
-  clp.SetExamples("Because SAM has optional tags that have different "  
-                  "meanings in different programs, careful usage is " 
-                  "required in order to have proper output.  The \"xs\" " 
-                  "tag in bwa-sw is used to show the suboptimal score, " 
-                  "but in PacBio SAM (blasr) it is defined as the start "
-                  "in the query sequence of the alignment.\nWhen "
-                  "\"-smrtTitle\" is specified, the xs tag is ignored, "
-                  "but when it is not specified, the coordinates given "
-                  "by the xs and xe tags are used to define the interval "
-                  "of a read that is aligned.  The CIGAR " 
-                  "string is relative to this interval.");
+  string description = ("Because SAM has optional tags that have different "
+    "meanings in different programs, careful usage is required in order to "
+    "have proper output. The \"xs\" tag in bwa-sw is used to show the "
+    "suboptimal score, but in PacBio SAM (blasr) it is defined as the start "
+    "in the query sequence of the alignment.\nWhen \"-smrtTitle\" is "
+    "specified, the xs tag is ignored, but when it is not specified, the "
+    "coordinates given by the xs and xe tags are used to define the interval "
+    "of a read that is aligned. The CIGAR string is relative to this interval.");
+  clp.SetExamples(description);
 
   clp.ParseCommandLine(argc, argv);
-
-  cerr << "[INFO] " << GetTimestamp() << " [samtoh5] started." << endl;
 
   if (readType != "standard" and readType != "strobe" and 
       readType != "cDNA" and readType != "CCS") {
@@ -70,6 +75,7 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
     
+  cerr << "[INFO] " << GetTimestamp() << " [" << program << "] started." << endl;
 
   SAMReader<SAMFullReferenceSequence, SAMReadGroup, SAMPosAlignment> samReader;
   FASTAReader fastaReader;
@@ -88,9 +94,6 @@ int main(int argc, char* argv[]) {
   string command;
   CommandLineParser::CommandLineToString(argc, argv, command);
   string log = "Convert sam to cmp.h5";
-  string program = "samtoh5";
-  string versionString = VERSION;
-  AppendPerforceChangelist(PERFORCE_VERSION_STRING, versionString);
   cmpFile.fileLogGroup.AddEntry(command, log, program, GetTimestamp(), versionString);
 
   //
@@ -194,6 +197,6 @@ int main(int argc, char* argv[]) {
       }*/
   }
 
-  cerr << "[INFO] " << GetTimestamp() << " [samtoh5] ended." << endl;
+  cerr << "[INFO] " << GetTimestamp() << " [" << program << "] ended." << endl;
   return 0;
 }

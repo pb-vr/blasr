@@ -58,6 +58,7 @@ class CommandLineParser {
 	string verboseHelp;
 	string helpString;
   string examples;
+  string version;
 
 	int lineLength;
 	int numUnnamedOptions;
@@ -84,6 +85,11 @@ class CommandLineParser {
 	void SetProgramName(string namep) {
 		programName = namep;
 	}
+
+    void SetVersion(string versionp) {
+        specialVersionFlag = true;
+        version = versionp;
+    }
 	
 	void SetVerboseHelp(string helpp) {
 		verboseHelp = helpp;
@@ -245,44 +251,41 @@ class CommandLineParser {
 		return ParseCommandLine(argc, argv, ufv);
 	}
 
-	int ParseCommandLine(int argc, char* argv[], vector<string> &unflaggedValues) {
-		VectorIndex argi = 1;
-		int curUnnamedOption = 0;
-		if (argc == 1 || argc < numUnnamedOptions) {
-			if (conciseHelp != "") {
-				cout << conciseHelp;
-			}
-			else {
-				PrintUsage();
-			}
-			exit(0);
-		}
-		ErrorValue ev; 
-		//
-		// Check for a help flag.
-		//
-		int i;
-		for (i = 1; i < argc; i++) {
-			if (strcmp(argv[i], "-h")==0 or
-					strcmp(argv[i], "--help") == 0 and 
-					// Check to see if there is non default argument for help
-					(IsOption(argv[i]) and !FindOption(&argv[i][1]))) {
-				PrintUsage();
-				exit(0);
-			}
-      else if (strcmp(argv[i], "-version") == 0 and specialVersionFlag) {
+    int ParseCommandLine(int argc, char* argv[], vector<string> &unflaggedValues) {
+        VectorIndex argi = 1;
+        int curUnnamedOption = 0;
+        ErrorValue ev; 
         //
-        // Using -version is an early exit since programs will print the version and then return.
+        // Check for a help flag.
         //
-
-        assert(IsOption(argv[i]));
-        int optionIndex = FindOption(&argv[argi][1]);
-        ev = ParseOption(optionIndex, argi, argc, argv);
-        return ev;
-      }
-		}
-		
-
+        int i;
+        for (i = 1; i < argc; i++) {
+            if (strcmp(argv[i], "-h")==0 or
+                strcmp(argv[i], "--help") == 0 and 
+                // Check to see if there is non default argument for help
+                (IsOption(argv[i]) and !FindOption(&argv[i][1]))) {
+                PrintUsage();
+                exit(0);
+            }
+            else if (strcmp(argv[i], "-version") == 0 and specialVersionFlag) {
+            //
+            // Using -version is an early exit since programs will print the 
+            // version and then return.
+            //
+            assert(IsOption(argv[i]) and FindOption(&argv[argi][1]));
+            PrintVersion();
+            exit(0);
+            }
+        }
+        if (argc == 1 || argc < numUnnamedOptions) {
+            if (conciseHelp != "") {
+                cout << conciseHelp;
+            }
+            else {
+                PrintUsage();
+            }
+            exit(0);
+        }
 		// 
 		// Now parse the (probably optional) options.
 		//
@@ -607,6 +610,10 @@ class CommandLineParser {
 		}
 		return ev;
 	}
+
+    void PrintVersion() {
+        cout << programName << "\t" << version << endl;
+    }
 
 	void PrintUsage() {
         ios::fmtflags f = cout.flags();

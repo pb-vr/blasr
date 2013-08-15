@@ -3989,11 +3989,7 @@ int ComputeExpectedWaitingBases(float mean, float variance, float certainty) {
   return mean + sqrt(variance) * nStdDev;
 }
 
-
-
-
 int main(int argc, char* argv[]) {
-  cerr << "[INFO] " << GetTimestamp() << " [blasr] started." << endl;
   //
   // Configure parameters for refining alignments.
   //
@@ -4028,6 +4024,10 @@ int main(int argc, char* argv[]) {
   clp.SetConciseHelp(conciseHelpString);
   clp.SetProgramSummary(usageSStrm.str());
   clp.SetProgramName("blasr");
+
+  string versionString;
+  GetVersion(versionString);
+  clp.SetVersion(versionString);
 
   //
   // Make the default arguments.
@@ -4161,7 +4161,6 @@ int main(int argc, char* argv[]) {
   // Blasr only analyzes reads whose hole numbers are in the specified hole number ranges. 
   clp.RegisterStringOption("holeNumbers", &params.holeNumberRangesStr, "");
   clp.RegisterIntOption("maxReadIndex", &params.maxReadIndex, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterFlagOption("version", (bool*)&params.printVersion, "");
   clp.RegisterIntOption("substitutionPrior",  &params.substitutionPrior, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterIntOption("deletionPrior",  &params.globalDeletionPrior, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterIntOption("recurseOver", &params.recurseOver, "", CommandLineParser::NonNegativeInteger);
@@ -4174,14 +4173,6 @@ int main(int argc, char* argv[]) {
   clp.RegisterFlagOption("scaleMapQVByNClusters", &params.scaleMapQVByNumSignificantClusters, "", false);
   clp.ParseCommandLine(argc, argv, params.readsFileNames);
   clp.CommandLineToString(argc, argv, commandLine);
-
-  if (params.printVersion) {
-    string version;
-    GetVersion(version);
-    cout << version << endl;
-    exit(0);
-  }
-    
 
   if (printVerboseHelp) {
     cout << helpString << endl;
@@ -4237,6 +4228,8 @@ int main(int argc, char* argv[]) {
     PrintDiscussion();
     exit(0);
   }
+
+  cerr << "[INFO] " << GetTimestamp() << " [blasr] started." << endl;
   params.MakeSane();
   params.anchorParameters.verbosity = params.verbosity; 
 
