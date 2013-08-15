@@ -2617,9 +2617,7 @@ void ScaleMapQVByClusterSize(T_AlignmentCandidate &alignment, MappingParameters 
 
 void StoreMapQVs(SMRTSequence &read,
                  vector<T_AlignmentCandidate*> &alignmentPtrs, 
-                 MappingParameters &params, 
-                 MappingBuffers &mappingBuffers, 
-                 string title="") {
+                 MappingParameters &params) {
   
   //
   // Only weight alignments for mapqv against eachother if they are overlapping.
@@ -2804,7 +2802,6 @@ void StoreMapQVs(SMRTSequence &read,
       if (params.scaleMapQVByNumSignificantClusters) {
         ScaleMapQVByClusterSize(*alignmentPtrs[*partIt], params);
       }
-
     }
   }
 
@@ -3720,7 +3717,7 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
         if (alignmentPtrs.size() > 0 and 
             alignmentPtrs[0]->score < params.maxScore and 
             params.storeMapQV) {
-          StoreMapQVs(subreadSequence, alignmentPtrs, params, mappingBuffers, subreadSequence.title);
+          StoreMapQVs(subreadSequence, alignmentPtrs, params);
         }
 
         // 
@@ -3755,7 +3752,9 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
         }
       } // End of looping over subread intervals within [startIndex, endIndex).
 
-      allReadAlignments.Print(threadOut);
+      if (params.verbosity >= 3) 
+          allReadAlignments.Print(threadOut);
+
       if (params.concordant) {
         allReadAlignments.read = smrtRead;
         allReadAlignments.alignMode = ZmwSubreads;
@@ -3818,6 +3817,16 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
       MapRead(smrtRead, smrtReadRC, 
               genome, sarray, *bwtPtr, seqBoundary, ct, seqdb, params, mapData->metrics,
               alignmentPtrs, mappingBuffers, mapData);
+      
+      //
+      // Store the mapping quality values.
+      //
+      if (alignmentPtrs.size() > 0 and 
+          alignmentPtrs[0]->score < params.maxScore and 
+          params.storeMapQV) {
+        StoreMapQVs(smrtRead, alignmentPtrs, params);
+      }
+
       // 
       // Select de novo ccs-reference alignments for subreads to align to.
       //
