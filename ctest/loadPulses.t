@@ -29,6 +29,8 @@ Set up the executable: loadPulses.
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
   \d+ differences found (re)
+  dataset: </FileLog/Version> and </FileLog/Version>
+  \d+ differences found (re)
   [1]
 
   $ rm -f $CMP_OUT_bymetric_1
@@ -40,6 +42,8 @@ Set up the executable: loadPulses.
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
+  \d+ differences found (re)
+  dataset: </FileLog/Version> and </FileLog/Version>
   \d+ differences found (re)
   [1]
 
@@ -65,6 +69,8 @@ Set up the executable: loadPulses.
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
   \d+ differences found (re)
+  dataset: </FileLog/Version> and </FileLog/Version>
+  \d+ differences found (re)
   [1]
 
   $ rm -f $CMP_OUT_bymetric_2
@@ -79,6 +85,8 @@ Set up the executable: loadPulses.
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
+  \d+ differences found (re)
+  dataset: </FileLog/Version> and </FileLog/Version>
   \d+ differences found (re)
   [1]
 
@@ -101,6 +109,8 @@ Set up the executable: loadPulses.
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
   \d+ differences found (re)
+  dataset: </FileLog/Version> and </FileLog/Version>
+  \d+ differences found (re)
   [1]
 
 
@@ -114,6 +124,8 @@ Set up the executable: loadPulses.
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
+  \d+ differences found (re)
+  dataset: </FileLog/Version> and </FileLog/Version>
   \d+ differences found (re)
   [1]
 
@@ -149,6 +161,8 @@ Set up the executable: loadPulses.
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
   \d differences found (re)
+  dataset: </FileLog/Version> and </FileLog/Version>
+  \d+ differences found (re)
   [1]
 
 #Test loadPulses -byMetric on a multi-streaming job.
@@ -172,6 +186,8 @@ Set up the executable: loadPulses.
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
   \d differences found (re)
+  dataset: </FileLog/Version> and </FileLog/Version>
+  \d+ differences found (re)
   [1]
 
 
@@ -193,3 +209,30 @@ Set up the executable: loadPulses.
   /AlnInfo/AlnIndex        Dataset {6676/Inf, 22}
   /AlnInfo/NumPasses       Dataset {6676/Inf}
 
+
+#Test loadPulses *.fofn cmp.h5 where *.fofn can either contain ccs.h5 or bas.h5
+# and the cmp.h5 s readType is CCS
+  $ CCS_FOFN=$DATDIR/test_ccs.fofn
+  $ BAS_FOFN=$DATDIR/test_bas.fofn
+
+  $ CMP_IN=$DATDIR/test_ccs_bas.cmp.h5
+  $ CCS_OUT=$OUTDIR/test_ccs_bas_ccs.cmp.h5
+  $ BAS_OUT=$OUTDIR/test_ccs_bas_bas.cmp.h5
+
+  $ cp $CMP_IN $CCS_OUT 
+  $ cp $CMP_IN $BAS_OUT
+
+  $ $EXEC $CCS_FOFN $CCS_OUT -metrics QualityValue,DeletionQV,DeletionTag,InsertionQV,SubstitutionQV
+  [INFO] * [loadPulses] started. (glob)
+  loading 11 alignments for movie 1
+  [INFO] * [loadPulses] ended. (glob)
+
+  $ $EXEC $BAS_FOFN $BAS_OUT -metrics QualityValue,DeletionQV,DeletionTag,InsertionQV,SubstitutionQV
+  [INFO] * [loadPulses] started. (glob)
+  loading 11 alignments for movie 1
+  [INFO] * [loadPulses] ended. (glob)
+
+  $ h5diff $CCS_OUT $BAS_OUT
+  dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
+  \d+ differences found (re)
+  [1]

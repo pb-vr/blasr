@@ -16,6 +16,7 @@
 #include "datastructures/loadpulses/MovieAlnIndexLookupTable.h"
 #include "utils/FileOfFileNames.h"
 #include "utils/TimeUtils.h"
+#include "files/BaseSequenceIO.h"
 #include "CommandLineParser.h"
 #include <map>
 #include <set>
@@ -683,7 +684,7 @@ void GetSourceRead(CmpFile      & cmpFile,
                    HDFCCSReader<SMRTSequence> & hdfCcsReader,
                    const bool   & useBaseFile,  
                    const bool   & usePulseFile,
-                   const bool   & useCcs,       
+                   const bool   & useCcsOnly,
                    //const bool   & byRead, 
                    MovieAlnIndexLookupTable & table, 
                    const string & alignedSequence,
@@ -700,7 +701,7 @@ void GetSourceRead(CmpFile      & cmpFile,
     // Read in the data from the bas file if it exsts.
     if (useBaseFile) {
         hdfBasReader.GetReadAt(table.readIndex, sourceRead);
-        if (cmpFile.readType == ReadType::CCS or useCcs) {
+        if (cmpFile.readType == ReadType::CCS or useCcsOnly) {
             numPasses = hdfCcsReader.GetNumPasses(table.readIndex);
         }
     }
@@ -719,7 +720,7 @@ void GetSourceRead(CmpFile      & cmpFile,
     //    //
     //    if (useBaseFile) {
     //        baseFile.CopyReadAt(table.readIndex, sourceRead);
-    //        if (cmpFile.readType == ReadType::CCS or useCcs) {
+    //        if (cmpFile.readType == ReadType::CCS or useCcsOnly) {
     //            numPasses = hdfCcsReader.GetNumPasses(table.readIndex);
     //        }
     //    }
@@ -747,7 +748,7 @@ void BuildLookupTablesAndMakeSane(
         HDFCCSReader<SMRTSequence>       & hdfCcsReader,
         const bool                       & useBaseFile,
         const bool                       & usePulseFile,
-        const bool                       & useCcs,
+        const bool                       & useCcsOnly,
         const vector<int>                & movieAlnIndex, 
         const vector< pair<int,int> >    & toFrom,
         const set<uint32_t>              & moviePartHoleNumbers,
@@ -941,7 +942,7 @@ void CacheRequiredFieldsForMetric(
         HDFCCSReader<SMRTSequence>  & hdfCcsReader,
         const bool                  & useBaseFile,
         const bool                  & usePulseFile,
-        const bool                  & useCcs,
+        const bool                  & useCcsOnly,
         vector<Field>               & cachedFields,
         const string                & curMetric) {
 
@@ -993,7 +994,7 @@ void ClearCachedFields(
         HDFCCSReader<SMRTSequence> & hdfCcsReader,
         const bool                 & useBaseFile,
         const bool                 & usePulseFile,
-        const bool                 & useCcs,
+        const bool                 & useCcsOnly,
         vector<Field>              & cachedFields,
         const string               & curMetric,
         const string               & nextMetric) {
@@ -1133,7 +1134,7 @@ void WriteMetric(
         HDFCCSReader<SMRTSequence>       & hdfCcsReader,
         const bool                       & useBaseFile,
         const bool                       & usePulseFile,
-        const bool                       & useCcs,
+        const bool                       & useCcsOnly,
         vector<MovieAlnIndexLookupTable> & lookupTables,
         vector<pair<UInt, UInt> >        & groupedLookupTablesIndexPairs,
         const string                     & curMetric ) {
@@ -1637,7 +1638,7 @@ string MetricsToString(const vector<string> & metrics) {
 //
 void PrintUsage() {
     cout << "  loadPulses - Load pulse information and quality values into a Compare file" << endl;
-    cout << "usage: loadPulses movieFile cmpFile [-metrics m1,m2,...] [-useccs] [-byread]" << endl;
+    cout << "usage: loadPulses movieFile cmpFile [-metrics m1,m2,...] [-byread]" << endl;
     cout << "  movieFile may be a movie file or a fofn of movie file names." << endl;
     cout << "  metrics m1,m2,... is a comma-separated list (without spaces) of metrics " << endl
          << "  to print to the pulse file." << endl;
@@ -1687,7 +1688,7 @@ int main(int argc, char* argv[]) {
     //
     CreateMetricOptions(metricOptions);
     string metricList = "";
-    bool useCcs = false;
+    bool useCcsOnly = false;
     bool byRead = false;
     bool byMetric = false;
     bool failOnMissingData = false;
@@ -1711,9 +1712,6 @@ int main(int argc, char* argv[]) {
     clp.RegisterFlagOption("failOnMissingData", &failOnMissingData, 
             "Exit if any data fields are missing from the bas.h5 or pls.h5 "
             "input that are required to load a metric. Defualt is a warning.");
-    // Deprecate -useccs an option for old data. 
-    // clp.RegisterFlagOption("useccs", &useCcs, 
-    //        "Load pulse information for CCS sequences and not raw bases.");
     clp.RegisterFlagOption("byread", &byRead, 
             "Load pulse information by read rather than buffering metrics.");
     clp.RegisterFlagOption("bymetric", & byMetric, 
@@ -1819,7 +1817,6 @@ int main(int argc, char* argv[]) {
     }
     hdfPlsReader.IncludeField("NumEvent");
 
-
     int nMovies = movieFileNames.size();
     int movieIndex;
     MovieNameToArrayIndex movieNameMap;
@@ -1847,10 +1844,25 @@ int main(int argc, char* argv[]) {
     fileAccPropList.setCache(mdc_nelmts, rdcc_nelmts, rdcc_nbytes, rdcc_w0);
     // fileAccPropList.setCache(4096, 4096, 8388608, rdcc_w0);
 
+
+    // If one of the h5 in the fofn is a ccs.h5 file, then only load pulse
+    // information from group /PulseData/ConsensusBaseCalls.
     for (movieIndex = 0; movieIndex < nMovies; movieIndex++) {
+        FileType fileType;
+        BaseSequenceIO::DetermineFileTypeByExtension(movieFileNames[movieIndex], fileType, true);
+        if (fileType == HDFCCSONLY) {
+            useCcsOnly = true;
+        }
+    }
+
+    for (movieIndex = 0; movieIndex < nMovies; movieIndex++) {
+        if (useCcsOnly) {
+            hdfCcsReader.SetReadBasesFromCCS();
+            hdfBasReader.SetReadBasesFromCCS();
+        }
         if (!hdfBasReader.Initialize(movieFileNames[movieIndex], fileAccPropList)) {
             cout << "ERROR, could not initialize HDF file "
-                 << movieFileNames[movieIndex] << " for reading bases." << endl;
+                << movieFileNames[movieIndex] << " for reading bases." << endl;
             exit(1);
         }
         else {
@@ -1867,7 +1879,7 @@ int main(int argc, char* argv[]) {
                 usePulseFile = false;
             }
         }
-    }
+   }
 
     CmpFile cmpFile;
 
@@ -1895,7 +1907,14 @@ int main(int argc, char* argv[]) {
     }
 
     cmpReader.Read(cmpFile, false);
-    //cmpReader.Read(cmpFile);
+
+    // Sanity check: if there is a ccs.h5 file in the fofn and 
+    // cmp.h5 file's readType is not CCS, something is wrong. 
+    if (cmpFile.readType != ReadType::CCS and useCcsOnly) {
+        cout << "ERROR, there is a ccs.h5 file in the fofn, while read type of" 
+             << " the cmp.h5 file is not CCS." << endl;
+        exit(1);
+    }
 
     string commandLine;
     clp.CommandLineToString(argc, argv, commandLine);
@@ -1926,7 +1945,7 @@ int main(int argc, char* argv[]) {
     for (fofnMovieIndex = 0; fofnMovieIndex < fofnMovieNames.size(); fofnMovieIndex++) {
         bool byMetricForThisMovie = byMetric;
 
-        if (cmpFile.readType == ReadType::CCS or useCcs) {
+        if (cmpFile.readType == ReadType::CCS or useCcsOnly) {
             hdfBasReader.SetReadBasesFromCCS();
             hdfCcsReader.Initialize(movieFileNames[fofnMovieIndex], fileAccPropList);
         }
@@ -1998,7 +2017,7 @@ int main(int argc, char* argv[]) {
         // sequences do not have pulse file information, the auto-reading
         // of pulse files needs to be disabled.  Do that here.
         //
-        if (cmpFile.readType == ReadType::CCS or useCcs) {
+        if (cmpFile.readType == ReadType::CCS or useCcsOnly) {
             usePulseFile = false;
         }
 
@@ -2099,7 +2118,7 @@ int main(int argc, char* argv[]) {
                 hdfCcsReader,
                 useBaseFile, 
                 usePulseFile,   
-                useCcs,
+                useCcsOnly,
                 movieIndexSets[movieIndex],
                 toFrom,
                 moviePartHoleNumbers,
@@ -2111,7 +2130,7 @@ int main(int argc, char* argv[]) {
             vector<pair<UInt, UInt> >  groupedLookupTablesIndexPairs;
             GroupLookupTables(lookupTables, groupedLookupTablesIndexPairs);
             
-            if (cmpFile.readType == ReadType::CCS or useCcs) {
+            if (cmpFile.readType == ReadType::CCS or useCcsOnly) {
                 vector<unsigned int> numPassesMetric;
                 numPassesMetric.resize(lookupTables.size());
                 UInt index = 0;  
@@ -2161,7 +2180,7 @@ int main(int argc, char* argv[]) {
                     hdfCcsReader,
                     useBaseFile,
                     usePulseFile,
-                    useCcs,
+                    useCcsOnly,
                     cachedFields,
                     curMetric);
 
@@ -2175,7 +2194,7 @@ int main(int argc, char* argv[]) {
                     hdfCcsReader,
                     useBaseFile,
                     usePulseFile, 
-                    useCcs,
+                    useCcsOnly,
                     lookupTables, 
                     groupedLookupTablesIndexPairs,
                     curMetric);
@@ -2188,7 +2207,7 @@ int main(int argc, char* argv[]) {
                     hdfCcsReader,
                     useBaseFile,
                     usePulseFile,
-                    useCcs,
+                    useCcsOnly,
                     cachedFields,
                     curMetric,
                     nextMetric);
@@ -2250,7 +2269,7 @@ int main(int argc, char* argv[]) {
                     hdfCcsReader,
                     useBaseFile , 
                     usePulseFile,
-                    useCcs      , 
+                    useCcsOnly  , 
                     //byRead      ,
                     lookupTable , 
                     alignedSequence,
@@ -2301,7 +2320,7 @@ int main(int argc, char* argv[]) {
                 HDFCmpExperimentGroup* expGroup = cmpReader.refAlignGroups[refGroupIndex]->readGroups[readGroupIndex];
                 UInt alnArrayLength = expGroup->alignmentArray.size();
 
-                if (cmpFile.readType == ReadType::CCS or useCcs) {
+                if (cmpFile.readType == ReadType::CCS or useCcsOnly) {
                     if (!cmpReader.alnInfoGroup.numPasses.IsInitialized()) {
                         cmpReader.alnInfoGroup.InitializeNumPasses();
                     }
@@ -2597,7 +2616,7 @@ int main(int argc, char* argv[]) {
         if (useBaseFile) {
             hdfBasReader.Close();
         }
-        if (cmpFile.readType == ReadType::CCS or useCcs) {
+        if (cmpFile.readType == ReadType::CCS or useCcsOnly) {
             hdfCcsReader.Close();
         }
         if (usePulseFile) {
