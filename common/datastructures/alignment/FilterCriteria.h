@@ -101,7 +101,7 @@ public:
 
     // Set default filter criteria.
     void SetDefault() {
-        minAccuracy   = 75;
+        minAccuracy   = 70;
         minLength = 50;
         minPctSimilarity = 70;
         minAnchorSize = 12;
@@ -151,16 +151,27 @@ public:
     // mapQV, clusterScore, clusterWeight, tIsSbustring, qIsSubstring
     // tTitle, qTitle, nMatch, nIns, nDel, pctSimilarity
     // 
-        if (alignment.qAlignedSeqLength   < minLength ||
-            alignment.pctSimilarity * 100 < minPctSimilarity) {
+        if (alignment.qAlignedSeqLength   < minLength) {
             if (verbosity > 0) 
-                cout << "Alignment length is too short or pctcentage similarity is too low." << endl;
+                cout << "Alignment length is too short (" 
+                     << alignment.qAlignedSeqLength 
+                     << " < " << minLength << ")." <<endl;
+            return false;
+        } 
+        if (alignment.pctSimilarity * 100 < minPctSimilarity) {
+            if (verbosity > 0) 
+                cout << "Percentage similarity (" 
+                     << alignment.pctSimilarity
+                     << " < " << minPctSimilarity 
+                     << ") is too low." << endl;
             return false;
         }
         
         if (useScore && scoreCutoff.BetterThanOrEqual(alignment.score)) {
             if (verbosity > 0)
-                cout << "Alignment score is bad." << endl;
+                cout << "Alignment score (" << alignment.score 
+                     << " worse than " << scoreCutoff.score 
+                     << ") is bad." << endl;
             return false;
         }
 
@@ -170,7 +181,8 @@ public:
 
         if (accuracy < minAccuracy) {
             if (verbosity > 0)
-                cout << "Accuracy is too low." << endl;
+                cout << "Accuracy (" << accuracy << " < "
+                     << minAccuracy << ") is too low." << endl;
             return false;
         }
 

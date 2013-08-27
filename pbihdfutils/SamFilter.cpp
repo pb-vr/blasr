@@ -47,7 +47,7 @@
 #endif
 
 char VERSION[] = "v0.1.0";
-char PERFORCE_VERSION_STRING[] = "";
+char PERFORCE_VERSION_STRING[] = "$Change: 126414 $";
 // By default negative score is better.
 SCORESIGN scoreSign = NEG;
 
@@ -209,31 +209,39 @@ int main(int argc, char* argv[]) {
     HITPOLICY hitPolicy = ALLBEST; 
 
     CommandLineParser clp;
-    clp.RegisterStringOption("file.sam",        &samFileName,
+    clp.RegisterStringOption("file.sam", &samFileName,
                              "Input SAM file.");
     clp.RegisterStringOption("reference.fasta", &refFileName,
                              "Reference used to generate reads.");
-    clp.RegisterStringOption("out.sam",         &outFileName,
+    clp.RegisterStringOption("out.sam", &outFileName,
                              "Output SAM file.");
     clp.RegisterPreviousFlagsAsHidden();
 
-    clp.RegisterIntOption("minAccuracy",        &filterCriteria.minAccuracy,
-            "(75) Minimum accuracy to the reference.",
-            CommandLineParser::PositiveInteger);
-    clp.RegisterIntOption("minPctSimilarity",   &filterCriteria.minPctSimilarity,
-            "(50) Minimum percentage similarity to the reference.",
-            CommandLineParser::PositiveInteger);
-    clp.RegisterIntOption("minLength",      &filterCriteria.minLength,
-            "(50) Minimum aligned read length to output a hit.", 
-            CommandLineParser::PositiveInteger);
-    clp.RegisterStringOption("hitPolicy",       &hitPolicyStr,
+    stringstream help;
+    help << "(" << filterCriteria.minAccuracy 
+         << ") Minimum accuracy to the reference.";
+    clp.RegisterIntOption("minAccuracy", &filterCriteria.minAccuracy,
+            help.str(), CommandLineParser::PositiveInteger);
+
+    help.str(string());
+    help << "(" << filterCriteria.minPctSimilarity
+         << ") Minimum percentage similarity to the reference.";
+    clp.RegisterIntOption("minPctSimilarity", &filterCriteria.minPctSimilarity,
+            help.str(), CommandLineParser::PositiveInteger);
+
+    help.str(string());
+    help << "(" << filterCriteria.minLength
+         << ") Minimum aligned read length to output a hit."; 
+    clp.RegisterIntOption("minLength", &filterCriteria.minLength,
+            help.str(), CommandLineParser::PositiveInteger);
+    clp.RegisterStringOption("hitPolicy", &hitPolicyStr,
             "(randombest) Specify a policy for how to treat multiple hits from "
             "[random, all, allbest, randombest]\n"
             "  random  : selects a random hit.\n"
             "  all     : selects all hits.\n"
             "  allbest : selects all the best alignment score hits.\n"
             "  randombest: selects a random hit from all best alignment score hits.");
-    clp.RegisterStringOption("scoreFunction",   &scoreFuncStr,
+    clp.RegisterStringOption("scoreFunction", &scoreFuncStr,
             "(alignerscore) Specify an alignment score function from "
             "[alignerscore, editdist, blasrscore, userscore]\n" // affine
             "  alignerscore : aligner's score in SAM tag 'as'.\n"
@@ -243,7 +251,7 @@ int main(int argc, char* argv[]) {
             "                 matrix (specified by -scoreMatrix) and \n"
             "                 insertion & deletion scores (specified by \n"
             "                 -insertion and -deletion respectively).");
-    clp.RegisterStringOption("scoreMatrix",     &scoreMatrixStr,
+    clp.RegisterStringOption("scoreMatrix", &scoreMatrixStr,
             "Specify a user-defined score matrix for scoring reads."
             "The matrix is in the format\n"
             "    ACGTN\n"
@@ -255,35 +263,35 @@ int main(int argc, char* argv[]) {
             ". The values a...y should be input as a quoted space "
             "seperated string: \"a b c ... y\". Lower scores are better, "
             "so matches should be less than mismatches e.g. a,g,m,s = -5 "
-            "(match), mismatch = 6. ");
-    clp.RegisterIntOption("deletion",           &delScore, 
+            "(match), mismatch = 6. "); 
+    clp.RegisterIntOption("deletion", &delScore, 
             "Specify a user-defined deletion score.",
             CommandLineParser::Integer);
-    clp.RegisterIntOption("insertion",          &insScore,
+    clp.RegisterIntOption("insertion", &insScore,
             "Specify a user-defined insertion score.",
-            CommandLineParser::Integer);
-    clp.RegisterIntOption("scoreCutoff",        &scoreCutoff,
+            CommandLineParser::Integer); 
+    clp.RegisterIntOption("scoreCutoff", &scoreCutoff,
             "Score cut off defines the worst score to output a hit.", 
             CommandLineParser::Integer);
-    clp.RegisterIntOption("scoreSign",          &scoreSignInt,
+    clp.RegisterIntOption("scoreSign", &scoreSignInt,
             "(-1) Sepcifiy the alignment score sign."
             "  -1: negative scores are better than positive ones."
             "   1: positive scores are better than negative ones.",
             CommandLineParser::Integer);
-    clp.RegisterIntOption ("seed",              &seed,
+    clp.RegisterIntOption ("seed", &seed,
             "(1)  Seed for random number generator."
             "   If seed is 0, then the current time will be used as seed.",
             CommandLineParser::Integer);
-    //clp.RegisterFlagOption("sorted",            &isSorted,
+    //clp.RegisterFlagOption("sorted", &isSorted,
     //        "Sepcify that the sam file has been sorted by read name."); 
-    clp.RegisterFlagOption("smrtTitle",         &parseSmrtTitle,
+    clp.RegisterFlagOption("smrtTitle", &parseSmrtTitle,
             "Use this read when converting alignments generated by "
             "programs other than blasr, e.g. bwa-sw or gmap. "
             "  Parse read coordinates from the SMRT read title. " 
             "The title is in the format /name/hole/coordinates, where"
             " coordinates are in the format \\d+_\\d+, and represent "
             "the interval of the read that was aligned.");
-    clp.RegisterStringOption("holeNumbers",    &holeNumberStr,
+    clp.RegisterStringOption("holeNumbers", &holeNumberStr,
             "A string of comma-delimited hole number ranges to output hits, "
             "such as '1,2,10-12'. "
             "This requires hit titles to be in SMRT read title format.");
@@ -503,7 +511,8 @@ int main(int argc, char* argv[]) {
 
             if (not filterCriteria.Satisfy(alignment)) {
                 if (verbosity > 0)
-                    cout << "This alignment does not satisfy filter criteria." << endl;
+                    cout << alignment.qName
+                         << " does not satisfy filter criteria." << endl;
                 continue;
             }
             allSAMAlignments.push_back( samAlignment ); 
