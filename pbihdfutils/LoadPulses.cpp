@@ -1724,7 +1724,19 @@ int main(int argc, char* argv[]) {
     clp.RegisterIntOption("maxMemory", & maxMemory, 
             "Set a limit (in GB) on the memory to buffer data with -bymetric "
             "(default value: 4 GB). Use -byread if the limit is exceeded.",
-             CommandLineParser::PositiveInteger);
+            CommandLineParser::PositiveInteger);
+    int metaNElements, rawChunkSize, rawNElements;
+    metaNElements = rawChunkSize = metaNElements = 0;
+    clp.RegisterIntOption("metaNElements", & metaNElements,
+            "Set number of elements in meta data cache for reading bas/bax/pls.h5 file.",
+            CommandLineParser::PositiveInteger);
+    clp.RegisterIntOption("rawNElements", & rawNElements,
+            "Set number of elements in raw data cache for reading bas/bax/pls.h5 file.",
+            CommandLineParser::PositiveInteger);
+    clp.RegisterIntOption("rawChunkSize", & rawChunkSize,
+            "Set chunk size of raw data cache for reading bas/bax/pls.h5 file.",
+            CommandLineParser::PositiveInteger);
+
     string progSummary = ("Loads pulse information such as inter pulse "
             "distance, or quality information into the cmp.h5 file. This allows " 
             "one to analyze kinetic and quality information by alignment column.");
@@ -1836,9 +1848,12 @@ int main(int argc, char* argv[]) {
     // h5 file access property list can be customized here.
     // 
     H5::FileAccPropList fileAccPropList = H5::FileAccPropList::DEFAULT;
-    int    mdc_nelmts  = 4096; // h5: number of items in meta data cache
-    size_t rdcc_nelmts = 4096; // h5: number of items in raw data chunk cache
-    size_t rdcc_nbytes = 9192; // h5: raw data chunk cache size (in bytes) per dataset
+    // h5: number of items in meta data cache
+    int    mdc_nelmts  = (metaNElements==0)?(4096):(metaNElements); 
+    // h5: number of items in raw data chunk cache
+    size_t rdcc_nelmts = (rawNElements==0)?(4096):(rawNElements); 
+    // h5: raw data chunk cache size (in bytes) per dataset
+    size_t rdcc_nbytes = (rawChunkSize==0)?(9192):(rawChunkSize); 
     double rdcc_w0     = 0.75;    // h5: preemption policy
     // fileAccPropList.getCache(mdc_nelmts, rdcc_nelmts, rdcc_nbytes, rdcc_w0);
     fileAccPropList.setCache(mdc_nelmts, rdcc_nelmts, rdcc_nbytes, rdcc_w0);
