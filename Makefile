@@ -45,9 +45,13 @@ install: $(INSTALL_TARGETS)
 cramtests:
 	cram --shell=/bin/bash ctest/*.t
 
+gtest:
+	@[[ -e utest/Makefile ]] && $(MAKE) -C utest -f Makefile gtest || true
+
 #--- Cleaning
 CLEAN_TARGETS := $(addsuffix -clean, $(EXE_LIST))
 %-clean:
 	@[[ -e $*/Makefile ]] && $(MAKE) -C $* -f Makefile clean || true
+	@[[ -e utest/Makefile ]] && $(MAKE) -C utest -f Makefile clean || true
 clean: $(CLEAN_TARGETS)
 
