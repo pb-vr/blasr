@@ -11,7 +11,7 @@ using namespace std;
 inline void CriticalOpenRead(string &fileName, ifstream &file, std::ios::openmode mode=std::ios::in) {
 	file.open(fileName.c_str(), mode | std::ios::in);
 	if (!file.good()) {
-		cerr << "Could not open file:"  << fileName << endl;
+		cerr << "Could not open file: "  << fileName << endl;
 		exit(1);
 	}
 }

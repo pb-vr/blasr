@@ -1,6 +1,7 @@
 #ifndef DATASTRUCTURES_READS_ZMW_GROUP_ENTRY_H_
 #define DATASTRUCTURES_READS_ZMW_GROUP_ENTRY_H_
 
+#include "Types.h"
 class ZMWGroupEntry {
  public:
 	UInt holeNumber;

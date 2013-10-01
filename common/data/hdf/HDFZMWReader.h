@@ -1,8 +1,10 @@
 #ifndef DATA_HDF_HDF_ZMW_READER_H_
 #define DATA_HDF_HDF_ZMW_READER_H_
 
-#include "../../datastructures/reads/ZMWGroupEntry.h"
+#include "datastructures/reads/ZMWGroupEntry.h"
 #include "HDFGroup.h"
+#include "HDFArray.h"
+#include "HDF2DArray.h"
 
 class HDFZMWReader {
  public:

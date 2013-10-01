@@ -2,7 +2,7 @@
 #define DATASTRUCTURES_SAF_REF_INFO
 
 #include <vector>
-
+#include <stdint.h>
 using namespace std;
 
 class OneRefInfo {
@@ -26,7 +26,7 @@ class RefInfo {
 	vector<string> md5;
   bool RefIdToIndex(uint32_t qid, int &index) {
     /*
-     * Translate from external id to position in arry.
+     * Translate from external id to position in array.
      */
     int i;
     for (i = 0; i < id.size(); i++) {

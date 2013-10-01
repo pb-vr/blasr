@@ -1,10 +1,17 @@
 #ifndef DATASTRUCTURES_SAF_ALN_GROUP_H_
 #define DATASTRUCTURES_SAF_ALN_GROUP_H_
 
-class AlnGroup {
- public:
+#include <vector>
+#include <string>
+
+using namespace std;
+
+class AlnGroup{
+public:
 	vector<unsigned int> id;
 	vector<string>       path;
+
+
 	int FindPath(int idKey, string &val) {
 		int i;
 		for (i = 0; i < id.size(); i++) {
