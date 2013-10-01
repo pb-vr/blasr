@@ -118,10 +118,10 @@ bin/samtoh5: bin/SamToCmpH5.o
 	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  $(HDF5LDFLAGS)  
 
 bin/samtom4: bin/SamToM4.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -lz -lpthread
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR) -lz -lpthread
 
 bin/samFilter: bin/SamFilter.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -lz -lpthread
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR) -lz -lpthread
 
 INSTALL_DIR ?= $(ANALYSIS_HOME)/bin
 install:
