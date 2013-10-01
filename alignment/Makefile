@@ -14,7 +14,6 @@ ANALYSIS_HOME=$(PREFIX)/analysis
 PBCPP_DIR = ..
 
 include ../common.mk
-
 #
 # Define the targets before including the rules since the rules contains a target itself.
 #
@@ -66,13 +65,13 @@ bin/sawriter: bin/SAWriter.o
 	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@
 
 bin/pbmask: bin/Mask.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@ -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@ $(HDF5LDFLAGS)
 
 bin/guidedalign: bin/GuidedAlign.o
-	$(CPP) $(CPPOPTS) $^ $(STATIC) -o $@ -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
+	$(CPP) $(CPPOPTS) $^ $(STATIC) -o $@ $(HDF5LDFLAGS)
 
 bin/extendAlign: bin/ExtendAlign.o
-	$(CPP) $(CPPOPTS) $^ $(STATIC) -o $@ -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
+	$(CPP) $(CPPOPTS) $^ $(STATIC) -o $@ $(HDF5LDFLAGS)
 
 bin/saquery: bin/SAQuery.o
 	$(CPP) $(CPPOPTS) $^ $(STATIC) -o $@
@@ -94,7 +93,7 @@ bin/CmpReadMatcher.o: ReadMatcher.cpp
 	$(CPP) -c $(CPPOPTS) -DCOMPRESSED $< $(STATIC) -o $@
 
 bin/cmpMatcher: bin/CmpReadMatcher.o bin/PositionTable.o
-	$(CPP) $(CPPOPTS) $< bin/PositionTable.o $(STATIC) -o $@ -lpthread -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
+	$(CPP) $(CPPOPTS) $< bin/PositionTable.o $(STATIC) -o $@ $(HDF5LDFLAGS)
 
 bin/CmpPrintTupleCountTable.o: PrintTupleCountTable.cpp
 	$(CPP) -c $(CPPOPTS) -DCOMPRESSED $^ $(STATIC) -o $@
@@ -106,7 +105,7 @@ ifneq ($(shell uname -s),Darwin)
     LRT = -lrt
 endif
 bin/blasr: bin/Blasr.o
-	$(CPP) $(CPPOPTS) $< -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) $(LINK_PROFILER) -lpthread -lz $(LRT) -ldl $(STATIC) -o bin/blasr
+	$(CPP) $(CPPOPTS) $< $(LRT) $(LINK_PROFILER) $(HDF5LDFLAGS) $(STATIC) -o bin/blasr
 
 bin/samatcher: bin/SAMatcher.o
 	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@
@@ -139,7 +138,7 @@ bin/tabulateAlignment: bin/TabulateAlignment.o
 	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@
 
 bin/buildQualityValueProfile: bin/BuildQualityValueProfile.o
-	$(CPP) -g $(CPPOPTS) $< $(STATIC) -o $@ -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread -ldl
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@ $(HDF5LDFLAGS)
 
 #
 # Set up a default value for the install dir if one does

@@ -8,9 +8,11 @@ HDF5LIBDIR     ?= ../../seymour/dist/common/lib/
 INCLUDEDIRS = -I $(PBCPP_DIR)/common -I $(HDF5INCLUDEDIR)
 
 HDF5LIB    ?= hdf5
-HDF5LIBCPP = hdf5_cpp
+HDF5LIBCPP ?= hdf5_cpp
 
 GCCOPTS = -O3 -Wno-div-by-zero
+
+HDF5LDFLAGS = -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread -ldl
 
 CC  ?= gcc
 CXX ?= g++

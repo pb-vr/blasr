@@ -19,8 +19,6 @@ SHELL = /bin/bash
 # common.mk contains the configuration for this build setup.
 #
 include ../common.mk
-
-
 #
 # Define the targets before including the rules since the rules contains a target itself.
 #
@@ -69,61 +67,61 @@ samtom4: bin/samtom4
 samFilter: bin/samFilter
 
 bin/cmpView: bin/CmpH5View.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  $(HDF5LDFLAGS)
 
 bin/cmpH5Diff: bin/DiffAlnInfoGroups.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  $(HDF5LDFLAGS)
 
 bin/printmsa: bin/PrintMSA.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  $(HDF5LDFLAGS)
 
 bin/printvariants: bin/PrintVariants.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  $(HDF5LDFLAGS) 
 
 bin/cmpInformation: bin/CmpH5Information.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  $(HDF5LDFLAGS) 
 
 bin/filterHDFPls: bin/FilterHDFPls.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  $(HDF5LDFLAGS) 
 
 bin/writeHDFSubset: bin/WriteHDFSubset.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  $(HDF5LDFLAGS) 
 
 bin/testAdvance: bin/TestAdvance.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  $(HDF5LDFLAGS) 
 
 bin/pls2: bin/PrintHDFPlsSummary.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  $(HDF5LDFLAGS) 
 
 bin/toAfg: bin/ToAfg.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  $(HDF5LDFLAGS) 
 
 bin/pls2fasta: bin/PulseToFasta.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR) -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  $(HDF5LDFLAGS) 
 
 bin/LoadPulses.o: LoadPulses.cpp
 	$(CPP) $(INCLUDEDIRS) $(CPPOPTS) -fno-trapping-math -g -c $<  -o $@
 
 bin/loadPulses: bin/LoadPulses.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR)   -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  $(HDF5LDFLAGS) 
 
 bin/pas: bin/PrintAlignmentStats.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR)   -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  $(HDF5LDFLAGS) 
 
 bin/extractReadsByTitle: bin/ExtractReadsByTitle.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR)   -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  $(HDF5LDFLAGS) 
 
 bin/computeRefCoverage: bin/ComputeRefCoverage.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR)   -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  $(HDF5LDFLAGS) 
 
 bin/samtoh5: bin/SamToCmpH5.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR)   -l$(HDF5LIBCPP) -l$(HDF5LIB) -lz -lpthread
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  $(HDF5LDFLAGS)  
 
 bin/samtom4: bin/SamToM4.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR)  -lz -lpthread
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -lz -lpthread
 
 bin/samFilter: bin/SamFilter.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -L$(HDF5LIBDIR)  -lz -lpthread
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  -lz -lpthread
 
 INSTALL_DIR ?= $(ANALYSIS_HOME)/bin
 install:
