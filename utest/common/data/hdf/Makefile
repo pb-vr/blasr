@@ -23,5 +23,5 @@ gtest: $(EXECS)
 	@(for exe in $(EXECS); do echo "Running $$exe"; ./$$exe; done)
 
 clean: 
-	rm -f $(OBJECTS) $(EXECS)
+	@rm -f $(OBJECTS) $(EXECS)
 

@@ -52,6 +52,6 @@ gtest:
 CLEAN_TARGETS := $(addsuffix -clean, $(EXE_LIST))
 %-clean:
 	@[[ -e $*/Makefile ]] && $(MAKE) -C $* -f Makefile clean || true
-	@[[ -e utest/Makefile ]] && $(MAKE) -C utest -f Makefile clean || true
 clean: $(CLEAN_TARGETS)
+	@[[ -e utest/Makefile ]] && $(MAKE) -C utest -f Makefile clean || true
 

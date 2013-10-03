@@ -33,7 +33,7 @@ gtest: $(EXECS)
 	done)
 
 clean: 
-	rm -f $(OBJECTS) $(EXECS)
+	@rm -f $(OBJECTS) $(EXECS)
 	@(for subdir in $(SUB_DIRS); do \
 		if [ -e $$subdir/Makefile ]; \
 	    then $(MAKE) -C $$subdir -f Makefile clean; \
