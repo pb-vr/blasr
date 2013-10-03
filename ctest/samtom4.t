@@ -46,5 +46,4 @@ Set up the executable: samtom4.
   $ $EXEC $DATDIR/ecoli.sam $DATDIR/ecoli_reference.fasta $OUTFILE -useShortRefName
   $ sort -n $OUTFILE > $TMPFILE
   $ diff $TMPFILE $STDFILE
-  
 

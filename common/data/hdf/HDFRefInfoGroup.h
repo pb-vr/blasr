@@ -22,11 +22,19 @@ class HDFRefInfoGroup {
     return true;
   }
 
-  void AddRefInfo(string &fullName, unsigned int id, unsigned int length, string md5) {
+  // Add a reference (fullName, id, length, md5) to /RefInfo and 
+  // return refInfoId.
+  unsigned int AddRefInfo(string &fullName, unsigned int length, string md5) {
+    unsigned int numRefs = fullNameArray.size();
+    unsigned int id = numRefs + 1; // refInfo Id is 1 based
+    assert(numRefs == idArray.size() &&
+           numRefs == lengthArray.size() &&
+           numRefs == md5Array.size());
     fullNameArray.Write(&fullName, 1);
     idArray.Write(&id, 1);
     lengthArray.Write(&length, 1);
     md5Array.Write(&md5, 1);
+    return id;
   }
   
   int Initialize(HDFGroup &parentGroup) {

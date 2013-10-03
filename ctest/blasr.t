@@ -9,6 +9,10 @@ Set up the executable: blasr.
   $ BIN=$TESTDIR/../alignment/bin
   $ EXEC=$BIN/blasr
 
+Define tmporary files
+  $ TMP1=$OUTDIR/$$.tmp.out
+  $ TMP2=$OUTDIR/$$.tmp.stdout
+
 Test blasr on ecoli.
 Test blasr with -sam
 #See $STDOUT/ecoli.sam for 1.4 output.
@@ -16,11 +20,12 @@ Test blasr with -sam
   $ $EXEC $DATDIR/ecoli.fasta $DATDIR/ecoli_reference.fasta -sam -out $OUTDIR/ecoli.sam -nproc 15
   [INFO]* (glob)
   [INFO]* (glob)
-  $ tail -n+5 $OUTDIR/ecoli.sam | sort | cut -f 1-11| md5sum
-  d2e2b6cfe710b7b6a065e73c3244b0b9  -
 
-#  $ tail -n+5 $STDDIR/ecoli.sam | sort | cut -f 1-11| md5sum
-#  d2e2b6cfe710b7b6a065e73c3244b0b9  -
+  $ sed -n '5,$ p' $OUTDIR/ecoli.sam | sort | cut -f 1-11 > $TMP1
+  $ sed -n '5,$ p' $STDDIR/ecoli.sam | sort | cut -f 1-11 > $TMP2
+  $ diff $TMP1 $TMP2
+  $ rm $TMP1 $TMP2
+
 
 Test blasr with -m 0 ~ 5 
   $ rm -rf $OUTDIR/read.m0
@@ -95,8 +100,10 @@ Test -holeNumbers
   $ $EXEC $DATDIR/lambda_bax.fofn $DATDIR/lambda_ref.fasta -m 4 -out $OUTDIR/holeNumbers.m4 -holeNumbers 14798,55000-55100 -nproc 8
   [INFO]* (glob)
   [INFO]* (glob)
-  $ sort $OUTDIR/holeNumbers.m4 | md5sum
-  21fd37b14b85ef7dda332ea10edc524a  -
+  $ sort $OUTDIR/holeNumbers.m4 > $TMP1
+  $ sort $STDDIR/holeNumbers.m4 > $TMP2
+  $ diff $TMP1 $TMP2
+  $ rm $TMP1 $TMP2
 
 Test Sam out nm tag
   $ rm -rf $OUTDIR/read.sam
@@ -113,9 +120,10 @@ Test -useccsall with bestn = 1
   $ $EXEC $DATDIR/ccstest.fofn $DATDIR/ccstest_ref.fasta -bestn 1 -useccsall -sam -out $OUTDIR/useccsall.sam -holeNumbers 76772
   [INFO]* (glob)
   [INFO]* (glob)
-  $ tail -n+9 $OUTDIR/useccsall.sam | md5sum 
-  8f9cba19d956a140b359e89db714bbf4  -
-
+  $ sed -n '9,$ p' $OUTDIR/useccsall.sam > $TMP1
+  $ sed -n '9,$ p' $STDDIR/useccsall.sam > $TMP2
+  $ diff $TMP1 $TMP2
+  $ rm $TMP1 $TMP2
 
 Test -concordant
   $ rm -rf $OUTDIR/concordant.sam
@@ -146,13 +154,12 @@ Test -concordant
 
 Test using *.ccs.h5 as input
 # The results should be exactly the same as 
-# blasr ccsasinput_bas.fofn $DATDIR/ccsasinput.fasta -m 4 -out tmp.m4 -useccsdenovo
+# blasr $DATDIR/ccsasinput_bas.fofn $DATDIR/ccsasinput.fasta -m 4 -out tmp.m4 -useccsdenovo
   $ rm -rf $OUTDIR/ccsasinput.m4
   $ $EXEC $DATDIR/ccsasinput.fofn $DATDIR/ccsasinput.fasta -m 4 -out $OUTDIR/ccsasinput.m4
   [INFO]* (glob)
   [INFO]* (glob)
-  $ cat $OUTDIR/ccsasinput.m4 | md5sum
-  55295b4304c1cd1e79edb810bb048a4c  -
+  $ diff $OUTDIR/ccsasinput.m4 $STDDIR/ccsasinput.m4
 
 Test -useccsall with Large genome.
   $ BASFILE=/mnt/data3/vol53/2450530/0014/Analysis_Results/m130507_052228_42161_c100519212550000001823079909281305_s1_p0.3.bax.h5

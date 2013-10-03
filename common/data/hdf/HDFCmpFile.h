@@ -36,7 +36,7 @@ using namespace std;
 template<typename T_Alignment>
 class HDFCmpFile : public HDFCmpData {
 public:
-    map<int,int>  movieNameIdToArrayIndex,  readGroupPathIdToArrayIndex, refGroupIdToArrayIndex;
+    map<int,int>  movieNameIdToArrayIndex, refGroupIdToArrayIndex;
     map<string, int> refNameToArrayIndex;
     //  map<string,string> readGroupPathToReadGroup;
     map<int, string> alnGroupIdToReadGroupName;
@@ -152,45 +152,57 @@ public:
         readTypeAtom.Write(readType.c_str());
     }
 
-    void GenerateNextRefGroupName(string &name) { 
+    void GenerateRefGroupName(unsigned int refInfoId, string & name) { 
+        // In order to mimic the behaviour of compareSequences, 
+        // refGroupName should equal to ref00000x, where x is refInfoId.
+        // (x used to be refGroupIdToArrayIndex.size() + 1)
         stringstream nameStrm;
         nameStrm << "ref";
         nameStrm.width(6);
         nameStrm.fill('0');
-        nameStrm << right << refGroupIdToArrayIndex.size() + 1;
+        nameStrm << right << refInfoId;
         name = nameStrm.str();
     }
 
+    // Store reference FullName, ID, Length and MD5 to /RefInfo 
+    unsigned int AddRefInfo(string refName, unsigned int length, string md5) {
+        return refInfoGroup.AddRefInfo(refName, length, md5);
+    }
 
-    int AddReference(string refName, unsigned int length, string md5, string &refGroupName) {
-        //
-        // Adding a reference requires:
-        //
-        // 1. Creating a new refgroup name. 
+    unsigned int AddRefGroup(string refName, unsigned int refInfoId,
+        string & refGroupName) {
+        if (refInfoId > 999999) {
+            // ref000001 ~ ref999999
+            cout << "ERROR. Could not store more than 999999 references in " 
+                 << " a cmp.h5 file." << endl;
+            exit(1);
+        } 
+
+        // Adding a new refGroup requires:
+        // 1. Creating a new refgroup name, e.g., /ref000001.
         // 2. Create the new reference group to add alignments to.
         // 3. Adding this new name to the set of paths of ref groups.
         // 4. Adding information for this ref group.
-        //
-
+ 
         // 1.
-        this->GenerateNextRefGroupName(refGroupName);
-
+        GenerateRefGroupName(refInfoId, refGroupName);
+        
         // 2.
         HDFCmpRefAlignmentGroup *newGroup = new HDFCmpRefAlignmentGroup;
         newGroup->Create(rootGroup.rootGroup, refGroupName);
         refAlignGroups.push_back(newGroup);
-        unsigned int id = refAlignGroups.size();
 
         // 3.
-        refGroupGroup.AddPath("/" + refGroupName, id);
-        refGroupIdToArrayIndex[id] = id - 1;
-        refNameToArrayIndex[refName] = id - 1;
+        unsigned int refGroupId = refGroupGroup.AddPath("/" + refGroupName, refInfoId);
+
         // 4.
-        refInfoGroup.AddRefInfo(refName, id, length, md5);
-        return id;
+        refGroupIdToArrayIndex[refGroupId] = refGroupId - 1;
+        refNameToArrayIndex[refName] = refGroupId - 1;
+
+        return refGroupId;
     }
 
-    int StoreAlnArray(vector<unsigned char> &alnArray, string refName, string &experimentName,
+    void StoreAlnArray(vector<unsigned char> &alnArray, string refName, string &experimentName,
             unsigned int &offsetBegin,
             unsigned int &offsetEnd) {
         //
@@ -347,8 +359,8 @@ public:
         //
         // Note that groups are not necessarily named by movie, especially in 
         // a deep-sorted cmp.h5, read groups may look like:
-        // /ref00001/rg8953-0
-        // /ref00001/rg2453-1
+        // /ref000001/rg8953-0
+        // /ref000001/rg2453-1
         //
         unsigned int alnGroupIndex;
         for (alnGroupIndex = 0; alnGroupIndex < cmpFile.alnGroup.path.size(); alnGroupIndex++) {

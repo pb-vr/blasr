@@ -236,7 +236,7 @@ void ReverseAlignmentOperations(vector<int> &lengths, vector<char> &ops) {
 
 void SAMAlignmentsToCandidates(SAMAlignment &sam,
                                vector<FASTASequence> &referenceSequences,
-                               map<string,int> &refIDToListIndex,
+                               map<string,int> & refNameToRefListIndex,
                                vector<AlignmentCandidate<> > &candidates, 
                                bool parseSmrtTitle = false,
                                bool keepRefAsForward = true) {
@@ -418,13 +418,13 @@ void SAMAlignmentsToCandidates(SAMAlignment &sam,
     }
     else {
       int refIndex;
-      int s = refIDToListIndex.size();
-      if (refIDToListIndex.find(sam.rName) == refIDToListIndex.end()) {
+      int s = refNameToRefListIndex.size();
+      if (refNameToRefListIndex.find(sam.rName) == refNameToRefListIndex.end()) {
         cout <<" ERROR.  SAM Reference " << sam.rName << " is not found in the list of reference contigs." << endl;
         exit(1);
       }
       
-      refIndex = refIDToListIndex[sam.rName];
+      refIndex = refNameToRefListIndex[sam.rName];
      
       alignment.tLength = referenceSequences[refIndex].length;
       alignment.qLength = sam.seq.size(); 

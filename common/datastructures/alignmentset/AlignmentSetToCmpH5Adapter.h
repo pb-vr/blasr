@@ -8,20 +8,20 @@
 #include "datastructures/alignment/ByteAlignment.h"
 #include "algorithms/alignment/ScoreMatrices.h"
 
-class RefIndex {
+class RefGroupNameId {
  public:
   string name;
-  int id;
-  RefIndex() {
+  unsigned int id;
+  RefGroupNameId() {
     id = 0;
     name = "";
   }
 
-  RefIndex(string n, int i) {
+  RefGroupNameId(string n, unsigned int i) {
     name = n; id = i;
   }
 
-  RefIndex(const RefIndex &rhs) {
+  RefGroupNameId(const RefGroupNameId &rhs) {
     name = rhs.name;
     id   = rhs.id;
   }
@@ -29,13 +29,13 @@ class RefIndex {
 
 template<typename T_CmpFile>
 class AlignmentSetToCmpH5Adapter {
- public:
-
-  map<string, RefIndex> refToId;
-  map<string, int> knownMovies;
-  map<string, int> knownPaths;
+public:
+  // Map reference name to reference group (/RefGroup) name and ID.
+  map<string, RefGroupNameId> refNameToRefGroupNameandId;
+  map<string, unsigned int> knownMovies;
+  map<string, unsigned int> knownPaths;
   unsigned int numAlignments;
-  map<string, int> refNameToIndex;
+  map<string, int> refNameToRefInfoIndex;
  
   void Initialize() {
       numAlignments = 0;
@@ -43,46 +43,76 @@ class AlignmentSetToCmpH5Adapter {
 
   template<typename T_Reference>
   void StoreReferenceInfo(vector<T_Reference> &references, T_CmpFile &cmpFile) {
-    int r;
-    for (r = 0; r < references.size(); r++) {
+    for (int r = 0; r < references.size(); r++) {
       string sequenceName, md5;
-      unsigned int id, length;
       sequenceName = references[r].GetSequenceName();
       md5 = references[r].GetMD5();
-      length = references[r].GetLength();
-      string name;
-      id = cmpFile.AddReference(sequenceName, length, md5, name);
-      refToId[sequenceName] = RefIndex(name, id);
-      refNameToIndex[sequenceName] = r;
+      unsigned int length = references[r].GetLength();
+
+      // Add this reference to /RefInfo. 
+      // Don't create /ref0000x and register it in /RefGroup at this point, 
+      // because this reference may not map to any alignments at all. 
+      cmpFile.AddRefInfo(sequenceName, length, md5);
+
+      // Update refNameToRefInfoIndex
+      if (refNameToRefInfoIndex.find(sequenceName) != refNameToRefInfoIndex.end()) {
+        cout << "ERROR. Reference name " << sequenceName 
+             << " is not unique." << endl;
+        exit(1);
+      }
+      refNameToRefInfoIndex[sequenceName] = r;
     }
   }
 
-  int StoreMovieInfo(string movieName, T_CmpFile &cmpFile) {
-    map<string,int>::iterator mapIt;
+  unsigned int StoreMovieInfo(string movieName, T_CmpFile &cmpFile) {
+    map<string, unsigned int>::iterator mapIt;
     mapIt = knownMovies.find(movieName);
     if (mapIt != knownMovies.end()) {
       return mapIt->second;
     }
     else {
-      int id;
-      id = cmpFile.movieInfoGroup.AddMovie(movieName);
+      unsigned int id = cmpFile.movieInfoGroup.AddMovie(movieName);
       knownMovies[movieName] = id;
       return id;
     }
   }
 
 
-  int StorePath(string path, T_CmpFile &cmpFile) {
+  // Given a reference name, find whether there exists a refGroup 
+  // (e.g. /ref000001) associated with it. 
+  // If not, create a refGroup and update refNameToRefGroupNameandId. 
+  // Finally, return its associated refGroup ID.
+  unsigned int StoreRefGroup(string refName, T_CmpFile & cmpFile) {
+      // Find out whether there is a refGroup associated with refName.
+      map<string, RefGroupNameId>::iterator mapIt;
+      mapIt = refNameToRefGroupNameandId.find(refName);
+      if (mapIt != refNameToRefGroupNameandId.end()) {
+        // An existing refGroup is associated with this refName. 
+        return mapIt->second.id;
+      } else {
+        // No refGroup is associated with refName, create one.
+        int refInfoIndex = refNameToRefInfoIndex[refName];
+        unsigned int refInfoId = refInfoIndex + 1;
+
+        string refGroupName;
+        unsigned int refGroupId = cmpFile.AddRefGroup(refName, refInfoId, refGroupName);  
+
+        // Update refNameToRefGroupNameandId.
+        refNameToRefGroupNameandId[refName] = RefGroupNameId(refGroupName, refGroupId);
+        return refGroupId;
+     }
+  }
+
+  unsigned int StorePath(string & path, T_CmpFile &cmpFile) {
     if (knownPaths.find(path) != knownPaths.end()) {
       return knownPaths[path];
     }
     else {
-      int id = cmpFile.alnGroupGroup.AddPath(path);
+      unsigned int id = cmpFile.alnGroupGroup.AddPath(path);
       knownPaths[path] = id;
       return id;
     }
   }
-
 
   void RemoveGapsAtEndOfAlignment(AlignmentCandidate<> &alignment) {
     int numEndDel = 0, numEndIns = 0;
@@ -113,42 +143,46 @@ class AlignmentSetToCmpH5Adapter {
     bool nameParsedProperly;
     
     nameParsedProperly = ParsePBIReadName(alignment.qName, movieName, holeNumber);
-    if ( !nameParsedProperly) {
-      cout <<"ERROR. Attempting to store a read with name " << alignment.qName << " that does not " << endl
+    if (!nameParsedProperly) {
+      cout <<"ERROR. Attempting to store a read with name " 
+           << alignment.qName << " that does not " << endl
            << "appear to be a PacBio read." << endl;
       exit(1);
     }
   
-    int movieId;
-    movieId = StoreMovieInfo(movieName, cmpFile);
-  
-    map<string, RefIndex>::iterator refToIdIt;
-    refToIdIt = refToId.find(alignment.tName);
-    if (refToIdIt == refToId.end()) {
-      cout <<"ERROR. The reference name " << alignment.tName << " was not found in the list of references." << endl;
+    unsigned int movieId = StoreMovieInfo(movieName, cmpFile);
+
+    // Check whether the reference is in /RefInfo.
+    map<string, int>::iterator mapIt;
+    mapIt = refNameToRefInfoIndex.find(alignment.tName);
+    if (mapIt == refNameToRefInfoIndex.end()) {
+      cout << "ERROR. The reference name " << alignment.tName 
+           << " was not found in the list of references." << endl;
       cout << "Perhaps a different reference file was aligned to than " << endl
            << "what was provided for SAM conversion. " << endl;
       exit(1);
-    }
-      
-    string refGroupName = refToIdIt->second.name;
-    int    refGroupId   = refToIdIt->second.id;
+    } 
+
+    // Store refGroup
+    unsigned int refGroupId = StoreRefGroup(alignment.tName, cmpFile);
+    string refGroupName = refNameToRefGroupNameandId[alignment.tName].name; 
+    assert(refGroupId  == refNameToRefGroupNameandId[alignment.tName].id);
 
     if (cmpFile.refGroupIdToArrayIndex.find(refGroupId) == cmpFile.refGroupIdToArrayIndex.end()) {
-      cout << "ERROR. The reference ID is not indexed. This is an internal inconsistency." << endl;
+      cout << "ERROR. The reference ID is not indexed. " 
+           << "This is an internal inconsistency." << endl;
       exit(1);
     }
+
     int    refGroupIndex= cmpFile.refGroupIdToArrayIndex[refGroupId];
     assert(refGroupIndex + 1 == refGroupId);
 
     string path = "/" + refGroupName + "/" + movieName;
-  
-    int pathId = StorePath(path, cmpFile);
+    unsigned int pathId = StorePath(path, cmpFile);
     int pathIndex = pathId - 1;
-  
+
     vector<unsigned int> alnIndex;
     alnIndex.resize(22);
-
 
     RemoveGapsAtEndOfAlignment(alignment);
   

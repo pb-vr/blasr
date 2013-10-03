@@ -183,8 +183,10 @@ int main(int argc, char* argv[]) {
       cout << "Storing alignment for " << samAlignment.qName << endl;
     }
     SAMAlignmentsToCandidates(samAlignment, 
-                              references, alignmentSetAdapter.refNameToIndex,
-                              convertedAlignments, parseSmrtTitle, false);
+        // Order of references and alignmentSetAdapter.RefInfoGroup
+        // should be exactly the same.
+        references, alignmentSetAdapter.refNameToRefInfoIndex,
+        convertedAlignments, parseSmrtTitle, false);
 
     alignmentSetAdapter.StoreAlignmentCandidateList(convertedAlignments, cmpFile, alignIndex);
     int a;
