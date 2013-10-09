@@ -23,6 +23,14 @@ Set up the executable: samFilter.
   $ diff $TMP1 $TMP2 
   $ rm $TMP1 $TMP2 
 
+#Test whether minAccuracy and minPctSimilarity can be float.
+  $ rm -f $OUTFILE
+  $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE -minAccuracy 70.0 -minPctSimilarity 30.0 -hitPolicy all
+  $ tail -n+7 $OUTFILE > $TMP1 
+  $ tail -n+7 $STDFILE > $TMP2 
+  $ diff $TMP1 $TMP2 
+  $ rm $TMP1 $TMP2 
+
 #Test samFilter with -hitPolicy allbest
   $ OUTFILE=$OUTDIR/lambda_bax_filter_2.sam
   $ STDFILE=$STDDIR/lambda_bax_filter_2.sam

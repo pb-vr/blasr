@@ -6,7 +6,7 @@
  *    Description:  Filter SAM Hits according to 
  *                  filteration criteria
  *                     minPctSimilarity, minAccuracy, 
- *                     minLength, holeNumber
+ *                     minLength, holeNumbers
  *                  and multiple-hit policy
  *                     random    : a random hit
  *                     all       : all hits
@@ -219,15 +219,15 @@ int main(int argc, char* argv[]) {
 
     stringstream help;
     help << "(" << filterCriteria.minAccuracy 
-         << ") Minimum accuracy to the reference.";
-    clp.RegisterIntOption("minAccuracy", &filterCriteria.minAccuracy,
-            help.str(), CommandLineParser::PositiveInteger);
+         << ") Minimum percentage accuracy to reference.";
+    clp.RegisterFloatOption("minAccuracy", &filterCriteria.minAccuracy,
+            help.str(), CommandLineParser::PositiveFloat);
 
     help.str(string());
     help << "(" << filterCriteria.minPctSimilarity
-         << ") Minimum percentage similarity to the reference.";
-    clp.RegisterIntOption("minPctSimilarity", &filterCriteria.minPctSimilarity,
-            help.str(), CommandLineParser::PositiveInteger);
+         << ") Minimum percentage similarity to reference.";
+    clp.RegisterFloatOption("minPctSimilarity", &filterCriteria.minPctSimilarity,
+            help.str(), CommandLineParser::PositiveFloat);
 
     help.str(string());
     help << "(" << filterCriteria.minLength
@@ -235,7 +235,7 @@ int main(int argc, char* argv[]) {
     clp.RegisterIntOption("minLength", &filterCriteria.minLength,
             help.str(), CommandLineParser::PositiveInteger);
     clp.RegisterStringOption("hitPolicy", &hitPolicyStr,
-            "(randombest) Specify a policy for how to treat multiple hits from "
+            "(randombest) Specify a policy to treat multiple hits from "
             "[random, all, allbest, randombest]\n"
             "  random  : selects a random hit.\n"
             "  all     : selects all hits.\n"
@@ -327,20 +327,29 @@ int main(int argc, char* argv[]) {
         filterCriteria.SetScoreCutoff((double)scoreCutoff);
     scoreSign = filterCriteria.SetScoreSign(scoreSignInt);
 
+    string errMsg;
+    if (not  filterCriteria.MakeSane(errMsg)) {
+        cout << errMsg << endl;
+        exit(1);
+    }
+
     if (scoreFunc == USERSCORE and scoreMatrixStr == "") {
-        cout << "ERROR. Please specify user-defined score matrix using -scoreMatrix." << endl;
+        cout << "ERROR. Please specify user-defined score matrix using "
+             << "-scoreMatrix." << endl;
         exit(1);
     }
 
     if (scoreMatrixStr != "") {
         if (scoreFunc != USERSCORE) {
-            cout << "ERROR. scoreFunc should be 'userscore' if -scoreMatrix is used." << endl;
+            cout << "ERROR. scoreFunc should be 'userscore' if "
+                 << "-scoreMatrix is used." << endl;
             exit(1);
         }
         if (StringToScoreMatrix(scoreMatrixStr, SMRTDistanceMatrix) == false) {
             cout << "ERROR. The string " << endl
                 << scoreMatrixStr << endl
-                << "is not a valid format.  It should be a quoted, space separated string of "  << endl
+                << "is not a valid format. It should be a quoted, "
+                << "space separated string of "  << endl
                 << "integer values.  The matrix: " << endl
                 << "    A  C  G  T  N" << endl
                 << " A  1  2  3  4  5" << endl
@@ -348,11 +357,13 @@ int main(int argc, char* argv[]) {
                 << " G 11 12 13 14 15" << endl
                 << " T 16 17 18 19 20" << endl
                 << " N 21 22 23 24 25" << endl
-                << " should be specified as \"1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 " << endl
+                << " should be specified as \"1 2 3 4 5 6 7 8 9 "
+                << "10 11 12 13 14 15 16 17 18 19 " << endl
                 << "20 21 22 23 24 25\"" << endl;
             exit(1);
         }
     }
+
 
     // Parse hole number ranges. 
     if (holeNumberStr.size() != 0) {
