@@ -60,10 +60,10 @@ class TitleTable {
   void Read(ifstream &in) {
     vector<string> titles;
     while(in) {
-      string title;
-      if (in >> title) {
-        titles.push_back(title);
-      }
+      char title[1024];
+      in.getline(title, 1024);
+      if (not string(title).empty()) 
+          titles.push_back(title);
     }
     if (titles.size() > 0) {
       CopyFromVector(titles);
