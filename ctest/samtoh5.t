@@ -132,3 +132,10 @@ Set up the executable: samtoh5.
 
   $ h5dump -d /RefGroup/Path $OUTDIR/$NAME.cmp.h5 | sed -n '11,11p'
      (0): "/ref000003", "/ref000005"
+
+#Test whether samtoh5 accepts PBI reads in format "movie/holeNumber"
+  $ NAME=test_pbiname
+  $ rm -f $OUTDIR/$NAME.cmp.h5
+  $ $EXEC $DATDIR/$NAME.sam $DATDIR/ecoli_reference.fasta $OUTDIR/$NAME.cmp.h5
+  [INFO] * [samtoh5] started. (glob)
+  [INFO] * [samtoh5] ended. (glob)

@@ -34,19 +34,19 @@ void GetSpringfieldHoleNumberFromTitle(FASTQSequence &seq, unsigned int &holeNum
 }
 			
 
-// Parse a PBIRead name of format movie/holeNumber/xxxx, 
-// and get movieName, holeNumber (i.e. readIndex).
-bool ParsePBIReadName(string &readName, string &movieName, int &readIndex) {
+// Parse a PBIRead name of format movie/holeNumber/s_e, or /movie/holeNumber 
+// and get movieName, holeNumber.
+bool ParsePBIReadName(string &readName, string &movieName, int &holeNumber) {
   vector<string> tokens;
   ParseSeparatedList(readName, tokens, '/');
-  if (tokens.size() < 3) {
+  if (tokens.size() < 2) {
     movieName = "";
-    readIndex = 0;
+    holeNumber = 0;
     return false;
   }
   else {
     movieName = tokens[0];
-    readIndex = atoi(tokens[1].c_str());
+    holeNumber = atoi(tokens[1].c_str());
     return true;
   }
 }
