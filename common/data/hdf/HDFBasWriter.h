@@ -1,17 +1,16 @@
 #ifndef DATA_HDF_HDF_BAS_WRITER_H_
 #define DATA_HDF_HDF_BAS_WRITER_H_
 
+#include "Types.h"
+#include "Enumerations.h"
+#include "utils/SMRTReadUtils.h"
+#include "FASTQSequence.h"
 #include "HDFArray.h"
-#include "BufferedHDFArray.h"
 #include "HDF2DArray.h"
-#include "BufferedHDF2DArray.h"
 #include "HDFAtom.h"
 #include "HDFFile.h"
 #include "DatasetCollection.h"
-#include "../../Enumerations.h"
-#include "../../utils/SMRTReadUtils.h"
-#include "../../FASTQSequence.h"
-#include "../../Types.h"
+#include "HDFScanDataWriter.h"
 #include <sstream>
 
 using namespace H5;
@@ -20,11 +19,8 @@ using namespace std;
 class HDFBasWriter : public DatasetCollection {
 	HDFFile outFile;
 	string hdfFileName;
-	string movieName, runCode;
 	static const int bufferSize = 16;
 	
-	float frameRate;
-	float numFrames;
 	string changeListID;
 	HDFAtom<string> changeListIDAtom;
 
@@ -36,8 +32,6 @@ class HDFBasWriter : public DatasetCollection {
 	BufferedHDFArray<unsigned int> simulatedCoordinateArray;
 	BufferedHDFArray<unsigned int> simulatedSequenceIndexArray;
 
-	HDFAtom<string> movieNameAtom, runCodeAtom, platformNameAtom;
-	HDFAtom<unsigned int> platformIdAtom;
 
 	//
 	// Astro specific arrays.
@@ -53,7 +47,6 @@ class HDFBasWriter : public DatasetCollection {
 	//
 	// Define arrays for rich quality values.
 	// 
-
 	BufferedHDFArray<unsigned char> deletionQVArray;
 	BufferedHDFArray<unsigned char> deletionTagArray;
 	BufferedHDFArray<unsigned char> insertionQVArray;
@@ -65,14 +58,13 @@ class HDFBasWriter : public DatasetCollection {
 	BufferedHDFArray<int> pulseIndexArray;
 	BufferedHDF2DArray<unsigned char> preBaseDeletionQVArray;
 	HDFGroup rootGroup;
-	HDFGroup scanDataGroup;
-	HDFGroup runInfoGroup, acqParamsGroup;
 
 	HDFGroup baseCallGroup;
 	HDFGroup zmwGroup;
 	HDFGroup plsZMWGroup;
-	PlatformType platformId;
-	string   platformName;
+
+	PlatformId platformId;
+    ScanData sd;
  public:
 	HDFGroup pulseDataGroup;
 	~HDFBasWriter() { 
@@ -100,8 +92,9 @@ class HDFBasWriter : public DatasetCollection {
 
 	void Flush() {
 		nElemArray.Flush();
+
 		if (includedFields["zmwXCoord"])
-		zmwXCoordArray.Flush();
+		    zmwXCoordArray.Flush();
 		if (includedFields["zmwYCoord"])
 			zmwYCoordArray.Flush();
 		if (includedFields["Basecall"])
@@ -135,7 +128,7 @@ class HDFBasWriter : public DatasetCollection {
 		if (includedFields["SimulatedCoordinate"])
 			simulatedCoordinateArray.Flush();
 		if (includedFields["SimulatedSequenceIndex"]) 
-			simulatedSequenceIndexArray.Flush();
+	    	simulatedSequenceIndexArray.Flush();
 	}
 
 	HDFBasWriter() {
@@ -143,8 +136,6 @@ class HDFBasWriter : public DatasetCollection {
 		 * Default to astro for now.  This may need to change to a NO_ID
 		 * platform, in which case it must be set with Initialize().
 		 */
-		frameRate = 100.0;
-		numFrames = 10000000;
 		fieldNames.push_back("zmwXCoord");
 		fieldNames.push_back("zmwYCoord");
 		fieldNames.push_back("QualityValue");
@@ -164,7 +155,7 @@ class HDFBasWriter : public DatasetCollection {
 		fieldNames.push_back("SimulatedCoordinate");
 		fieldNames.push_back("SimulatedSequenceIndex");
 		InitializeAllFields(false);
-		platformId = Springfield;
+		sd.platformId = Springfield;
 	}
 
 	void Close() {
@@ -172,73 +163,44 @@ class HDFBasWriter : public DatasetCollection {
 		outFile.Close();
 	}
 
-	void SetPlatform(PlatformType _platform) {
-		platformId = _platform;
+	void SetPlatform(PlatformId _platform) {
+        sd.platformId = platformId = _platform;
 	}
-
+	void SetMovieName(string _movieName) {
+        sd.movieName = _movieName;
+	}
+	void SetRunCode(string _runCode) {
+        sd.runCode = _runCode;
+	}
 	void SetChangeListID(string _changeListID) {
 		changeListID = _changeListID;
 	}
 
-	void AddMovieName(string movieName) {
-		movieNameAtom.Create(runInfoGroup.group, "MovieName",movieName);
-	}
 	
 	/*
 	 * Initialization without a runCode is implicitly a springfield
 	 * platform.  You can change it if you really want.
 	 */
-
 	void Initialize(string _hdfFileName, string movieName, string _changeListID) {
-    SetChangeListID(_changeListID);
-		Initialize(_hdfFileName, Springfield);
-		AddMovieName(movieName);
-    AddPlatformInformation(Springfield);
+        SetChangeListID(_changeListID);
+        SetPlatform(Springfield);
+        SetMovieName(movieName);
+		Initialize(_hdfFileName);
 	}
 
-	void Initialize(string _hdfFileName, string movieName, PlatformType _platform = Springfield) {
-		Initialize(_hdfFileName, _platform);
-		AddMovieName(movieName);
-    AddPlatformInformation(_platform);
+	void Initialize(string _hdfFileName, string movieName, PlatformId _platform = Springfield) {
+        SetMovieName(movieName);
+        SetPlatform(Springfield);
+		Initialize(_hdfFileName);
 	}
 
 	void Initialize(string _hdfFileName, string movieName, string runCode, string _changeListID ) {
-		Initialize(_hdfFileName, Springfield);
-		if (movieName != "" and runCode != "") {
-			AddRunInfo(movieName, runCode);
-    }
-    AddChangeListID(_changeListID);
-    AddPlatformInformation(Springfield);
+        SetChangeListID(_changeListID);
+        SetMovieName(movieName);
+        SetRunCode(runCode);
+		Initialize(_hdfFileName);
 	}
 
-  void AddPlatformInformation(PlatformType _platform) {
-    platformId = _platform;
-    AddPlatformId(platformId);
-    AddPlatformName(platformId);
-  }
-
-	void AddChangeListID(string cl) {
-    changeListIDAtom.Create(baseCallGroup.group, "ChangeListID", cl);
-  }
-
-	void AddRunInfo(string movieName, string runCode) {
-		AddMovieName(movieName);
-		runCodeAtom.Create(runInfoGroup.group, "RunCode", runCode);
-	}
-	
-	void AddPlatformName(PlatformType platformId) {
-    if (platformId == Springfield) {
-      platformNameAtom.Create(runInfoGroup.group, "PlatformName", "Springfield");
-    }
-    else if (platformId == Astro) {
-      platformNameAtom.Create(runInfoGroup.group, "PlatformName", "Astro");
-    }
-	}
-
-	void AddPlatformId(PlatformType _platformId) {
-		platformIdAtom.Create(runInfoGroup.group, "PlatformId");
-		platformIdAtom.Write((unsigned int)_platformId);
-	}
 
 	void WriteSimulatedCoordinate(unsigned int coord) {
 		simulatedCoordinateArray.Write(&coord,1);
@@ -248,60 +210,37 @@ class HDFBasWriter : public DatasetCollection {
 		simulatedSequenceIndexArray.Write(&index,1);
 	}
 
-	void Initialize(string _hdfFileName, PlatformType _platform,
-            const H5::FileAccPropList & fileAccPropList = H5::FileAccPropList::DEFAULT) {
+	void Initialize(string _hdfFileName, const H5::FileAccPropList & 
+                    fileAccPropList = H5::FileAccPropList::DEFAULT) {
 		hdfFileName = _hdfFileName;
-		platformId  = _platform;
-		//outFile.Open(hdfFileName, H5F_ACC_TRUNC);
 		outFile.Open(hdfFileName, H5F_ACC_TRUNC, fileAccPropList);
 		outFile.rootGroup.AddGroup("PulseData"); 
 
-    if (pulseDataGroup.Initialize(outFile.rootGroup, "PulseData") == 0) {
-      cout << "ERROR, could not create file " << _hdfFileName << ".  Error creating group /PulseData." << endl;
-      exit(1);
-    }
-      
-    pulseDataGroup.AddGroup("BaseCalls"); 
-    if (baseCallGroup.Initialize(pulseDataGroup, "BaseCalls") == 0) {
-      cout << "ERROR, could not create file " << _hdfFileName << ".  Error creating group /PulseData/BaseCall." << endl;
-      exit(1);
-    }
+        if (pulseDataGroup.Initialize(outFile.rootGroup, "PulseData") == 0) {
+            cout << "ERROR, could not create file " << hdfFileName 
+                 << ".  Error creating group /PulseData." << endl;
+            exit(1);
+        }
 
-    
-    baseCallGroup.AddGroup("ZMW"); 
-    if (zmwGroup.Initialize(baseCallGroup, "ZMW") == 0) {
-      cout << "ERROR, could not create file " << _hdfFileName << ".  Error creating group /PulseData/BaseCall/ZMW." << endl;
-      exit(1);
-    }
+        pulseDataGroup.AddGroup("BaseCalls"); 
+        if (baseCallGroup.Initialize(pulseDataGroup, "BaseCalls") == 0) {
+            cout << "ERROR, could not create file " << hdfFileName 
+                 << ".  Error creating group /PulseData/BaseCall." << endl;
+            exit(1);
+        }
 
-    
-		outFile.rootGroup.AddGroup("ScanData"); 
-    if (scanDataGroup.Initialize(outFile.rootGroup, "ScanData") == 0) {
-      cout << "ERROR, could not create file " << _hdfFileName << ".  Error creating /ScanData." << endl;
-      exit(1);
-    }
+        baseCallGroup.AddGroup("ZMW"); 
+        if (zmwGroup.Initialize(baseCallGroup, "ZMW") == 0) {
+            cout << "ERROR, could not create file " << hdfFileName 
+                 << ".  Error creating group /PulseData/BaseCall/ZMW." << endl;
+            exit(1);
+        }
 
-    scanDataGroup.AddGroup("RunInfo");
-    if (runInfoGroup.Initialize(scanDataGroup, "RunInfo") == 0) {
-      cout << "ERROR, could not creat file " << _hdfFileName << ". Error creating /ScanData/RunInfo"<< endl;
-      exit(1);
-    }
-      
-
-    scanDataGroup.AddGroup("AcqParams");
-    if (acqParamsGroup.Initialize(scanDataGroup, "AcqParams") == 0) {
-      cout << "ERROR creating hdf file " << _hdfFileName << endl;
-      exit(1);
-    }
-
-
-		HDFAtom<float> frameRateAtom;
-		HDFAtom<unsigned int> numFramesAtom;
-    frameRateAtom.Create(acqParamsGroup.group, "FrameRate");
-    numFramesAtom.Create(acqParamsGroup.group, "NumFrames");
-    frameRateAtom.Write(frameRate);
-    numFramesAtom.Write(numFrames);
-		
+        HDFScanDataWriter sdWriter(outFile);
+        // 
+        // Reset ScanData attributes if neccessary.
+        //
+        sdWriter.Write(sd);
 
 		if (changeListID != "") {
 			changeListIDAtom.Create(baseCallGroup.group, "ChangeListID", changeListID);
@@ -330,24 +269,25 @@ class HDFBasWriter : public DatasetCollection {
 			widthInFramesArray.Initialize(baseCallGroup, "WidthInFrames");
 		if (includedFields["PreBaseFrames"])
 			preBaseFramesArray.Initialize(baseCallGroup, "PreBaseFrames");
+        
 		if (includedFields["SimulatedCoordinate"]) {
 			simulatedCoordinateArray.Initialize(baseCallGroup, "SimulatedCoordinate");
 		}
 		if (includedFields["SimulatedSequenceIndex"]) {
 			simulatedSequenceIndexArray.Initialize(baseCallGroup, "SimulatedSequenceIndex");
 		}
-    if (includedFields["PulseIndex"]) {
-      pulseIndexArray.Initialize(baseCallGroup, "PulseIndex");
-    }
+        if (includedFields["PulseIndex"]) {
+            pulseIndexArray.Initialize(baseCallGroup, "PulseIndex");
+        }
 
-		if (platformId == Astro or includedFields["HoleXY"]) {
-			holeXY2D.Initialize(zmwGroup, "HoleXY", 2);
-		}
-    includedFields["HoleNumber"] = true;
-		holeNumberArray.Initialize(zmwGroup, "HoleNumber");
-    includedFields["HoleStatus"] = true;
-		holeStatusArray.Initialize(zmwGroup, "HoleStatus");
-	}
+        if (platformId == Astro or includedFields["HoleXY"]) {
+            holeXY2D.Initialize(zmwGroup, "HoleXY", 2);
+        }
+        includedFields["HoleNumber"] = true;
+        holeNumberArray.Initialize(zmwGroup, "HoleNumber");
+        includedFields["HoleStatus"] = true;
+        holeStatusArray.Initialize(zmwGroup, "HoleStatus");
+    }
 
 	int WriteHoleXY(int x=0, int y=0) {
 		int16_t xy[2] = {(uint16_t) x, (uint16_t) y};
@@ -358,12 +298,12 @@ class HDFBasWriter : public DatasetCollection {
 		//
 		// Write hole number regardless of platform type.
 		//
-		holeNumberArray.Write(&holeNumber, 1);
-    holeStatusArray.Write(&holeStatus, 1);
-		if (platformId == Astro or includedFields["HoleXY"]) {
-			WriteHoleXY(x,y);
-		}
-		return 1;
+        holeNumberArray.Write(&holeNumber, 1);
+        holeStatusArray.Write(&holeStatus, 1);
+        if (platformId == Astro or includedFields["HoleXY"]) {
+            WriteHoleXY(x,y);
+        }
+        return 1;
 	}
 	
 
@@ -414,37 +354,36 @@ class HDFBasWriter : public DatasetCollection {
 		if (includedFields["WidthInFrames"] and seq.widthInFrames != NULL) {
 			widthInFramesArray.Write(seq.widthInFrames, seq.length);
 		}
-    if (includedFields["PulseIndex"] and seq.pulseIndex != NULL) {
-      pulseIndexArray.Write(seq.pulseIndex, seq.length);
-    }
+        if (includedFields["PulseIndex"] and seq.pulseIndex != NULL) {
+            pulseIndexArray.Write(seq.pulseIndex, seq.length);
+        }
 		WriteIdentifiers(seq.zmwData.holeNumber, seq.zmwData.holeStatus,  seq.xy[0], seq.xy[1]);
 
 		return 1;
 	}
 
 	int Write(FASTQSequence &seq) {
+        int x, y;
+        UInt holeNumber;
+        unsigned char holeStatus;
 
-		int x, y;
-		UInt holeNumber;
-    unsigned char holeStatus;
+        WriteBases(seq);
+        WriteQualities(seq);
 
-		WriteBases(seq);
-		WriteQualities(seq);
+        if (platformId == Astro) {
+            //
+            // now extract the x an y coordinates.
+            GetSMRTReadCoordinates(seq, x, y);
+            holeStatus = 0;
+            seq.GetHoleNumber((int&) holeNumber);
+        }
+        if (platformId == Springfield){ 
+            GetSpringfieldHoleNumberFromTitle(seq, holeNumber);
+        }
 
-		if (platformId == Astro) {
-			//
-			// now extract the x an y coordinates.
-			GetSMRTReadCoordinates(seq, x, y);
-      holeStatus = 0;
-			seq.GetHoleNumber((int&) holeNumber);
-		}
-		if( platformId == Springfield){ 
-			GetSpringfieldHoleNumberFromTitle(seq, holeNumber);
-		}
+        WriteIdentifiers(holeNumber,holeStatus,x,y);
 
-		WriteIdentifiers(holeNumber,holeStatus,x,y);
-
-		return 1;
+        return 1;
 	}
 };
 

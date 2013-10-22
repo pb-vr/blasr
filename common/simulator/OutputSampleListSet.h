@@ -15,13 +15,15 @@ class OutputSampleListSet {
   OutputSampleListMap listMap;
   vector<string> keys;
   int keyLength;
-  int sampleSize;
   int nSufficient;
   int sampleSpaceSize;
   int keySize;
+  int minSamples;
+  int maxSamples;
   vector<int> lengths;
   OutputSampleListSet(int keySizeP) {
-    sampleSize = 500;
+    minSamples = 500;
+    maxSamples = 2000;
     nSufficient = 0;
     keySize = keySizeP;
     sampleSpaceSize = 1 << (2*keySize);
@@ -81,35 +83,37 @@ class OutputSampleListSet {
       in.read((char*) &lengths[i], sizeof(int));
     }
   }
-  
+
   void AppendOutputSample(string key, OutputSample &sample) {
-    if (listMap[key].size() < sampleSize) {
-      listMap[key].push_back(sample);
-      if (listMap[key].size() == sampleSize) {
-        nSufficient++;
-        cout << nSufficient << " / " << sampleSpaceSize << endl;
+      if (listMap[key].size() < minSamples) {
+          if (listMap[key].size() < maxSamples) {
+              listMap[key].push_back(sample);
+          }
+          if (listMap[key].size() == minSamples) {
+              nSufficient++;
+              cout << nSufficient << " / " << sampleSpaceSize << endl;
+          }
       }
-    }
   }
 
   bool Sufficient() {
-    return nSufficient == sampleSpaceSize;
+      return nSufficient == sampleSpaceSize;
   }
 
   void SampleRandomSample(string key, OutputSample &sample) {
-    if (listMap.find(key) == listMap.end()) {
-      cout << listMap.size() << endl;
-      cout <<"ERROR, " << key << " is not a sampled context." << endl;
-      int i;
-      for (i = 0; i < key.size(); i++) {
-        char c = toupper(key[i]);
-        if (c != 'A' and c != 'C' and c != 'G' and c != 'T') {
-          cout << "The nucleotide " << c << " is not supported." << endl;
-        }
+      if (listMap.find(key) == listMap.end()) {
+          cout << listMap.size() << endl;
+          cout <<"ERROR, " << key << " is not a sampled context." << endl;
+          int i;
+          for (i = 0; i < key.size(); i++) {
+              char c = toupper(key[i]);
+              if (c != 'A' and c != 'C' and c != 'G' and c != 'T') {
+                  cout << "The nucleotide " << c << " is not supported." << endl;
+              }
+          }
+          exit(1);
       }
-      exit(1);
-    }
-    sample = listMap[key][RandomInt(listMap[key].size())];
+      sample = listMap[key][RandomInt(listMap[key].size())];
   }
 
 

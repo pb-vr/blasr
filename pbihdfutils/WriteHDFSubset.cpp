@@ -2,7 +2,6 @@
 #include "data/hdf/HDFRegionTableReader.h"
 #include "data/hdf/HDFRegionTableWriter.h"
 #include "data/hdf/HDFBasWriter.h"
-#include "data/hdf/PlatformId.h"
 #include "utils/StringUtils.h"
 #include "utils/RegionUtils.h"
 #include "utils/FileOfFileNames.h"
@@ -95,7 +94,7 @@ int main(int argc, char* argv[]) {
   string changeListID;
   reader.GetChangeListID(changeListID);
   
-	if (reader.scanDataReader.GetPlatformId() == AstroPlatform) {
+	if (reader.scanDataReader.GetPlatformId() == Astro) {
 		writer.Initialize(outFileName, reader.GetMovieName(), reader.GetRunCode());
 	}
 	else {

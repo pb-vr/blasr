@@ -5,14 +5,14 @@
 
 #include "BaseSequenceIO.h"
 
-#include "../FASTAReader.h"
-#include "../FASTQReader.h"
-#include "../CCSSequence.h"
-#include "../SMRTSequence.h"
-#include "../Enumerations.h"
-#include "../data/hdf/HDFBasReader.h"
-#include "../data/hdf/HDFCCSReader.h"
-#include "../utils/StringUtils.h"
+#include "FASTAReader.h"
+#include "FASTQReader.h"
+#include "CCSSequence.h"
+#include "SMRTSequence.h"
+#include "Enumerations.h"
+#include "data/hdf/HDFBasReader.h"
+#include "data/hdf/HDFCCSReader.h"
+#include "utils/StringUtils.h"
 
 class ReaderAgglomerate : public BaseSequenceIO {
   FASTAReader fastaReader;
@@ -22,8 +22,8 @@ class ReaderAgglomerate : public BaseSequenceIO {
   int start;
   float subsample;
   bool useRegionTable;
- public:
   bool ignoreCCS;
+public:
   //
   // Create interfaces for reading hdf
   //
@@ -157,7 +157,6 @@ class ReaderAgglomerate : public BaseSequenceIO {
       //
       // Here one needs to test and see if the hdf file contains ccs.
       // If this is the case, then the file type is HDFCCS.
-            //
       if (hdfCcsReader.BasFileHasCCS(fileName) and !ignoreCCS) {
         fileType = HDFCCS;
         hdfCcsReader.InitializeDefaultIncludedFields();

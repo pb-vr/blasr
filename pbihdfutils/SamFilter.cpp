@@ -32,7 +32,7 @@
 #include "utils/TimeUtils.h"
 #include "utils/RangeUtils.h"
 #include "utils/SMRTReadUtils.h"
-#include "algorithms/alignment/ScoreMatrices.h"
+#include "algorithms/alignment/DistanceMatrixScoreFunction.h"
 #include "algorithms/alignment/AlignmentUtils.h"
 #include "algorithms/alignment/StringToScoreMatrix.h"
 #include "algorithms/alignment/readers/sam/SAMReader.h"
@@ -376,13 +376,14 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
+    DistanceMatrixScoreFunction<DNASequence, DNASequence> distScoreFn;
     if (scoreMatrixStr != "") {
         if (scoreFunc != USERSCORE) {
             cout << "ERROR. scoreFunc should be 'userscore' if "
                  << "-scoreMatrix is used." << endl;
             exit(1);
         }
-        if (StringToScoreMatrix(scoreMatrixStr, SMRTDistanceMatrix) == false) {
+        if (StringToScoreMatrix(scoreMatrixStr, distScoreFn.scoreMatrix) == false) {
             cout << "ERROR. The string " << endl
                 << scoreMatrixStr << endl
                 << "is not a valid format. It should be a quoted, "
@@ -410,16 +411,13 @@ int main(int argc, char* argv[]) {
         } 
     }
 
-    int scoreMatrix[5][5];
-    memcpy(scoreMatrix, SMRTDistanceMatrix, 25*sizeof(int));
-
     if (scoreFunc == EDITDIST) {
         // Penalty=1 for each mismatch and indel. 
-        memcpy(scoreMatrix, EditDistanceMatrix, 25*sizeof(int));
+        distScoreFn.InitializeScoreMatrix(EditDistanceMatrix);
         insScore = delScore = 1;
         scoreSign = filterCriteria.SetScoreSign(NEG);
     } else if (scoreFunc == BLASRSCORE) {
-        memcpy(scoreMatrix, SMRTDistanceMatrix, 25*sizeof(int));
+        distScoreFn.InitializeScoreMatrix(SMRTDistanceMatrix);
         insScore = delScore = 5;
         scoreSign = filterCriteria.SetScoreSign(NEG);
     } 
@@ -428,6 +426,8 @@ int main(int argc, char* argv[]) {
     // If USERSCORE, use user-specified scorematrix, insScore 
     // and delScore.
     //
+    distScoreFn.ins = insScore;
+    distScoreFn.del = delScore;
 
     ostream * outFilePtr = &cout;
 	ofstream outFileStrm;
@@ -555,8 +555,8 @@ int main(int argc, char* argv[]) {
             AlignmentCandidate<> & alignment = convertedAlignments[i];
 
             ComputeAlignmentStats(alignment, alignment.qAlignedSeq.seq, 
-                                  alignment.tAlignedSeq.seq, scoreMatrix,
-                                  insScore, delScore);
+                                  alignment.tAlignedSeq.seq, distScoreFn);
+                                  // scoreMatrix, insScore, delScore);
             if (verbosity > 0)  {
                 cout << "Aligner's score = "  << samAlignment.as 
                      << ", computed score = " << alignment.score << endl;

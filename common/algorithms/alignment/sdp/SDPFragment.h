@@ -67,6 +67,7 @@ class Fragment {
 		index       = rhs.index;
 		cost        = rhs.cost;
 		weight      = rhs.weight;
+        length      = rhs.length;
 		chainLength = rhs.chainLength;
 		chainPrev   = rhs.chainPrev;
 		return *this;

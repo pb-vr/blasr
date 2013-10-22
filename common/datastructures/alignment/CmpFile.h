@@ -26,7 +26,7 @@ class CmpFile {
 
 	CmpIndexedStringTable readGroupTable, movieNameTable, refSeqTable;
 	vector<string> colNames;
-	PlatformType platformId;
+	PlatformId platformId;
 	AlnGroup  alnGroup;
 	AlnInfo   alnInfo;
 	RefGroup  refGroup;

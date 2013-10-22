@@ -57,10 +57,9 @@ enum AlignmentType { Local,     // Standard Smith-Waterman
 										 SignificanceLimited
 };
 
-inline
-int ComputeAlignmentScore(string &queryStr, string &textStr,
-													 int matchScores[5][5],
-													 int ins, int del) { 
+template<typename T_ScoreFn>
+int ComputeAlignmentScore(string &queryStr, string &textStr, T_ScoreFn &scoreFn, 
+        bool useAffineScore = false) {
 	if (queryStr.size() != textStr.size()) {
 		cout << "Computing alignment score using invalid alignment string." << endl;
 		cout << "Bailing out."<<endl;
@@ -69,32 +68,55 @@ int ComputeAlignmentScore(string &queryStr, string &textStr,
 	VectorIndex i;
 	int score = 0;
   int alignStrLen = queryStr.size();
-	for(i=0; i < alignStrLen; i++) {
+	for(i = 0; i < alignStrLen; i++) {
 		if (queryStr[i] != '-' and
 				textStr[i] != '-') {
-			score += matchScores[ThreeBit[(int)queryStr[i]]][ThreeBit[(int)textStr[i]]];
+			score += scoreFn.scoreMatrix[ThreeBit[(int)queryStr[i]]][ThreeBit[(int)textStr[i]]];
 		}
 		else {
+            if (useAffineScore) {
+                //
+                // Compute affine gap scoring.  For now this uses symmetric insertion/deletion penalties. 
+                //
+                int gapEnd = i;
+                while (gapEnd < queryStr.size() and gapEnd < textStr.size() and 
+                        (queryStr[gapEnd] == '-' or textStr[gapEnd] == '-')) {
+                    ++gapEnd;
+                }
+                int gapLength = gapEnd - i;
+                score += scoreFn.affineOpen + gapLength * scoreFn.affineExtend;
+                //
+                // Advance past gap -1, so that at the top of the for loop i
+                // will be at the end of the gap.
+                //
+                i = gapEnd - 1;
+            }
+            else {
+        //
+        // Use non-affine gap scoring.
+        //
 			if (queryStr[i] == '-' and textStr[i] != '-') {
-				score += del;
+				score += scoreFn.del;
 			}
 			else if (queryStr[i] != '-' and textStr[i] == '-') {
-				score += ins;
+				score += scoreFn.ins;
 			}
 			else {
-				score += matchScores[4][4];
+				score += scoreFn.scoreMatrix[4][4];
 			}
 		}
 	}
+    }
 	return score;
 }
 	
 
 template<typename T_QuerySequence, typename T_TargetSequence, typename T_ScoreFn>
-  int ComputeAlignmentScore(Alignment &alignment,
+int ComputeAlignmentScore(Alignment &alignment,
                             T_QuerySequence &query,
                             T_TargetSequence &text,
-                            T_ScoreFn &scoreFn) {
+                            T_ScoreFn &scoreFn,
+                            bool useAffinePenalty = false) {
   VectorIndex b, q, t, l, bi, gi;
   int alignmentScore = 0;
 
@@ -108,26 +130,33 @@ template<typename T_QuerySequence, typename T_TargetSequence, typename T_ScoreFn
     if (alignment.gaps.size() == alignment.blocks.size() + 1) {
       for (gi = 0; gi < alignment.gaps[b+1].size(); gi++) {
         if (alignment.gaps[b+1][gi].seq == Gap::Target) {
-          alignmentScore += alignment.gaps[b+1][gi].length * scoreFn.ins;
+            if (useAffinePenalty) {
+                alignmentScore += scoreFn.affineOpen + alignment.gaps[b+1][gi].length * scoreFn.affineExtend;
+            }
+            else {
+                alignmentScore += alignment.gaps[b+1][gi].length * scoreFn.ins;
+            }
         }
         else {
-          alignmentScore += alignment.gaps[b+1][gi].length * scoreFn.del;
+            if (useAffinePenalty) {
+                alignmentScore += scoreFn.affineOpen + alignment.gaps[b+1][gi].length * scoreFn.affineExtend;
+            }
+            else {
+                alignmentScore += alignment.gaps[b+1][gi].length * scoreFn.del;
+            }
         }
       }
     }
   }
   return alignmentScore;
-
 }
                             
-
+/*
 template<typename T_QuerySequence, typename T_TargetSequence>
 int ComputeAlignmentScore(Alignment &alignment,
 													T_QuerySequence &query,
 													T_TargetSequence &text,
-													int matchScores[5][5],
-													int ins,
-													int del) {
+                                                    T_ScoreFn & scoreFn) {
 	VectorIndex b;
 	int alignmentScore = 0;
 	VectorIndex q, t;
@@ -140,7 +169,7 @@ int ComputeAlignmentScore(Alignment &alignment,
 	int totalMismatchPenalty = 0, averageMismatchPenalty;
 	for (q = 0; q < 4; q++ ) {
 		for (t = 0; t < 4; t++ ){ 
-			if (q != t) totalMismatchPenalty += matchScores[q][t];
+			if (q != t) totalMismatchPenalty += scoreFn.scoreMatrix[q][t];
 		}
 	}
 
@@ -151,7 +180,7 @@ int ComputeAlignmentScore(Alignment &alignment,
 					t = alignment.tPos + alignment.blocks[b].tPos,
 					l = 0) ; 
 				 l < alignment.blocks[b].length; q++, t++, l++) {
-			alignmentScore += matchScores[ThreeBit[query.seq[q]]][ThreeBit[text.seq[t]]];
+			alignmentScore += scoreFn.scoreMatrix[ThreeBit[query.seq[q]]][ThreeBit[text.seq[t]]];
 		}
 		if (alignment.blocks.size() > 0 and b < alignment.blocks.size() - 1) {
 			// 
@@ -173,12 +202,12 @@ int ComputeAlignmentScore(Alignment &alignment,
 			textGap  -= commonGap;
 			alignmentScore += averageMismatchPenalty * commonGap;
 			
-			alignmentScore += (queryGap * ins);
-			alignmentScore += (textGap * del);
+			alignmentScore += (queryGap * scoreFn.ins);
+			alignmentScore += (textGap * scoreFn.del);
 		}
 	}
 	return alignmentScore;
-}
+}*/
 											 
 
 inline int GetNumberWidth(unsigned int value) {
@@ -485,8 +514,9 @@ void CreateAlignmentStrings(T_Alignment &alignment,
 	}
 }
 
-template<typename T_Alignment>
-void ComputeAlignmentStats(T_Alignment &alignment, Nucleotide* qSeq, Nucleotide *tSeq, int matchMatrix[5][5], int ins, int del) {
+template<typename T_Alignment, typename T_ScoreFn>
+  void ComputeAlignmentStats(T_Alignment &alignment, Nucleotide* qSeq, Nucleotide *tSeq, T_ScoreFn &scoreFn, bool useAffineScore = false) {
+    //    int matchMatrix[5][5], int ins, int del) {
 	int qp = 0, tp = 0;
 	int nMatch = 0, nMismatch = 0, nIns =0, nDel = 0;
 	float pctSimilarity;
@@ -527,7 +557,7 @@ void ComputeAlignmentStats(T_Alignment &alignment, Nucleotide* qSeq, Nucleotide 
 		pctSimilarity = 0;
 	}
 
-	alignment.score = ComputeAlignmentScore(queryStr, textStr, matchMatrix, ins, del);
+	alignment.score = ComputeAlignmentScore(queryStr, textStr, scoreFn);
 	alignment.nMatch = nMatch;
 	alignment.nMismatch = nMismatch;
 	alignment.nDel = nDel;

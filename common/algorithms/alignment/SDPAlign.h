@@ -7,13 +7,13 @@
 #include "DistanceMatrixScoreFunction.h"
 #include "sdp/SparseDynamicProgramming.h"
 #include "sdp/SDPFragment.h"
-#include "../../tuples/TupleList.h"
-#include "../../tuples/DNATuple.h"
-#include "../../tuples/TupleMatching.h"
-#include "../../tuples/TupleList.h"
-#include "../../datastructures/alignment/Path.h"
-#include "../../datastructures/alignment/Alignment.h"
-#include "../../datastructures/alignment/AlignmentGapList.h"
+#include "tuples/TupleList.h"
+#include "tuples/DNATuple.h"
+#include "tuples/TupleMatching.h"
+#include "tuples/TupleList.h"
+#include "datastructures/alignment/Path.h"
+#include "datastructures/alignment/Alignment.h"
+#include "datastructures/alignment/AlignmentGapList.h"
 
 #define SDP_DETAILED_WORD_SIZE 5
 #define SDP_PREFIX_LENGTH 50
@@ -26,7 +26,7 @@ int SDPAlign(T_QuerySequence &query, T_TargetSequence &target,
 						 Alignment &alignment, 
 						 AlignmentType alignType=Global,
 						 bool detailedAlignment=true,
-						 bool extendFrontByLocalAlignment=true) {
+						 bool extendFrontByLocalAlignment=true){
 
   /*
     Since SDP Align uses a large list of buffers, but none are
@@ -177,26 +177,24 @@ int SDPAlign(T_QuerySequence &query, T_TargetSequence &target,
 		(fragmentSet)[f].weight = tm.tupleSize;
   }
 
-
   //
   // Since different partitions of the read are matched, the locations
   // of the matches do not have the correct position because of the
   // offsets.  Fix that here.
-
 	for (f = 0; f < fragmentSet.size(); f++) {
     (fragmentSet)[f].y += middlePos;
 	}
 	for (f = 0; f < suffixFragmentSet.size(); f++) {
     (suffixFragmentSet)[f].y += suffixPos;
   }
-  
+
   //
   // Collect all fragments into one.
   //
   fragmentSet.insert(fragmentSet.begin(), prefixFragmentSet.begin(), prefixFragmentSet.end());
   fragmentSet.insert(fragmentSet.end(), suffixFragmentSet.begin(), suffixFragmentSet.end());
 
-	if (fragmentSet.size() == 0) {
+    if (fragmentSet.size() == 0) {
 		//
 		// This requires at least one seeded tuple to begin an alignment.
 		//
@@ -239,7 +237,7 @@ int SDPAlign(T_QuerySequence &query, T_TargetSequence &target,
 		block.tPos = fragmentSet[maxFragmentChain[startF]].y;
 		block.length = fragmentSet[maxFragmentChain[startF]].weight + (f - startF);
 
-		chainAlignment.blocks.push_back(block);
+  		chainAlignment.blocks.push_back(block);
 	}
 
 
@@ -532,8 +530,7 @@ int SDPAlign(T_QuerySequence &query, T_TargetSequence &target,
 		}
 	}
 	int alignmentScore;
-	alignmentScore = ComputeAlignmentScore(alignment, query, target, 
-                                         scoreFn.scoreMatrix, scoreFn.ins, scoreFn.del);
+	alignmentScore = ComputeAlignmentScore(alignment, query, target, scoreFn);
 	return alignmentScore;
 }
 

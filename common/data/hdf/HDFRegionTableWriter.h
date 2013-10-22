@@ -2,12 +2,10 @@
 #define DATA_HDF_HDF_REGION_TABLE_WRITER_H_
 
 #include <string>
-
 #include "HDFFile.h"
 #include "HDFArray.h"
 #include "HDF2DArray.h"
 #include "HDFAtom.h"
-#include "PlatformId.h"
 
 #include "datastructures/reads/RegionTable.h"
 

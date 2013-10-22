@@ -4,7 +4,6 @@
 #include "data/hdf/HDFArray.h"
 #include "data/hdf/HDF2DArray.h"
 #include "data/hdf/HDFAtom.h"
-#include "data/hdf/PlatformId.h"
 #include "data/hdf/HDFGroup.h"
 #include "data/hdf/HDFBasReader.h"
 #include "data/hdf/HDFPulseDataFile.h"

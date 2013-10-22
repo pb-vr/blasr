@@ -115,6 +115,7 @@ class AlignmentCandidate : public Alignment {
             << "qName: " << qName << ","
             << "qStrand: " << qStrand << ", " 
             << "qPos: " << qPos << ", "
+            << "qEnd: " << QEnd() << ", "
             << "qLen: " << qLength << ", "
             << "qAlignLength: " << qAlignLength << ", "
             << "qAlignedSeqPos:" << qAlignedSeqPos << ", "
@@ -123,10 +124,13 @@ class AlignmentCandidate : public Alignment {
             << "tName: " << tName << ","
             << "tStrand: " << tStrand << ", " 
             << "tPos: " << tPos << ", "
+            << "tEnd: " << TEnd() << ", "
             << "tLen: " << tLength << ", "
             << "tAlignLength: " << tAlignLength << ", "
             << "tAlignedSeqPos:" << tAlignedSeqPos << ", " 
-            << "tAlignedSeqLen:" << tAlignedSeqLength << endl;
+            << "tAlignedSeqLen:" << tAlignedSeqLength << endl
+            << "ProbScore: " << probScore << ", "
+            << "sumQVScore: " << sumQVScore << endl; 
         tAlignedSeq.Print(out);
     }
  

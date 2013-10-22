@@ -22,7 +22,7 @@ public:
   int16_t xy[2];
   int holeNumber;
   ZMWGroupEntry zmwData;
-  PlatformType platform;
+  PlatformId platform;
   HalfWord *preBaseFrames;
   HalfWord *widthInFrames;
   //
@@ -48,7 +48,7 @@ public:
     meanSignal = maxSignal = midSignal = NULL;
     classifierQV = NULL;
     startFrame   = NULL;
-    platform     = NoPlatformType;
+    platform     = NoPlatform;
     // By default, allow the entire read.
     lowQualityPrefix = lowQualitySuffix = 0;
   }
@@ -208,18 +208,9 @@ public:
     return true;
   }
 
-  bool StorePlatformType(PlatformId pid ){
-    if (pid == AstroPlatform) {
-      platform = Astro;
-    }
-    if (pid == SpringfieldPlatform) {
-      platform = Springfield;
-    }
-  }
-
-  bool StorePlatformType(PlatformType ptype) {
-    platform = ptype;
-    return true;
+  bool StorePlatformId(PlatformId pid) {
+      platform = pid;
+      return true;
   }
 
   bool StoreHoleNumber(int holeNumberP){ 

@@ -341,8 +341,14 @@ template<typename QSequence, typename TSequence, typename T_ScoreFn>
         }
 			}
 
-      affineInsOpenScore = scoreMat[curIndex] + scoreFn.ins * 2;
-      affineDelOpenScore = scoreMat[curIndex] + scoreFn.del * 2;
+      //affineInsOpenScore = scoreMat[curIndex] + scoreFn.ins * 2;
+      //affineDelOpenScore = scoreMat[curIndex] + scoreFn.del * 2;
+
+      //
+      // Set the penalty to initiate an affine gap here.
+      //
+      affineInsOpenScore = scoreMat[curIndex] + scoreFn.affineOpen;
+      affineDelOpenScore = scoreMat[curIndex] + scoreFn.affineOpen;
 
       if (affineInsOpenScore == INF_INT and 
           affineInsExtScore == INF_INT) {

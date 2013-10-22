@@ -563,7 +563,9 @@ void SetHelp(string &str) {
              << "                N uvwxy" << " . The values a...y should be input as a quoted space separated " << endl
              << "               string: \"a b c ... y\". Lower scores are better, so matches should be less " << endl
              << "               than mismatches e.g. a,g,m,s = -5 (match), mismatch = 6. " << endl
-             << "   -affineExtend a (5)" << endl
+             << "   -affineOpen value (10) " << endl
+             << "               Set the penalty for opening an affine alignment." << endl
+             << "   -affineExtend a (0)" << endl
              << "               Change affine (extension) gap penalty. Lower value allows more gaps." << endl << endl
              << " Options for overlap/dynamic programming alignments and pairwise overlap for de novo assembly. " << endl
              << "   -useQuality (false)" << endl
@@ -768,6 +770,7 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
   // since all alignments are rerun using GuidedAlignment later on.
   //
   DistanceMatrixScoreFunction<DNASequence, FASTQSequence> distScoreFn(SMRTDistanceMatrix, params.insertion, params.deletion);
+  DistanceMatrixScoreFunction<DNASequence, FASTQSequence> distScoreFn2(SMRTDistanceMatrix, ins, ins);
   
   //
   // Assume there is at least one interval.
@@ -1114,7 +1117,8 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
         anchorsOnly.tPos = alignment->tPos;
         anchorsOnly.qPos = alignment->qPos;
         ComputeAlignmentStats(*alignment, alignment->qAlignedSeq.seq, alignment->tAlignedSeq.seq,
-                              SMRTDistanceMatrix, params.insertion, params.deletion);
+                              distScoreFn);
+                //              SMRTDistanceMatrix, params.insertion, params.deletion);
       }
       else {
         alignScore = SDPAlign(alignment->qAlignedSeq, alignment->tAlignedSeq, distScoreFn, 
@@ -1124,7 +1128,8 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
                               params.detailedSDPAlignment, 
                               params.extendFrontAlignment);
         ComputeAlignmentStats(*alignment, alignment->qAlignedSeq.seq, alignment->tAlignedSeq.seq,
-                              SMRTDistanceMatrix, params.insertion, params.deletion);
+                              distScoreFn);
+                 //             SMRTDistanceMatrix, params.insertion, params.deletion);
       }
     }
     else {
@@ -1353,7 +1358,9 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
     }
     ComputeAlignmentStats(*alignment, 
                           alignment->qAlignedSeq.seq,
-                          alignment->tAlignedSeq.seq, SMRTDistanceMatrix, ins, del );
+                          alignment->tAlignedSeq.seq, 
+                          distScoreFn2);
+                          //SMRTDistanceMatrix, ins, del );
 
 
     intvIt++;
@@ -1572,6 +1579,20 @@ void PairwiseLocalAlign(T_Sequence &qSeq, T_RefSequence &tSeq,
   //  - KBanded alignment: For sequences with quality information.
   //                       Gaps are scored with quality values.
   //  
+  QualityValueScoreFunction<DNASequence, FASTQSequence> scoreFn;
+  scoreFn.del = params.indel;
+  scoreFn.ins = params.indel;
+
+  DistanceMatrixScoreFunction<DNASequence, FASTASequence> distScoreFn2(
+          SMRTDistanceMatrix, params.indel, params.indel);
+
+  IDSScoreFunction<DNASequence, FASTQSequence> idsScoreFn;
+  idsScoreFn.ins = params.insertion;
+  idsScoreFn.del = params.deletion;
+  idsScoreFn.substitutionPrior = params.substitutionPrior;
+  idsScoreFn.globalDeletionPrior = params.globalDeletionPrior;
+  idsScoreFn.InitializeScoreMatrix(SMRTDistanceMatrix);
+
   int kbandScore;
   int qvAwareScore;
   if (params.ignoreQualities || qSeq.qual.Empty() || !ReadHasMeaningfulQualityValues(qSeq) ) {
@@ -1593,17 +1614,7 @@ void PairwiseLocalAlign(T_Sequence &qSeq, T_RefSequence &tSeq,
   }
   else {
 
-    QualityValueScoreFunction<DNASequence, FASTQSequence> scoreFn;
-    IDSScoreFunction<DNASequence, FASTQSequence> idsScoreFn;
-    scoreFn.del = params.indel;
-    scoreFn.ins = params.indel;
-    idsScoreFn.ins = params.insertion;
-    idsScoreFn.del = params.deletion;
-    idsScoreFn.substitutionPrior = params.substitutionPrior;
-    idsScoreFn.globalDeletionPrior = params.globalDeletionPrior;
-
-    idsScoreFn.InitializeScoreMatrix(SMRTDistanceMatrix);
-        
+       
     if (qSeq.insertionQV.Empty() == false) {
       qvAwareScore = KBandAlign(qSeq, tSeq, SMRTDistanceMatrix, 
                                 params.indel+2, // ins
@@ -1631,7 +1642,8 @@ void PairwiseLocalAlign(T_Sequence &qSeq, T_RefSequence &tSeq,
     alignment.probScore = 0;
   }
   // Compute stats and assign a default alignment score using an edit distance.
-  ComputeAlignmentStats(alignment, qSeq.seq, tSeq.seq, SMRTDistanceMatrix, params.indel, params.indel );
+  ComputeAlignmentStats(alignment, qSeq.seq, tSeq.seq, distScoreFn2);
+          //SMRTDistanceMatrix, params.indel, params.indel );
 
   if (params.scoreType == 1) {
     alignment.score = alignment.sumQVScore;
@@ -1648,10 +1660,12 @@ void RefineAlignment(vector<T_Sequence*> &bothQueryStrands,
 
   FASTQSequence qSeq;
   DNASequence   tSeq;
-  DistanceMatrixScoreFunction<DNASequence, FASTQSequence> distScoreFn;
-  distScoreFn.del = params.deletion;
-  distScoreFn.ins = params.insertion;
-  distScoreFn.InitializeScoreMatrix(SMRTDistanceMatrix);
+  DistanceMatrixScoreFunction<DNASequence, FASTQSequence> distScoreFn(
+          SMRTDistanceMatrix, params.deletion, params.insertion);
+
+  DistanceMatrixScoreFunction<DNASequence, FASTQSequence> distScoreFn2(
+          SMRTDistanceMatrix, params.indel, params.indel);
+
   QualityValueScoreFunction<DNASequence, FASTQSequence> scoreFn;
   IDSScoreFunction<DNASequence, FASTQSequence> idsScoreFn;
   idsScoreFn.InitializeScoreMatrix(SMRTDistanceMatrix);
@@ -1660,8 +1674,10 @@ void RefineAlignment(vector<T_Sequence*> &bothQueryStrands,
   idsScoreFn.ins = params.insertion;
   idsScoreFn.del = params.deletion;
   idsScoreFn.affineExtend = params.affineExtend;
+  idsScoreFn.affineOpen = params.affineOpen;
   idsScoreFn.substitutionPrior = params.substitutionPrior;
   idsScoreFn.globalDeletionPrior = params.globalDeletionPrior;
+
   if (params.doGlobalAlignment) {
     SMRTSequence subread;
     subread.ReferenceSubstring(*bothQueryStrands[0], 
@@ -1681,7 +1697,9 @@ void RefineAlignment(vector<T_Sequence*> &bothQueryStrands,
     ComputeAlignmentStats(refinedAlignment, 
                           subread.seq, 
                           alignmentCandidate.tAlignedSeq.seq, 
-                          SMRTDistanceMatrix, params.indel, params.indel);
+                          distScoreFn2);
+                          //idsScoreFn);
+                          //SMRTDistanceMatrix, params.indel, params.indel);
     
     alignmentCandidate.blocks = refinedAlignment.blocks;
     alignmentCandidate.gaps   = refinedAlignment.gaps;
@@ -1750,7 +1768,8 @@ void RefineAlignment(vector<T_Sequence*> &bothQueryStrands,
       ComputeAlignmentStats(refinedAlignment, 
                             qSeq.seq,
                             tSeq.seq, 
-                            SMRTDistanceMatrix, params.indel, params.indel);
+                            distScoreFn2, params.affineAlign);
+                            //SMRTDistanceMatrix, params.indel, params.indel);
       //
       // Copy the refine alignment, which may be a subsequence of the
       // alignmentCandidate into the alignment candidate.  
@@ -2632,6 +2651,7 @@ void StoreMapQVs(SMRTSequence &read,
   idsScoreFn.ins = params.insertion;
   idsScoreFn.del = params.deletion;
   idsScoreFn.affineExtend = params.affineExtend;
+  idsScoreFn.affineOpen = params.affineOpen;
   idsScoreFn.substitutionPrior = params.substitutionPrior;
   idsScoreFn.globalDeletionPrior = params.globalDeletionPrior;
 
@@ -2949,11 +2969,13 @@ void PrintAlignments(vector<T_AlignmentCandidate*> alignmentPtrs,
     }
 
     if (params.printSAM) {
+        DistanceMatrixScoreFunction<DNASequence, FASTASequence> editdistScoreFn(EditDistanceMatrix, 1, 1);
         T_AlignmentCandidate & alignment = *alignmentPtrs[i];
         alignmentContext.editDist = ComputeAlignmentScore(alignment,
             alignment.qAlignedSeq, 
             alignment.tAlignedSeq, 
-            EditDistanceMatrix, 1, 1);
+            editdistScoreFn);
+            //EditDistanceMatrix, 1, 1);
     }
     
     PrintAlignment(*alignmentPtrs[i], read, params, alignmentContext, outFile);
@@ -3133,6 +3155,8 @@ void AlignSubreadToAlignmentTarget(ReadAlignments & allReadAlignments,
   idsScoreFn.globalDeletionPrior = params.globalDeletionPrior;
   idsScoreFn.substitutionPrior   = params.substitutionPrior;
 
+  DistanceMatrixScoreFunction<DNASequence, FASTQSequence> distScoreFn2(
+          SMRTDistanceMatrix, params.indel, params.indel);
   //
   // Determine the strand to align the subread to.
   //
@@ -3173,9 +3197,12 @@ void AlignSubreadToAlignmentTarget(ReadAlignments & allReadAlignments,
   }
         
   if (exploded.blocks.size() > 0) {
+      DistanceMatrixScoreFunction<DNASequence, FASTQSequence> distScoreFn(
+          SMRTDistanceMatrix, params.indel, params.indel);
     ComputeAlignmentStats(exploded, subread.seq, 
-                          alignedRefSequence.seq, SMRTDistanceMatrix, 
-                          params.indel, params.indel);
+                          alignedRefSequence.seq, 
+                          distScoreFn2);
+                          //SMRTDistanceMatrix, params.indel, params.indel);
     if (exploded.score <= params.maxScore) {
       //
       // The coordinates of the alignment should be
@@ -4178,6 +4205,7 @@ int main(int argc, char* argv[]) {
   clp.RegisterFlagOption("preserveReadTitle", &params.preserveReadTitle,"");
   clp.RegisterFlagOption("forwardOnly", &params.forwardOnly,"");
   clp.RegisterFlagOption("affineAlign", &params.affineAlign, "");
+  clp.RegisterIntOption("affineOpen", &params.affineOpen, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterIntOption("affineExtend", &params.affineExtend, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterFlagOption("scaleMapQVByNClusters", &params.scaleMapQVByNumSignificantClusters, "", false);
   clp.ParseCommandLine(argc, argv, params.readsFileNames);

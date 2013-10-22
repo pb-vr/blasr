@@ -5,10 +5,10 @@
 #include "ScoreMatrices.h"
 #include "BaseScoreFunction.h"
 
-#include "../../FASTASequence.h"
-#include "../../FASTQSequence.h"
-#include "../../NucConversion.h"
-#include "../../utils/LogUtils.h"
+#include "FASTASequence.h"
+#include "FASTQSequence.h"
+#include "NucConversion.h"
+#include "utils/LogUtils.h"
 
 float  StepFraction(float f, float base) {
   float rem  = 1 - base;

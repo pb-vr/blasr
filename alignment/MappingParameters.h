@@ -168,6 +168,7 @@ class MappingParameters {
   bool  printOnlyBest;
   bool  affineAlign;
   int   affineExtend;
+  int   affineOpen;
   bool  scaleMapQVByNumSignificantClusters;
   int   limsAlign;
   string holeNumberRangesStr;
@@ -323,7 +324,8 @@ class MappingParameters {
     forwardOnly = false;
     printOnlyBest = false;
     affineAlign = false;
-    affineExtend = 5;
+    affineExtend = 0;
+    affineOpen = 10;
     scaleMapQVByNumSignificantClusters = false;
     limsAlign = 0;
     holeNumberRangesStr = "";

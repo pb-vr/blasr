@@ -8,16 +8,19 @@ class BaseScoreFunction {
   int substitutionPrior;
   int globalDeletionPrior;
   int affineExtend;
+  int affineOpen;
   BaseScoreFunction() {
-    ins = del = substitutionPrior = globalDeletionPrior = affineExtend = 0;
+    ins = del = substitutionPrior = globalDeletionPrior = 0;
+    affineOpen = affineExtend = 0;
   }
 
-  BaseScoreFunction(int insP, int delP, int subPriorP, int delPriorP, int affineExtensionP)  {
+  BaseScoreFunction(int insP, int delP, int subPriorP, int delPriorP, int affineExtensionP, int affineOpenP)  {
     ins = insP;
     del = delP;
     substitutionPrior = subPriorP;
     globalDeletionPrior = delPriorP;
     affineExtend = affineExtensionP;
+    affineOpen = affineOpenP;
   }
 };
 

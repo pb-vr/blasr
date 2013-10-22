@@ -454,14 +454,12 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
 		//
 		nReads = zmwReader.numEventArray.arrayLength;
 		
-
-
-		if (scanDataReader.platformId == AstroPlatform) {
+		if (scanDataReader.platformId == Astro) {
 			if (InitializeAstro() == 0) {
 				return 0;
 			}
 		}
-		else if (scanDataReader.platformId == SpringfieldPlatform) {
+		else if (scanDataReader.platformId == Springfield) {
 			if (InitializeSpringfield() == 0) {
 				return 0;
 			}
@@ -529,7 +527,7 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
             exit(1);
         }
 		curBasePos += seqLength;
-		seq.StorePlatformType(scanDataReader.platformId);
+		seq.StorePlatformId(scanDataReader.platformId);
 		return 1;
 	}
 

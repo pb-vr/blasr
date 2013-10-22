@@ -280,7 +280,8 @@ void MapAdaptersToRead(SMRTSequence &seq, vector<FASTASequence> &adapters,
                                 scoreMat, pathMat,
                                 alignment, idsScoreFn, Global);
       //        cout << "Pos: " << matchPos << " read pos: " << readStart << " n anchors: " << nMatches[matchPos] << endl;
-      ComputeAlignmentStats(alignment, readSeq.seq, adapters[a].seq, SMRTDistanceMatrix, idsScoreFn.ins, idsScoreFn.del);
+      ComputeAlignmentStats(alignment, readSeq.seq, adapters[a].seq, idsScoreFn);
+              //SMRTDistanceMatrix, idsScoreFn.ins, idsScoreFn.del);
       if (alignment.score < maxScore) {
         alignment.qName = seq.title;
         alignment.tName = adapters[a].title;
@@ -752,7 +753,8 @@ int main(int argc, char* argv[]) {
                                       insertion, deletion, k,
                                       scoreMat, pathMat,
                                       prefixAlignment, idsScoreFn, Global);            
-            ComputeAlignmentStats(prefixAlignment, prefix.seq, adapters[a].seq, SMRTDistanceMatrix, insertion, deletion);
+            ComputeAlignmentStats(prefixAlignment, prefix.seq, adapters[a].seq, idsScoreFn);
+                    //SMRTDistanceMatrix, insertion, deletion);
 
             frontAlignScores[a] = prefixAlignment.score;
             frontAlignEnd[a]    = prefixAlignment.GenomicTEnd();
@@ -784,7 +786,8 @@ int main(int argc, char* argv[]) {
                                       insertion, deletion, k,
                                       scoreMat, pathMat,
                                       suffixAlignment, idsScoreFn, Global);            
-            ComputeAlignmentStats(suffixAlignment, suffix.seq, adapters[a].seq, SMRTDistanceMatrix, insertion, deletion);
+            ComputeAlignmentStats(suffixAlignment, suffix.seq, adapters[a].seq, idsScoreFn);
+                    //SMRTDistanceMatrix, insertion, deletion);
 
             backAlignScores[a] = suffixAlignment.score;
             backAlignStart[a]  = seqToMask[seqIndex].length - (suffix.length - suffixAlignment.GenomicTBegin());

@@ -3,10 +3,10 @@
 #include <iostream>
 #include <vector>
 
-#include "../common/FASTAReader.h"
-#include "../common/FASTASequence.h"
-#include "../common/algorithms/alignment.h"
-#include "../common/CommandLineParser.h"
+#include "FASTAReader.h"
+#include "FASTASequence.h"
+#include "algorithms/alignment.h"
+#include "CommandLineParser.h"
 using namespace std;
 
 
@@ -32,10 +32,8 @@ void SplitRead(FASTASequence &read, int readStart, int readLength,
 	FASTASequence readSubseq;
 	readSubseq.seq = &read.seq[readStart];
 	readSubseq.length = readLength;
-	DistanceMatrixScoreFunction<FASTASequence, FASTASequence> distScoreFn;
-	distScoreFn.del = indelCost;
-	distScoreFn.ins = indelCost;
-	distScoreFn.InitializeScoreMatrix(SMRTDistanceMatrix);
+	DistanceMatrixScoreFunction<FASTASequence, FASTASequence> distScoreFn(
+            SMRTDistanceMatrix, indelCost, indelCost);
 
 	MatchedAlignment ad1Alignment, ad2Alignment;
 	ad1Score = SWAlign(ad1, readSubseq, scoreMat, pathMat, 
@@ -43,14 +41,16 @@ void SplitRead(FASTASequence &read, int readStart, int readLength,
 	ad1Alignment.tStart = ad1Alignment.qStart = 0;
 	cout << "adapter 1: " << endl;
 	StickPrintAlignment(ad1Alignment, ad1, readSubseq, cout);
-	ComputeAlignmentStats(ad1Alignment, ad1.seq, readSubseq.seq, SMRTDistanceMatrix, indelCost, indelCost);
+	ComputeAlignmentStats(ad1Alignment, ad1.seq, readSubseq.seq, distScoreFn);
+            //SMRTDistanceMatrix, indelCost, indelCost);
 	cout << endl;
 	cout << "adapter 2: " << endl;
 	ad2Score = SWAlign(ad2, readSubseq, scoreMat, pathMat, 
 										 ad2Alignment, distScoreFn, QueryFit);
 	ad2Alignment.tStart = ad2Alignment.qStart = 0;
 	StickPrintAlignment(ad2Alignment, ad2, readSubseq, cout);
-	ComputeAlignmentStats(ad2Alignment, ad2.seq, readSubseq.seq, SMRTDistanceMatrix, indelCost, indelCost);
+	ComputeAlignmentStats(ad2Alignment, ad2.seq, readSubseq.seq, distScoreFn);
+            //SMRTDistanceMatrix, indelCost, indelCost);
 	cout << ad1Alignment.pctSimilarity << " " << ad2Alignment.pctSimilarity << endl;
 	int adStart, adEnd;
 	adStart = adEnd = -1;

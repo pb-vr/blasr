@@ -1,7 +1,6 @@
 #include "data/hdf/HDFCmpFile.h"
 #include "data/hdf/HDFBasReader.h"
 #include "data/hdf/HDFPlsReader.h"
-#include "data/hdf/PlatformId.h"
 #include "datastructures/alignment/CmpFile.h"
 #include "datastructures/alignment/CmpAlignment.h"
 #include "datastructures/alignment/ByteAlignment.h"

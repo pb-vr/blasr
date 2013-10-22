@@ -7,7 +7,6 @@
 #include "data/hdf/BufferedHDF2DArray.h"
 #include "data/hdf/HDFAtom.h"
 #include "data/hdf/HDFFile.h"
-#include "data/hdf/PlatformId.h"
 #include "utils/SMRTReadUtils.h"
 #include "FASTQSequence.h"
 #include <sstream>
@@ -83,7 +82,7 @@ class HDFPlsWriter {
 		 * Default to astro for now.  This may need to change to a NO_ID
 		 * platform, in which case it must be set with Initialize().
 		 */
-		platformId = AstroPlatform;
+		platformId = Astro;
 	}
 	void AddMovieName(string movieName) {
 		movieNameAtom.Create(runInfoGroup, "MovieName",movieName);
@@ -92,11 +91,11 @@ class HDFPlsWriter {
 	 * Initialization without a runCode is implicitly a springfield
 	 * platform.  You can change it if you really want.
 	 */
-	void Initialize(string _hdfFileName, string movieName, PlatformId _platformId = SpringfieldPlatform) {
+	void Initialize(string _hdfFileName, string movieName, PlatformId _platformId = Springfield) {
 		Initialize(_hdfFileName, _platformId);
 		AddMovieName(movieName);
 	}
-	void Initialize(string _hdfFileName, string movieName, string runCode, PlatformId _platformId = AstroPlatform) {
+	void Initialize(string _hdfFileName, string movieName, string runCode, PlatformId _platformId = Astro) {
 		Initialize(_hdfFileName, _platformId);
 		if (movieName != "" and runCode != "")
 			AddRunInfo(movieName, runCode);
@@ -131,10 +130,10 @@ class HDFPlsWriter {
 		substitutionTagArray.Initialize(&baseCallGroup, "SubstitutionTag", bufferSize);
 		substitutionQVArray.Initialize(&baseCallGroup, "SubstitutionQV", bufferSize);
 
-		if (platformId == AstroPlatform) {
+		if (platformId == Astro) {
 			holeXY2D.Initialize(&zmwGroup, "HoleXY", 2, bufferSize);
 		}
-		else if (platformId == SpringfieldPlatform) {
+		else if (platformId == Springfield) {
 			holeNumberArray.Initialize(&zmwGroup, "HoleNumber", bufferSize);
 		}
 	}
@@ -167,7 +166,7 @@ class HDFPlsWriter {
 			substitutionTagArray.Write(seq.substitutionTag, seq.length);
 		}
 
-		if (platformId == AstroPlatform) {
+		if (platformId == Astro) {
 			// now extract the x an y coordinates.
 			int x, y;
 			GetSMRTReadCoordinates(seq, x, y);
@@ -177,7 +176,7 @@ class HDFPlsWriter {
 			seq.GetHoleNumber(holeNumber);
 			holeNumberArray.Write(&holeNumber, 1);			
 		}
-		else if( platformId == SpringfieldPlatform){ 
+		else if( platformId == Springfield){ 
 			unsigned int holeNumber;
 			GetSpringfieldHoleNumberFromTitle(seq, holeNumber);
 			holeNumberArray.Write(&holeNumber, 1);

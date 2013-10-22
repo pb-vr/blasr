@@ -1,7 +1,6 @@
 #include "data/hdf/HDFPlsReader.h"
 #include "data/hdf/HDFBasReader.h"
 #include "data/hdf/HDFBasWriter.h"
-#include "data/hdf/PlatformId.h"
 #include "utils/StringUtils.h"
 #include "utils/FileOfFileNames.h"
 #include "files/WriterAgglomerate.h"

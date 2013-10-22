@@ -7,9 +7,8 @@
 #include "HDFArray.h"
 #include "HDF2DArray.h"
 #include "HDFAtom.h"
-#include "PlatformId.h"
 
-#include "../../datastructures/reads/RegionTable.h"
+#include "datastructures/reads/RegionTable.h"
 
 using namespace H5;
 using namespace std;

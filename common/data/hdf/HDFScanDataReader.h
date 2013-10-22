@@ -3,9 +3,8 @@
 
 #include "HDFGroup.h"
 #include "HDFAtom.h"
-#include "PlatformId.h"
-#include "../../Enumerations.h"
-#include "../../datastructures/reads/ScanData.h"
+#include "Enumerations.h"
+#include "datastructures/reads/ScanData.h"
 //
 // The SanDataReader cannot live outside 
 
@@ -172,7 +171,7 @@ class HDFScanDataReader {
 			platformIdAtom.Read((unsigned int&)pid);
 		}
 		else {
-			pid = AstroPlatform;
+			pid = Astro;
 		}
 		return 1;
 	}

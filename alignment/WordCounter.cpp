@@ -5,12 +5,12 @@
 #include <algorithm>
 #include <stdlib.h>
 
-#include "../common/FASTASequence.h"
-#include "../common/FASTAReader.h"
-#include "../common/DNASequence.h"
-#include "../common/tuples/DNATuple.h"
-#include "../common/tuples/TupleMetrics.h"
-#include "../common/Types.h"
+#include "FASTASequence.h"
+#include "FASTAReader.h"
+#include "DNASequence.h"
+#include "tuples/DNATuple.h"
+#include "tuples/TupleMetrics.h"
+#include "Types.h"
 
 using namespace std;
 

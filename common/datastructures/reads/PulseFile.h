@@ -4,7 +4,6 @@
 #include <vector>
 #include "Types.h"
 #include "Enumerations.h"
-#include "data/hdf/PlatformId.h"
 #include "PulseBaseCommon.h"
 #include "ScanData.h"
 

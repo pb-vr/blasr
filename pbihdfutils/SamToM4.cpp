@@ -20,7 +20,7 @@
 #include "FASTAReader.h"
 #include "CommandLineParser.h"
 #include "utils/ChangeListID.h"
-#include "algorithms/alignment/ScoreMatrices.h"
+#include "algorithms/alignment/DistanceMatrixScoreFunction.h"
 #include "algorithms/alignment/AlignmentUtils.h"
 #include "algorithms/alignment/readers/sam/SAMReader.h"
 #include "algorithms/alignment/printers/IntervalAlignmentPrinter.h"
@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
 
     // The socre matrix does not matter because we will use the 
     // aligner's score from SAM file anyway.
-    int scoreMatrix[5][5];
+    DistanceMatrixScoreFunction<DNASequence, DNASequence> distScoreFn;
 
     while (samReader.GetNextAlignment(samAlignment)) {
         if (samAlignment.rName == "*") {
@@ -192,8 +192,7 @@ int main(int argc, char* argv[]) {
             AlignmentCandidate<> & alignment = convertedAlignments[i];
 
             ComputeAlignmentStats(alignment, alignment.qAlignedSeq.seq, 
-                                  alignment.tAlignedSeq.seq, scoreMatrix,
-                                  5, 5);
+                                  alignment.tAlignedSeq.seq, distScoreFn);
 
             // Use aligner's score from SAM file anyway.
             alignment.score = samAlignment.as;

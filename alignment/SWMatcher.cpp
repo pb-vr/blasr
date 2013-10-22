@@ -3,10 +3,12 @@
 #include <iostream>
 #include <vector>
 
-#include "../common/FASTAReader.h"
-#include "../common/FASTASequence.h"
-#include "../common/algorithms/alignment.h"
-#include "../common/algorithms/alignment/DistanceMatrixScoreFunction.h"
+#include "FASTAReader.h"
+#include "FASTASequence.h"
+#include "algorithms/alignment.h"
+#include "algorithms/alignment/DistanceMatrixScoreFunction.h"
+#include "algorithms/alignment/IDSScoreFunction.h"
+
 using namespace std;
 
 int main(int argc, char* argv[]) {
@@ -98,10 +100,8 @@ int main(int argc, char* argv[]) {
 		}
 		++argi;
 	}
-	DistanceMatrixScoreFunction<FASTASequence, FASTASequence> scoreFn;
-	scoreFn.InitializeScoreMatrix(SMRTDistanceMatrix);
-	scoreFn.ins = insertion;
-	scoreFn.del = deletion;
+	DistanceMatrixScoreFunction<FASTASequence, FASTASequence> scoreFn(
+            SMRTDistanceMatrix, insertion, deletion);
 
 	FASTASequence query, target;
 	FASTAReader queryReader, targetReader;
@@ -166,7 +166,8 @@ int main(int argc, char* argv[]) {
          << " " << alignment.tPos << " " << alignment.TEnd() << endl;
 
 		if (showAlign) {
-			ComputeAlignmentStats(alignment, query.seq, target.seq, SMRTDistanceMatrix, indelCost, indelCost);
+			ComputeAlignmentStats(alignment, query.seq, target.seq, scoreFn);
+                    //SMRTDistanceMatrix, indelCost, indelCost);
 			PrintAlignmentStats(alignment, cout);			
 			StickPrintAlignment(alignment, query, target, cout);
 		}

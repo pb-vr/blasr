@@ -6,7 +6,6 @@
 #include "Enumerations.h"
 #include "DNASequence.h"
 #include "datastructures/reads/ZMWGroupEntry.h"
-#include "data/hdf/PlatformId.h"
 #include <stdint.h>
 using namespace std;
 //
@@ -52,8 +51,7 @@ class FASTASequence : public DNASequence {
 	//
 	bool StoreHoleNumber(int holeNumber) {return false;}
 	bool StoreHoleStatus(unsigned char holeStatus) {return false;}
-	bool StorePlatformType(PlatformType platform) {return false;}
-	bool StorePlatformType(PlatformId platformId) { return false;}
+	bool StorePlatformId(PlatformId platform) {return false;}
 	bool StoreZMWData(ZMWGroupEntry &data) { return false;}
 	bool GetHoleNumber (int &holeNumberP) {
 		//

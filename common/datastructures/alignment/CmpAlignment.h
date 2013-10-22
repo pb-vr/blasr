@@ -14,7 +14,7 @@ class CmpAlignmentBase  {
 	//
 	// For use in referencing alignment sets. TODO: subclass.
 	//
-	PlatformType platformType;
+	PlatformId platformId;
 	int Z;
 	unsigned int index, readGroupId, movieId, refSeqId; 
 	unsigned int expId, runId, panel;
@@ -183,12 +183,12 @@ class CmpAlignmentBase  {
   
   
 
-	CmpAlignmentBase(PlatformType platformTypeP=Springfield) {
-		platformType = platformTypeP;
+	CmpAlignmentBase(PlatformId platformIdP=Springfield) {
+		platformId = platformIdP;
 	}
 
-	void SetPlatformType(PlatformType platformTypeP) {
-		platformType = platformTypeP;
+	void SetPlatformId(PlatformId platformIdP) {
+		platformId = platformIdP;
 	}
 };
 
@@ -202,7 +202,7 @@ class CmpAlignment : public CmpAlignmentBase {
 	int tStart, tLength;
 	//
 	// Default constructor just calls the base constructor to initialize platoformType
-  CmpAlignment(PlatformType ptype=Springfield) : CmpAlignmentBase(ptype) {
+  CmpAlignment(PlatformId ptype=Springfield) : CmpAlignmentBase(ptype) {
 	}
 
 	void StoreAlignmentIndex(unsigned int *alignmentIndexPtr, int alignmentIndexLength) {

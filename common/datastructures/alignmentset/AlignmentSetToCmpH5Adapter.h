@@ -6,7 +6,7 @@
 #include "AlignmentSet.h"
 #include "datastructures/alignment/AlignmentCandidate.h"
 #include "datastructures/alignment/ByteAlignment.h"
-#include "algorithms/alignment/ScoreMatrices.h"
+#include "algorithms/alignment/DistanceMatrixScoreFunction.h"
 
 class RefGroupNameId {
  public:
@@ -198,11 +198,10 @@ public:
     cmpFile.StoreAlnArray(byteAlignment, alignment.tName, movieName, offsetBegin, offsetEnd);
 
     numAlignments++;
-    /*    EditDistanceMatrix scoreMat;
-    */
-    int tmpMatrix[5][5];
-    // the 5,5 are indel penalties that do not matter since the score is not stored.
-    ComputeAlignmentStats(alignment, alignment.qAlignedSeq.seq, alignment.tAlignedSeq.seq, tmpMatrix, 5, 5);
+
+    DistanceMatrixScoreFunction<DNASequence, DNASequence> distScoreFn;
+    //distScoreFn does not matter since the score is not stored.
+    ComputeAlignmentStats(alignment, alignment.qAlignedSeq.seq, alignment.tAlignedSeq.seq, distScoreFn);
 
     /*
       The current AlnIndex column names:

@@ -14,7 +14,47 @@
 #include "datastructures/alignment/AlignmentCandidate.h"
 #include "data/hdf/HDFRegionTableWriter.h"
 #include "algorithms/alignment/printers/StickAlignmentPrinter.h"
+#include "statistics/statutils.h"
 #include <sys/stat.h>
+
+class Metrics {
+public:
+  int numFiltered;
+  vector<int> criticalAccuracy;
+  vector<int> criticalLength;
+  vector<int> gapLength;
+  vector<int> nSubreads;
+  string movieName;
+  Metrics() {
+    numFiltered = 0;
+  }
+
+  void Print(ostream &out) {
+    out << movieName << endl;
+    out.precision(2);
+    float meanCA, varCA, meanCL, varCL;
+    float meanGL, varGL;
+    MeanVar(criticalAccuracy, meanCA, varCA);
+    MeanVar(criticalLength, meanCL, varCL);
+    MeanVar(gapLength, meanGL, varGL);
+    
+    out << "critical_accuracy\t" << criticalAccuracy.size() << "\t"
+        << ios::fixed  << meanCA << "\t"<< varCA << endl;
+    out << "critical_length\t" << criticalLength.size() << "\t"
+        << ios::fixed  << meanCL << "\t"<< varCL << endl;
+    out << "gap_length\t" << gapLength.size() << "\t"
+        << ios::fixed  << meanGL << "\t"<< varGL << endl;
+    
+    int numMultiPass = 0;
+    int i;
+    for (i = 0; i < nSubreads.size(); i++) {
+      if (nSubreads[i] > 1) {
+        numMultiPass++;
+      }
+    }
+    out << "multi_pass\t"<<numMultiPass << "\t" << nSubreads.size() << endl;
+  }
+};
 
 class MappingBuffers {
 public:
@@ -39,7 +79,7 @@ public:
 };
 
 
-bool AlignmentHasIndel(AlignmentCandidate<> aln, int indelLength) {
+int AlignmentHasIndel(AlignmentCandidate<> aln, int indelLength) {
   int g, gi;
   if (aln.gaps.size() == 0) {
     return false;
@@ -47,7 +87,7 @@ bool AlignmentHasIndel(AlignmentCandidate<> aln, int indelLength) {
   for (g = 1; g < aln.gaps.size() - 1; g++) {
     for (gi = 0; gi < aln.gaps[g].size(); gi++) {
       if (aln.gaps[g][gi].length > indelLength) {
-        return true;
+        return aln.gaps[g][gi].length;
       }
     }
   }
@@ -78,6 +118,7 @@ int main(int argc, char* argv[]) {
   bool   printRegions = false;
   string regionOutDirName = "";
   string regionFofnFileName = "";
+  string metricsFileName = "";
 
   clp.RegisterStringOption("inFile", &inFileName, "Input bas.h5 or fofn.", true);
   clp.RegisterPreviousFlagsAsHidden();
@@ -102,6 +143,8 @@ int main(int argc, char* argv[]) {
                           CommandLineParser::PositiveFloat, false);
   clp.RegisterStringOption("filteredReadNames", &filteredReadNameFileName, 
                            "Print the names of reads that are filtered to this file.", false);
+  clp.RegisterStringOption("metricsFile", &metricsFileName,
+                           "Print some statistics about the filtering.", false);
   
   clp.ParseCommandLine(argc, argv);
   if (criticalAccuracyFileName != "") {
@@ -168,6 +211,10 @@ int main(int argc, char* argv[]) {
   if (regionFofnFileName != "") {
     CrucialOpen(regionFofnFileName, regionFofnFile, std::ios::out);
   }
+  ofstream metricsFile;
+  if (metricsFileName != "") {
+    CrucialOpen(metricsFileName, metricsFile, std::ios::out);
+  }
   
   DistanceMatrixScoreFunction<SMRTSequence, SMRTSequence> distScoreFn;
   distScoreFn.del = deletion;
@@ -189,6 +236,7 @@ int main(int argc, char* argv[]) {
     HDFBasReader reader;
     reader.InitializeDefaultIncludedFields();
     reader.Initialize(readFileNames[f]);
+    Metrics metrics;
     
     HDFRegionTableReader regionTableReader;
 
@@ -234,6 +282,9 @@ int main(int argc, char* argv[]) {
       smrtRead.lowQualityPrefix = hqStart;
       smrtRead.lowQualitySuffix = smrtRead.length - hqEnd;
       CollectSubreadIntervals(smrtRead, &regionTable, subreadIntervals);
+      if (hqStart > 0 and hqEnd > 0) {
+        metrics.nSubreads.push_back(subreadIntervals.size());
+      }
       int intvIndex;
       for (intvIndex = 1; intvIndex < subreadIntervals.size(); intvIndex++) {
 
@@ -285,8 +336,6 @@ int main(int argc, char* argv[]) {
                           mappingBuffers, 
                           refinedAlignment, Global, false);
 
-
-        bool alignmentHasIndel = AlignmentHasIndel(refinedAlignment, indelLength);
 
         string curStr, alnStr, prevStr;
         CreateAlignmentStrings(refinedAlignment, prevSubread.seq, curSubreadRC.seq, curStr, alnStr, prevStr, prevSubread.length, curSubread.length);
@@ -393,13 +442,17 @@ int main(int argc, char* argv[]) {
           for (a = 0; a < criticalAccuracyMinAccuracy and readIsGood; a++) {
             if (accLengths[a] >= criticalAccuracyMinLength) {
               readIsGood = false;
+              metrics.criticalAccuracy.push_back(a);
+              metrics.criticalLength.push_back(accLengths[a]);
             }
           }
         }
 
         if (filterByIndel) {
-          if (AlignmentHasIndel(refinedAlignment, indelLength)) {
+          int indelLength = 0;
+          if ((indelLength = AlignmentHasIndel(refinedAlignment, indelLength))) {
             readIsGood = false;
+            metrics.gapLength.push_back(indelLength);
           }
         }
 
@@ -460,6 +513,10 @@ int main(int argc, char* argv[]) {
       }
     }  
 
+    if (metricsFileName != "") {
+      metrics.Print(metricsFile);
+    }
+
     if (printRegions) {
       int r;
       regionTableWriter.WriteRows(regionTable.table);
@@ -482,6 +539,7 @@ int main(int argc, char* argv[]) {
   if (filteredReadNameFileName != "") {
     filteredReadNameFile.close();
   }
+  if (metricsFileName != "") {
+    metricsFile.close();
+  }
 }
-
-

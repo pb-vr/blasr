@@ -1,8 +1,11 @@
 #ifndef DATASTRUCTURES_READS_SCAN_DATA_H_
 #define DATASTRUCTURES_READS_SCAN_DATA_H_
 
-#include "../../Enumerations.h"
-#include "../../data/hdf/PlatformId.h"
+#include "Enumerations.h"
+#include <map>
+#include <string>
+using namespace std;
+
 class ScanData {
  public:
 	PlatformId platformId;
@@ -14,7 +17,12 @@ class ScanData {
 	string GetMovieName() {
 		return movieName;
 	}
-
+    ScanData() {
+        platformId = NoPlatform;
+        frameRate = numFrames = 0;
+        movieName = runCode = whenStarted = "";
+        baseMap.clear();
+    }
 };
 
 #endif
