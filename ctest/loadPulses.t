@@ -29,8 +29,6 @@ Set up the executable: loadPulses.
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
   \d+ differences found (re)
-  dataset: </FileLog/Version> and </FileLog/Version>
-  \d+ differences found (re)
   [1]
 
   $ rm -f $CMP_OUT_bymetric_1
@@ -42,8 +40,6 @@ Set up the executable: loadPulses.
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
-  \d+ differences found (re)
-  dataset: </FileLog/Version> and </FileLog/Version>
   \d+ differences found (re)
   [1]
 
@@ -69,8 +65,6 @@ Set up the executable: loadPulses.
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
   \d+ differences found (re)
-  dataset: </FileLog/Version> and </FileLog/Version>
-  \d+ differences found (re)
   [1]
 
   $ rm -f $CMP_OUT_bymetric_2
@@ -85,8 +79,6 @@ Set up the executable: loadPulses.
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
-  \d+ differences found (re)
-  dataset: </FileLog/Version> and </FileLog/Version>
   \d+ differences found (re)
   [1]
 
@@ -109,8 +101,6 @@ Set up the executable: loadPulses.
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
   \d+ differences found (re)
-  dataset: </FileLog/Version> and </FileLog/Version>
-  \d+ differences found (re)
   [1]
 
 
@@ -124,8 +114,6 @@ Set up the executable: loadPulses.
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
-  \d+ differences found (re)
-  dataset: </FileLog/Version> and </FileLog/Version>
   \d+ differences found (re)
   [1]
 
@@ -160,7 +148,7 @@ Set up the executable: loadPulses.
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
-  \d differences found (re)
+  \d+ differences found (re)
   dataset: </FileLog/Version> and </FileLog/Version>
   \d+ differences found (re)
   [1]
@@ -185,7 +173,7 @@ Set up the executable: loadPulses.
   dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
-  \d differences found (re)
+  \d+ differences found (re)
   dataset: </FileLog/Version> and </FileLog/Version>
   \d+ differences found (re)
   [1]

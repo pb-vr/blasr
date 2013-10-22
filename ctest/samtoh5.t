@@ -19,9 +19,9 @@ Set up the executable: samtoh5.
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
   \d+ differences found (re)
-  dataset: </FileLog/Version> and </FileLog/Version>
-  \d+ differences found (re)
   [1]
+#  dataset: </FileLog/Version> and </FileLog/Version>
+#  \d+ differences found (re)
 
 #Verify bug 21794 has been fixed. 
 #samtoh5 should print the following error message.
@@ -44,9 +44,9 @@ Set up the executable: samtoh5.
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
   \d+ differences found (re)
-  dataset: </FileLog/Version> and </FileLog/Version>
-  \d+ differences found (re)
   [1]
+#  dataset: </FileLog/Version> and </FileLog/Version>
+#  \d+ differences found (re)
 
 #Test more out-of-boundary cases. samtoh5 prints warnings.
   $ rm -f $OUTDIR/bad2.cmp.h5
@@ -68,9 +68,9 @@ Set up the executable: samtoh5.
   \d+ differences found (re)
   dataset: </FileLog/Timestamp> and </FileLog/Timestamp>
   \d+ differences found (re)
-  dataset: </FileLog/Version> and </FileLog/Version>
-  \d+ differences found (re)
   [1]
+#  dataset: </FileLog/Version> and </FileLog/Version>
+#  \d+ differences found (re)
 
   $ h5dump --dataset /RefInfo/FullName $OUTDIR/ecoli_fullRefName.cmp.h5 | sed -n '11p'
      (0): "ref000001|gi|49175990|ref|NC_000913.2| Escherichia coli str. K-12 substr. MG1655 chromosome, complete genome"

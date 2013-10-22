@@ -15,7 +15,7 @@ Define tmporary files
 
 Test blasr on ecoli.
 Test blasr with -sam
-#See $STDOUT/ecoli.sam for 1.4 output.
+#See $STDOUT/ecoli_v1.4.sam for 1.4 output.
   $ rm -rf $OUTDIR/ecoli.sam
   $ $EXEC $DATDIR/ecoli.fasta $DATDIR/ecoli_reference.fasta -sam -out $OUTDIR/ecoli.sam -nproc 15
   [INFO]* (glob)
