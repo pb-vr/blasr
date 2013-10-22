@@ -128,8 +128,7 @@ int main(int argc, char* argv[]) {
                               alignment, 
                               alignType,
                               refineAlignments,
-                              false,
-                              0);
+                              false);
 
         if (alignScore > 0){ // in rare cases the SDP returns positive. 
             alignScore = 0;  // this makes it more like a true local alignment
