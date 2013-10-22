@@ -50,6 +50,24 @@ class LengthHistogram {
         f = i;
       }
     }
+    if (lengths.size() != 0) {
+        lengthHistogram.data.push_back(lengths[lengths.size()-1]);
+        lengthHistogram.cdf.push_back(lengths.size());
+    }
+    /* Tests:
+     * indices                0 1 2 3 4  5  6
+     * lengths:               1 3 5 9 10 10 11
+     * lengthHistogram.data:  1 3 5 9 10 11
+     * lengthHistogram.cdf :  1 2 3 4 6  7
+     *
+     * lengths:               1 3 5 9 10 11
+     * lengthHistogram.data:  1 3 5 9 10 11
+     * lengthHistogram.cdf :  1 2 3 4 5  6
+     *
+     * lengths:               10
+     * lengthHistogram.data:  10
+     * lengthHistogram.cdf :  1 
+     */ 
   }
 };
 

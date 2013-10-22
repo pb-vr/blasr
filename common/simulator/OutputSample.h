@@ -6,7 +6,7 @@
 
 class OutputSample {
  public:
-  typedef enum Type {Match, Insertion, Deletion, Substitution};
+  enum Type {Match, Insertion, Deletion, Substitution};
   
   vector<QualitySample> qualities;
   vector<Nucleotide>    nucleotides;

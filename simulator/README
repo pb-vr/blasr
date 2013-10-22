@@ -14,7 +14,7 @@ The general usage is:
  -genome genome.fasta Simulate reads from the reference genome
  'genome.fasta'.
 
-  -sourceReadsFile filename When set, simulate reads by reading from
+  -sourceReads filename When set, simulate reads by reading from
             'filename', rather than simulating from a genome.  The
             format of the fasta titles should be
             >read_index|chr|start_pos|end_pos
