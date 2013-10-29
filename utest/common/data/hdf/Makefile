@@ -20,7 +20,7 @@ $(EXECS): % : %.o
 
 
 gtest: $(EXECS)
-	@(for exe in $(EXECS); do echo "Running $$exe"; ./$$exe; done)
+	@(for exe in $(EXECS); do echo "Running $$exe"; ./$$exe --gtest_output=xml:$(ROOT_DIR)/$$exe.xml; done)
 
 clean: 
 	@rm -f $(OBJECTS) $(EXECS)

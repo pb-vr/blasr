@@ -7,7 +7,7 @@ HDF5LIBDIR     ?= ../../seymour/dist/common/lib/
 HDF5LIB    = hdf5
 HDF5LIBCPP = hdf5_cpp
 
-GTEST_DIR = /home/UNIXHOME/yli/Software/gtest-1.6.0
+GTEST_DIR = /mnt/secondary-siv/third_party_source/gtest-1.6.0
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
 GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
@@ -26,7 +26,7 @@ CCOPTS  = $(GCCOPTS) $(INCLUDEDIRS)
 
 CPP = g++
 
-LDFLAGS = -lpthread
+LDFLAGS = -lpthread -L$(HDF5LIBDIR)
 
 
 
