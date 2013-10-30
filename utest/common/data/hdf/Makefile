@@ -8,7 +8,7 @@ SOURCES = $(wildcard *.cpp)
 OBJECTS = $(SOURCES:.cpp=.o)
 EXECS = $(SOURCES:.cpp=) 
 
-LDFLAGS = -l$(HDF5LIB) -l$(HDF5LIBCPP) -lz 
+LDFLAGS += -l$(HDF5LIB) -l$(HDF5LIBCPP) -lz 
 
 all: $(SOURCES) $(OBJECTS) $(EXECS)
 
