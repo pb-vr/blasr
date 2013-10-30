@@ -100,7 +100,7 @@ bin/pls2fasta: bin/PulseToFasta.o
 	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  $(HDF5LDFLAGS) 
 
 bin/LoadPulses.o: LoadPulses.cpp
-	$(CPP) $(INCLUDEDIRS) $(CPPOPTS) -fno-trapping-math -g -c $<  -o $@
+	$(CPP) $(INCLUDEDIRS) $(CPPOPTS) -fno-trapping-math -c $<  -o $@
 
 bin/loadPulses: bin/LoadPulses.o
 	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@  $(HDF5LDFLAGS) 
