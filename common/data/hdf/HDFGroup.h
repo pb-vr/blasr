@@ -70,6 +70,7 @@ class HDFGroup : public HDFAttributable {
 	void Close() {
 		if (groupIsInitialized) {
 			group.close();
+            groupIsInitialized = false;
 		}
 	}
 };

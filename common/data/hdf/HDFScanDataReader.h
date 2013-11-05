@@ -59,6 +59,7 @@ class HDFScanDataReader {
 		return 1;
 	}
 
+
 	//
 	// This is created on top of a file that is already opened, so
 	// instead of initializing by opening a file, it is initialized by
@@ -66,7 +67,6 @@ class HDFScanDataReader {
 	// When shutting down, no file handle needs to be closed.
 	//
 	int Initialize(HDFGroup *pulseDataGroup) {
-
 		//
 		// Initiailze groups for reading data.
 		//
@@ -132,6 +132,36 @@ class HDFScanDataReader {
 		LoadMovieName(movieName);
 		return movieName;
 	}
+
+    // Given a PacBio (pls/plx/bas/bax/ccs/rgn).h5 file, which contains its movie 
+    // name in group /ScanData/RunInfo attribute MovieName, open the file, return
+    // its movie name and finally close the file. Return "" if the movie name 
+    // does not exist. This is a short path to get movie name.
+    string GetMovieName_and_Close(string & fileName) {
+        HDFFile file;
+        file.Open(fileName, H5F_ACC_RDONLY);
+        int init = 0;
+
+        fileHasScanData = false;
+        if (file.rootGroup.ContainsObject("ScanData") == 0 or 
+            scanDataGroup.Initialize(file.rootGroup, "ScanData") == 0) {
+            return ""; 
+        }
+        fileHasScanData = true;
+
+        initializedRunInfoGroup = false;
+        if (scanDataGroup.ContainsObject("RunInfo") == 0 or
+            runInfoGroup.Initialize(scanDataGroup.group, "RunInfo") == 0) {
+            return "";
+        }
+        initializedRunInfoGroup = true;
+        
+        string movieName;
+        LoadMovieName(movieName);
+        Close();
+        file.Close();
+        return movieName;
+    }
 	
 	string GetRunCode() {
 		return runCode;
@@ -216,12 +246,15 @@ class HDFScanDataReader {
 	void Close() {
 		if (useMovieName) {
 			movieNameAtom.dataspace.close();
+            useMovieName = false;
 		}
 		if (useRunCode) {
 			runCodeAtom.dataspace.close();
+            useRunCode = false;
 		}
         if (useWhenStarted) {
             whenStartedAtom.dataspace.close();
+            useWhenStarted = false;
         }
         baseMapAtom.dataspace.close();
 	    platformIdAtom.dataspace.close();

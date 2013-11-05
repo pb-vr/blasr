@@ -1,4 +1,5 @@
 #include "data/hdf/HDFPlsReader.h"
+#include "data/hdf/HDFUtils.h"
 #include "data/hdf/HDFRegionTableReader.h"
 #include "datastructures/reads/RegionTable.h"
 #include "datastructures/reads/ReadInterval.h"
@@ -47,7 +48,7 @@ int main(int argc, char* argv[]) {
 
   clp.SetProgramName(program);
   clp.SetVersion(versionString);
-  clp.RegisterStringOption("in.pls.h5", &plsFileName, "Input pls.h5/bax.h5/fofn file.", true);
+  clp.RegisterStringOption("in.bax.h5", &plsFileName, "Input plx.h5/bax.h5/fofn file.", true);
   clp.RegisterStringOption("out.fasta", &fastaOutName, "Output fasta/fastq file.", true);
   clp.RegisterPreviousFlagsAsHidden();
   clp.RegisterFlagOption("trimByRegion", &trimByRegion, "Trim away low quality regions.");
@@ -64,7 +65,7 @@ int main(int argc, char* argv[]) {
                         "A typical value would be between 750 and 800.  This does not apply to ccs reads.", CommandLineParser::NonNegativeInteger);
   clp.RegisterFlagOption("best", &printOnlyBest, "If a CCS sequence exists, print this.  Otherwise, print the longest"
                          "subread.  This does not support fastq.");
-  string description = ("Converts pls.h5/bax.h5/fofn files to fasta or fastq files. Although fasta files are provided"
+  string description = ("Converts plx.h5/bax.h5/fofn files to fasta or fastq files. Although fasta files are provided"
   " with every run, they are not trimmed nor split into subreads. This program takes "
   "additional annotation information, such as the subread coordinates and high quality regions "
   "and uses them to create fasta sequences that are substrings of all bases called. Most of the time "
@@ -84,101 +85,93 @@ int main(int argc, char* argv[]) {
     lineLength = 0;
   }
 
-	if (FileOfFileNames::IsFOFN(plsFileName)) {
-		FileOfFileNames::FOFNToList(plsFileName, plsFileNames);
-	}
-	else {
-		plsFileNames.push_back(plsFileName);
-	}
+
+    FileOfFileNames::StoreFileOrFileList(plsFileName, plsFileNames);
 	if (regionsFOFNName == "") {
 		regionFileNames = plsFileNames;
 	}
 	else {
-		if (FileOfFileNames::IsFOFN(regionsFOFNName)) {
-			FileOfFileNames::FOFNToList(regionsFOFNName, regionFileNames);
-		}
-		else {
-			regionFileNames.push_back(regionsFOFNName);
-		}
+        FileOfFileNames::StoreFileOrFileList(regionsFOFNName, regionFileNames);
 	}
-
-
-
+    
 	ofstream fastaOut;
 	CrucialOpen(fastaOutName, fastaOut);
 	int plsFileIndex;
 	HDFRegionTableReader hdfRegionReader;
-  sort(holeNumbers.begin(), holeNumbers.end());
-	for (plsFileIndex = 0; plsFileIndex < plsFileNames.size(); plsFileIndex++) {
-		if (trimByRegion or maskByRegion or splitSubreads) {
-			hdfRegionReader.Initialize(regionFileNames[plsFileIndex]);
-			hdfRegionReader.ReadTable(regionTable);
-			regionTable.SortTableByHoleNumber();
-		}
-		
-		ReaderAgglomerate reader;
-    HDFBasReader ccsReader;
+    sort(holeNumbers.begin(), holeNumbers.end());
 
-    if (printOnlyBest) {
-      ccsReader.SetReadBasesFromCCS();
-      ccsReader.Initialize(plsFileNames[plsFileIndex]);
-    }
-    if (printCcs == false) {
-  		reader.IgnoreCCS();
-    }
-    else {
-      reader.hdfBasReader.SetReadBasesFromCCS();
-    }
-		if (addSimulatedData) {
-			reader.hdfBasReader.IncludeField("SimulatedCoordinate");
-			reader.hdfBasReader.IncludeField("SimulatedSequenceIndex");
-		}
-
-        if (reader.SetReadFileName(plsFileNames[plsFileIndex]) == 0) {
-          cout << "ERROR, could not determine file type."
-               << plsFileNames[plsFileIndex] << endl;
-          exit(1);
-        }
-        if (reader.Initialize() == 0) {
-          cout << "ERROR, could not initialize file "
-               << plsFileNames[plsFileIndex] << endl;
-          exit(1);
+    vector<int> pls2rgn = MapPls2Rgn(plsFileNames, regionFileNames);
+   
+    for (plsFileIndex = 0; plsFileIndex < plsFileNames.size(); plsFileIndex++) {
+        if (trimByRegion or maskByRegion or splitSubreads) {
+            hdfRegionReader.Initialize(regionFileNames[pls2rgn[plsFileIndex]]);
+            hdfRegionReader.ReadTable(regionTable);
+            regionTable.SortTableByHoleNumber();
         }
 
-		DNALength simulatedCoordinate;
-		DNALength simulatedSequenceIndex;
-		reader.SkipReadQuality();
-		SMRTSequence seq;
-		vector<ReadInterval> subreadIntervals;;
-    SMRTSequence ccsSeq;
-		while (reader.GetNext(seq)) {
-      if (printOnlyBest) {
-        ccsReader.GetNext(ccsSeq);
-      }
+        ReaderAgglomerate reader;
+        HDFBasReader ccsReader;
 
-      if (holeNumbers.size() != 0 and 
-          binary_search(holeNumbers.begin(), holeNumbers.end(), seq.zmwData.holeNumber) == false) {
-        continue;
-      }
-
-      if (seq.length == 0) {
-        continue;
-      }
-
-			if (addSimulatedData) {
-				reader.hdfBasReader.simulatedCoordinateArray.Read(reader.hdfBasReader.curRead-1, reader.hdfBasReader.curRead, &simulatedCoordinate);
-				reader.hdfBasReader.simulatedSequenceIndexArray.Read(reader.hdfBasReader.curRead-1, reader.hdfBasReader.curRead, &simulatedSequenceIndex);
-			}
-
-		  if (printCcs == true) {
-        if (printFastq == false) {
-          seq.PrintSeq(fastaOut);
+        if (printOnlyBest) {
+            ccsReader.SetReadBasesFromCCS();
+            ccsReader.Initialize(plsFileNames[plsFileIndex]);
+        }
+        if (printCcs == false) {
+            reader.IgnoreCCS();
         }
         else {
-          seq.PrintFastq(fastaOut, lineLength);
+            reader.hdfBasReader.SetReadBasesFromCCS();
         }
-        continue;
-      }	
+        if (addSimulatedData) {
+            reader.hdfBasReader.IncludeField("SimulatedCoordinate");
+            reader.hdfBasReader.IncludeField("SimulatedSequenceIndex");
+        }
+
+        if (reader.SetReadFileName(plsFileNames[plsFileIndex]) == 0) {
+            cout << "ERROR, could not determine file type."
+                << plsFileNames[plsFileIndex] << endl;
+            exit(1);
+        }
+        if (reader.Initialize() == 0) {
+            cout << "ERROR, could not initialize file "
+                << plsFileNames[plsFileIndex] << endl;
+            exit(1);
+        }
+
+        DNALength simulatedCoordinate;
+        DNALength simulatedSequenceIndex;
+        reader.SkipReadQuality();
+        SMRTSequence seq;
+        vector<ReadInterval> subreadIntervals;;
+        SMRTSequence ccsSeq;
+        while (reader.GetNext(seq)) {
+            if (printOnlyBest) {
+                ccsReader.GetNext(ccsSeq);
+            }
+
+            if (holeNumbers.size() != 0 and 
+                    binary_search(holeNumbers.begin(), holeNumbers.end(), seq.zmwData.holeNumber) == false) {
+                continue;
+            }
+
+            if (seq.length == 0) {
+                continue;
+            }
+
+            if (addSimulatedData) {
+                reader.hdfBasReader.simulatedCoordinateArray.Read(reader.hdfBasReader.curRead-1, reader.hdfBasReader.curRead, &simulatedCoordinate);
+                reader.hdfBasReader.simulatedSequenceIndexArray.Read(reader.hdfBasReader.curRead-1, reader.hdfBasReader.curRead, &simulatedSequenceIndex);
+            }
+
+            if (printCcs == true) {
+                if (printFastq == false) {
+                    seq.PrintSeq(fastaOut);
+                }
+                else {
+                    seq.PrintFastq(fastaOut, lineLength);
+                }
+                continue;
+            }	
 
       //
       // Determine the high quality boundaries of the read.  This is

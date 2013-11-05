@@ -140,6 +140,17 @@ class HDFPulseDataFile {
 		return holeNumbers.size();
 	}	
 
+    void GetMinMaxHoleNumber(UInt & minHole, UInt & maxHole) {
+        assert(nReads >= 0);
+        // Assume that hole numbers are ascendingly sorted in ZMW/HoleNumber.
+        if (not zmwReader.GetHoleNumberAt(0, minHole) or 
+            not zmwReader.GetHoleNumberAt(nReads - 1, maxHole)) {
+            cout << "ERROR, could not get the minimum and maximum hole numbers "
+                 << "from ZMW HoleNumbers." << endl;
+            exit(1);
+        }
+    }
+
 	void Close() {
 		if (useScanData) {
 			scanDataReader.Close();

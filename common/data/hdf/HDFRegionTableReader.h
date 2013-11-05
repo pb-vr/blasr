@@ -90,9 +90,42 @@ class HDFRegionTableReader {
 		regions.Read(curRow, curRow+1, annotation.row);
 		++curRow;
 		return 1;
-	}	
+    }	
 
-	void RegionTypesToMap(RegionTable &table) {
+    int GetRegionAt(RegionAnnotation & annotation, int rowIndex) {
+        if (fileContainsRegionTable == false) {
+			return 0;
+		}
+
+		if (rowIndex == nRows) {
+			return 0;
+		}
+		regions.Read(rowIndex, rowIndex + 1, annotation.row);
+        return 1;
+    }
+
+    // Get the minimum and maximum holeNumbers in the region table.
+    void GetMinMaxHoleNumber(UInt & minHole, UInt & maxHole) {
+        // Hole numbers may not be sorted ascendingly, so do not
+        // return the first and last hole numbers as the min and max.
+        UInt saveCurRow = curRow;
+        curRow = 0;
+        bool init = false;
+        RegionAnnotation annotation;
+        while (GetNext(annotation) == 1) {
+            UInt curHole = annotation.GetHoleNumber();
+            if (not init) {
+                minHole = maxHole = curHole;
+                init = true;
+            } else {
+                minHole = (minHole > curHole)?(curHole):(minHole);
+                maxHole = (maxHole < curHole)?(curHole):(maxHole);
+            }
+        }
+        curRow = saveCurRow;
+    }
+
+    void RegionTypesToMap(RegionTable &table) {
 		int i;
 		table.regionTypeEnums.resize(table.regionTypes.size());
 		for (i = 0;i < table.regionTypes.size(); i++) {

@@ -15,7 +15,7 @@ typedef enum T_Strand {Forward, Reverse} Strand;
 typedef enum T_PlatformType {
 	Springfield,
 	Astro,
-  NoPlatform,
+  NoPlatform
 } PlatformId;
 
 typedef enum T_RegionType {

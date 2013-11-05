@@ -47,3 +47,7 @@ const string titleTable1 =
     ("/mnt/secondary-siv/secondarytest/testdata/BlasrTestData/utest/"
      "data/titleTable1");
  
+const string rgnFile1 =
+    ("/mnt/secondary-siv/secondarytest/testdata/BlasrTestData/utest/"
+     "data/test_regionTable.rgn.h5");
+

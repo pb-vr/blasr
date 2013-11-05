@@ -121,6 +121,13 @@ class HDFZMWReader {
 		return true;
 	}
 
+    // Return true if get hole number at ZMW/HoleNumber[index].
+    bool GetHoleNumberAt(UInt index, UInt & holeNumber) {
+        if (index >= nZMWEntries) { return false; }
+        holeNumberArray.Read(index, index + 1, (UInt *)&holeNumber); 
+        return true;
+    }
+
 	void Close() {
 		if (readHoleNumber) {
 			holeNumberArray.Close();
