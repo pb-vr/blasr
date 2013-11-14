@@ -139,6 +139,7 @@ void PelusaOverlapper::populateBlooms()
     cerr << "Pelusa collision count " << this->collisionCount << endl;
 } 
 
+
 // overload for different hash functions, number etc.
 void PelusaOverlapper::addRecordFeatures(FastaRecord * record)
 {	
@@ -276,10 +277,10 @@ int PelusaOverlapper::queryRecord(
         for (int jdx=idx+1; jdx < topIndices->size(); jdx++)
         {
             int topIndexJ = (*topIndices)[jdx];
-            pair<int, int> possiblePairOne = 
-                pair<int, int>(topIndexI, topIndexJ);
-            pair<int, int> possiblePairTwo = 
-                pair<int, int>(topIndexJ, topIndexI);
+        	pair<uint, uint> key = 	topIndexI < topIndexJ ?
+		 				 	pair<uint, uint>(topIndexI, topIndexJ) 	:
+			 				pair<uint, uint>(topIndexJ, topIndexI);
+
             int score = min(sumFeatures[topIndexI], sumFeatures[topIndexJ]);
             if (debug)
             {
@@ -288,17 +289,12 @@ int PelusaOverlapper::queryRecord(
                                         score << endl;
             }
             string hit;
-            if (hashToIds.count(possiblePairOne) != 0) 
+            if (hashToIds.count(key) != 0) 
             {
-               hit = hashToIds.find(possiblePairOne)->second;
+                hit = hashToIds.find(key)->second;
+                id2score->insert(pair<string, int>(hit, score));
+                numHits++;
             }
-            else if (hashToIds.count(possiblePairTwo) != 0) 
-            {
-               hit = hashToIds.find(possiblePairTwo)->second;
-            }
-
-            id2score->insert(pair<string, int>(hit, score));
-            numHits++;
         }
     }
 	
