@@ -19,37 +19,66 @@ PelusaOverlapper::PelusaOverlapper()
 		targetFile(""),
 		numProcs(1),
 		kmerLength(8),
-		bloomWidth(2000),
-		numSegments(2),
-		topColumns(10),
-		encoder(NULL),
-		collisionCount(0)
+		encoder(NULL)
 {
 	
 }
 
 PelusaOverlapper::~PelusaOverlapper()
 {
-	// create our bloom filters
 	for (int featureIdx = 0; featureIdx < numFeatures; featureIdx++)
 	{
 		delete(blooms[featureIdx]);
 	}
 	delete(encoder);
-	for(map<pair<uint,uint>, vector<string>* >::const_iterator it = hashToIds.begin(); it != hashToIds.end(); ++it)
+	/*TODO  take out completely for(map<pair<uint,uint>, vector<string>* >::const_iterator it = hashToIds.begin(); it != hashToIds.end(); ++it)
 	{
 		delete( (*it).second );
-	}
+	}*/
 	delete(byte2shorts);
 }
 
 void PelusaOverlapper::run()
 {
+    /* TODO remove
+     * below is benchmarking code
+     * int startTime = time(0);
+    cerr << "Allocating GB array " << time(0) - startTime << endl;
+    int array_size = 1073741824;
+    int *big_array = new(int[array_size]);
+    cerr << "Populating GB array " << time(0) - startTime << endl;
+    for (int idx=0; idx < array_size; idx++)
+    {
+        big_array[idx] = idx;
+    }
+    cerr << "Finished populating array " << time(0) - startTime <<  endl;
+    int sub_array_size = 65536;
+    int *sub_array = new(int[sub_array_size]);
+    cerr << "Summing 16384 64k blocks. " << time(0) - startTime << endl;
+    for (int subIdx=0; subIdx < 16384; subIdx++)
+    {
+        // (rand() % 16384) * sub_array_size;
+        // int startIdx = subIdx * sub_array_size; 
+        int startIdx = (rand() % 16384) * sub_array_size;
+        for (int sumIdx =0 ; sumIdx < sub_array_size; sumIdx++)
+        {
+            sub_array[sumIdx] = big_array[startIdx + sumIdx];
+        }
+    }
+    // changing to sum above adds a second
+    cerr << "Finished summing 16384 64k blocks. " << 
+            time(0) - startTime << endl;
+            */
+
 	encoder = new FeatureEncoder(kmerLength);
 	numFeatures = encoder->getNumFeatures(); // TODO should be in constructor?
+    cerr << "Initializing bloom filters" << endl; // TODO put in real logging
 	initializeBlooms();
+    cerr << "Populating bloom filters" << endl; // TODO put in real logging
 	populateBlooms();
+    cerr << "Querying bloom filters" << endl; // TODO put in real logging
 	queryBlooms();
+    cerr << "Finished pelusa" << endl; // TODO put in real logging
 }
 
 void PelusaOverlapper::initializeBlooms()
@@ -81,9 +110,14 @@ void PelusaOverlapper::initializeBlooms()
 void PelusaOverlapper::populateBlooms()
 {     
 	FILE* file = fopen(targetFile.c_str(), "r");
+    int recordCount = 0;
 	while(true)
 	{
 		FastaRecord * record = new FastaRecord();
+        if (++recordCount % 100 == 0)
+        {
+            cerr << "Populated record " << recordCount << endl;
+        }
 		if (!record->parseRecord(file))
 		{	
 			delete(record);
@@ -101,7 +135,7 @@ void PelusaOverlapper::populateBlooms()
 	}
 	fclose(file);
     
-    if (debug) cerr << this->toString() << endl; 
+    // if (debug) cerr << this->toString() << endl; 
     cerr << "Pelusa collision count " << this->collisionCount << endl;
 } 
 
@@ -112,31 +146,33 @@ void PelusaOverlapper::addRecordFeatures(FastaRecord * record)
 	uint firstHashIdx  = RSHash(record->name) % bloomWidth;
 	// uint secondHashIdx = JSHash(record->name) % bloomWidth;
 	uint secondHashIdx = JSHash(record->name) % bloomWidth;
+    // TODO pull out into routine for use below as well
 	pair<uint, uint> key = 	firstHashIdx < secondHashIdx 				?
 		 				 	pair<uint, uint>(firstHashIdx, secondHashIdx) 	:
 			 				pair<uint, uint>(secondHashIdx, firstHashIdx);
 	
-	// if (debug) cerr << "Hash id = " << key.first << " " << key.second << endl; 
+	if (debug) 
+        cerr << "Hash id for " << record->name << " = " << key.first << " - " << key.second << endl; 
 	
 	// add to our global map for mapping hash values back to record names
 
-	if(hashToIds.count(key) == 0)
-	{
-		// PelusaOverlapper owns the vector // TODO delete vector in destructor
-		vector<string>* strings = new vector<string>;
-		hashToIds.insert( pair< pair<uint, uint>, vector<string>*>( key, strings )); 
-	}
-	else
-	{
-		collisionCount += 1;
-	}
-	hashToIds.find(key)->second->push_back( record->name );
+    while(true)
+    {
+        if(hashToIds.count(key) == 0)
+            break;
+        collisionCount += 1;
+        secondHashIdx += collisionCount;
+        secondHashIdx %= bloomWidth;
+        key = firstHashIdx < secondHashIdx 				?
+		 	    pair<uint, uint>(firstHashIdx, secondHashIdx) 	:
+			 	pair<uint, uint>(secondHashIdx, firstHashIdx);
+    }
+	hashToIds.insert( pair < pair<uint, uint>, string > (key, record->name));
 	
 	// set the bits at the hashed index positions in each feature's bloom filter
 	// TODO replace with a stack array for efficiency?
 	vector<uint>* features = new vector<uint>; 
 	encoder->encode(record->sequence, features);
-	if (debug) cerr << "hash=" << key.first << "," << key.second << endl;
 	for (uint featureIdx=0; featureIdx < features->size(); featureIdx++)
 	{
 		// if (debug) cerr << "Feature " << featureIdx << "=" << (*features)[featureIdx] << endl;
@@ -151,6 +187,7 @@ void PelusaOverlapper::addRecordFeatures(FastaRecord * record)
 void* threadStarter(void* arg)
 {
 	void * dummy;
+    // TODO better return value
 	((PelusaWorker*)arg)->run();	
 	return dummy;
 }
@@ -189,141 +226,105 @@ void PelusaOverlapper::queryBlooms()
 	fclose(file);
 }
 
-int PelusaOverlapper::queryRecord(FastaRecord * record, map<string, int>* id2score)
+int PelusaOverlapper::queryRecord(
+        FastaRecord * record, 
+        map<string, int>* id2score)
 {
-	
 	if (record->sequence.length() < (uint) kmerLength)
 	{
-		cerr << "Sequence of length " << record->sequence.length() << " is too small for k of length " << kmerLength << endl;
+		cerr << "Sequence of length " << record->sequence.length() << 
+             " is too small for k of length " << kmerLength << endl;
 		return 0;
 	}
 	vector<uint>* features = new vector<uint>; 
 	encoder->encode(record->sequence, features);
 	
-	// create a 2D array that holds the cumulative sums of all feature bloom filters
-	// at any point in the read. this allows us to get the highest hash sums at 
-	// between any two bounds in the read.
-  	CUMULATIVE_SUM_TYPE cumulativeSum(boost::extents[features->size()+1][bloomWidth]);
-  	for (int i=0; i<bloomWidth; i++) cumulativeSum[0][i] = 0;
+  	int* sumFeatures = new(int[bloomWidth]);
+    std::fill(sumFeatures, sumFeatures + bloomWidth, 0);
+    
     for (uint featureIdx = 0; featureIdx < features->size(); featureIdx++)
     {
     	uint bloomIdx = (uint)(*features)[featureIdx];
         for (int bitIdx = 0; bitIdx < bloomWidth; bitIdx++)
         {  			      
-            cumulativeSum[featureIdx+1][bitIdx] = (*blooms[bloomIdx])[bitIdx] + cumulativeSum[featureIdx][bitIdx];
+            sumFeatures[bitIdx] += (*blooms[bloomIdx])[bitIdx];
         }
     }
-    
+
     if (debug)
     {
-    	cerr << " Cumulative sum " << endl;
-    	for (uint featureIdx =0 ; featureIdx < features->size()+1; featureIdx++)
-    	{
-   			for (uint cumIdx = 0; cumIdx < (uint) bloomWidth; cumIdx++)
-        	{   
-				cerr << (uint)cumulativeSum[featureIdx][cumIdx] << "\t";
-        	}
-        	cerr << endl;
-    	}
+        cerr << "Sum vector for query " << record->name << endl;
+        for (int bitIdx = 0; bitIdx < bloomWidth; bitIdx++)
+        {  			      
+            cerr << bitIdx << ": " << sumFeatures[bitIdx] << ", ";
+        }
+        cerr << endl;
     }
     
-	//TODO consider keeping the feature vectors for efficiency
+	// determine the maximum indices summed features array 
+    vector<int>* topIndices = new(vector<int>);
+    findTopIndices(sumFeatures, topIndices);
+    
+    // iterate through pairs of the valueIndex and pull out pairs of indices
+    // that actually map to real ids. give the sum of the value as their scores.
+    //  		for ( firstPairIterator=maximizer->begin() ; firstPairIterator != maximizer->end(); firstPairIterator++ )
+
+    int numHits = 0;
+    for (int idx=0; idx < topIndices->size(); idx++)
+    {
+        int topIndexI = (*topIndices)[idx];
+        for (int jdx=idx+1; jdx < topIndices->size(); jdx++)
+        {
+            int topIndexJ = (*topIndices)[jdx];
+            pair<int, int> possiblePairOne = 
+                pair<int, int>(topIndexI, topIndexJ);
+            pair<int, int> possiblePairTwo = 
+                pair<int, int>(topIndexJ, topIndexI);
+            int score = min(sumFeatures[topIndexI], sumFeatures[topIndexJ]);
+            if (debug)
+            {
+                cerr << "Score for " << topIndexI << "," << 
+                                        topIndexJ << ":" << 
+                                        score << endl;
+            }
+            string hit;
+            if (hashToIds.count(possiblePairOne) != 0) 
+            {
+               hit = hashToIds.find(possiblePairOne)->second;
+            }
+            else if (hashToIds.count(possiblePairTwo) != 0) 
+            {
+               hit = hashToIds.find(possiblePairTwo)->second;
+            }
+
+            id2score->insert(pair<string, int>(hit, score));
+            numHits++;
+        }
+    }
 	
-	// determine good ids pairs from our cumulativeSum array 
-	set< pair<uint, uint> > * idPairs= new set< pair<uint, uint> >;
-	findIdPairs(cumulativeSum, idPairs);
-	
-	int numPairs =  idPairs->size();
-	if (debug) cerr << "Num pairs found:" << numPairs << endl;	
-	for(set< pair<uint, uint> >::iterator it = idPairs->begin(); it != idPairs->end(); it++)
-	{
-		int score = pairAndedBitSum(*it, features);
-		vector<string>* strings = hashToIds.find(*it)->second;
-		for(uint stringIdx = 0; stringIdx < strings->size(); stringIdx++)
-		{
-			// TODO add bitsum
-			// TODO maybe just ignore collisions??
-			id2score->insert( pair<string, int>((*strings)[stringIdx], score)  );
-		}
-	}
-	delete(features); // TODO put on stack??
-	delete(idPairs);
-	
-	return numPairs;
+	return numHits;
 }
 
-int PelusaOverlapper::pairAndedBitSum( pair<uint, uint> uintPair, vector<uint>* features)
+// populates topIndices vector with the "topColumns" top indices from sumFeatures
+void PelusaOverlapper::findTopIndices(int* array, vector<int>* topIndices )
 {
-	int andBitSum = 0;
-	for (uint featureIdx = 0; featureIdx < features->size(); featureIdx++)
-	{
-		uint bloomIdx = (uint)(*features)[featureIdx];
-        int firstBit  = (*blooms[bloomIdx])[ uintPair.first  ];
-        int secondBit = (*blooms[bloomIdx])[ uintPair.second ];
-        // cerr << "f = " << firstBit << " s = " << secondBit << endl; 
-		andBitSum += firstBit * secondBit;
-	} 
-	// cerr << "size " << features->size() <<  "abs " << andBitSum <<endl;
-	return andBitSum;
-}
-
-
-void PelusaOverlapper::findIdPairs(
-	CUMULATIVE_SUM_TYPE cumulativeSums, 
-	set< pair<uint, uint> > * idPairs)
-{
-	// TODO allow for more than just first half prefix and second half suffix.
-	int numBounds = 3;
-	int numReadFeatures = cumulativeSums.shape()[0];
-	int bounds[3][2] = { 	{0, numReadFeatures/2}, 
-							{numReadFeatures/2+1, numReadFeatures-1}, 
-							{0, numReadFeatures-1} };
-	
-	for (int boundIdx=0; boundIdx < numBounds; boundIdx++)
-	{
-		if (debug) cerr << "Analyzing bound " << boundIdx << endl;
-		list< pair<unsigned short, uint> > * maximizer = 
-			new list< pair<ushort, uint> >;
-		for (uint cumIdx = 0; cumIdx < cumulativeSums.shape()[1]; cumIdx++)
-		{
-			// calculate the sum from the first bound to the second bound at this particular
-			// cumulative idx
-			ushort value =	cumulativeSums[ bounds[boundIdx][1] ][ cumIdx ] 
-							      - cumulativeSums[ bounds[boundIdx][0] ][ cumIdx ];
-			
-			pair<ushort, uint> newPair = pair<ushort, uint>(value, cumIdx);
-			maximizer->push_back(newPair);
-		}
-		// now sort the maximizer to find the chars with the largest sums
-		maximizer->sort();
-		maximizer->reverse();
-		maximizer->resize(topColumns);	
-		
-		list< pair<ushort, uint> >::iterator firstPairIterator;
-  		for ( firstPairIterator=maximizer->begin() ; firstPairIterator != maximizer->end(); firstPairIterator++ )
-  		{
-  			list< pair<ushort, uint> >::iterator secondPairIterator;
-			if (debug) cerr << (uint)(*firstPairIterator).first << " " <<  
-				(int)(*firstPairIterator).second<< endl;
-			for ( secondPairIterator=firstPairIterator; secondPairIterator != maximizer->end(); secondPairIterator++ )
-			{
-				if (firstPairIterator == secondPairIterator) continue;
-
-				int firstInt =  (*firstPairIterator).second;
-				int secondInt = (*secondPairIterator).second;
-				pair<int, int> newPair = firstInt < secondInt ?	
-											pair<uint, uint>(firstInt, secondInt) 	:
-											pair<uint, uint>(secondInt, firstInt);
-				// if so, add them to our vector of idPairs											
-				if (hashToIds.count( newPair ) != 0)
-				{
-					idPairs->insert( newPair );
-				}
-			}
-		}
-			
-		delete(maximizer);
-	}
+    list< pair<int,int> >* valueIndexPairs = new list< pair<int,int> >;
+    for (int idx = 0; idx < bloomWidth; idx++)
+    {
+        pair<int, int> newPair = pair<int,int>(array[idx],idx);
+        valueIndexPairs->push_back(newPair);
+    }
+    valueIndexPairs->sort();
+    valueIndexPairs->reverse();
+    valueIndexPairs->resize(topColumns);
+    list< pair<int, int> >::iterator pairIterator;
+    for (pairIterator =  valueIndexPairs->begin(); 
+         pairIterator != valueIndexPairs->end(); 
+         pairIterator++)
+    {
+        topIndices->push_back((*pairIterator).second);
+    }
+    return;
 }
 
 
@@ -336,16 +337,17 @@ void PelusaOverlapper::setBloomWidth(int bloomWidth)
 	this->bloomWidth = bloomWidth;
 }
 
+
 const string PelusaOverlapper::toString()
 {
 	stringstream stream;
-	stream << "queryFile=" << queryFile << endl;
-	stream << "targetFile=" << targetFile << endl;
-	stream << "numProcs=" << numProcs << endl;
-	stream << "kmerLength=" << kmerLength << endl;		
-	stream << "bloomWidth=" << bloomWidth << endl;	
-	stream << "numSegments=" << numSegments << endl;
-	stream << "topColumns=" << topColumns << endl;
+	stream << "queryFile   = " << queryFile   << endl;
+	stream << "targetFile  = " << targetFile  << endl;
+	stream << "numProcs    = " << numProcs    << endl;
+	stream << "kmerLength  = " << kmerLength  << endl;		
+	stream << "bloomWidth  = " << bloomWidth  << endl;	
+	stream << "numSegments = " << numSegments << endl;
+	stream << "topColumns  = " << topColumns  << endl;
 	for (int bloomIdx = 0; bloomIdx < numFeatures; bloomIdx++)
 	{	
 		stream << bloomIdx << ": ";
@@ -358,9 +360,6 @@ const string PelusaOverlapper::toString()
 }
 
 
-
-
-
 PelusaWorker::PelusaWorker(int id)
 	:	id(id)
 {
@@ -371,6 +370,7 @@ PelusaWorker::PelusaWorker(int id)
 void PelusaWorker::run()
 {
 	cerr << "Starting worker " << id << endl;
+    int recordCount = 0;
 	while(true)
 	{
 		FastaRecord * record = new FastaRecord();
@@ -378,6 +378,7 @@ void PelusaWorker::run()
 		// get the input
 		pthread_mutex_lock(queryMutexPtr);
 		bool wasParsed = record->parseRecord(queryFh)	;
+        recordCount++;
 		pthread_mutex_unlock(queryMutexPtr);
 		
 		// termination condition for all threads
@@ -387,8 +388,15 @@ void PelusaWorker::run()
 			break;
 		}
 		
+        if (recordCount % 100 == 0)
+        {
+            cerr << "Querying record " << recordCount 
+                 << " in worker " << id << endl;
+        }
+
 		// the heavy lifting
 		map<string, int>* id2score = new map<string, int>;
+		// int numHits = overlapper->queryRecordPaired(record, id2score);
 		int numHits = overlapper->queryRecord(record, id2score);
 
 		// output
@@ -435,131 +443,3 @@ void PelusaWorker::outputScores(FastaRecord * record, map<string, int>* id2score
 		cout << record->name << "\t" << (*it).first << "\t" << (*it).second << "\n"; 
 	}
 }
-
-
-/*
-
-int PelusaOverlapper::queryRecord(FastaRecord * record, map<string, int>* id2score)
-{
-	
-	if (record->sequence.length() < (uint) kmerLength)
-	{
-		cerr << "Sequence of length " << record->sequence.length() << " is too small for k of length " << kmerLength << endl;
-		return 0;
-	}
-	vector<uint>* features = new vector<uint>; 
-	encoder->encode(record->sequence, features);
-	
-	// create a 2D array that holds the cumulative sums of all feature bloom filters
-	// at any point in the read. this allows us to get the highest hash sums at 
-	// between any two bounds in the read.
-  	CUMULATIVE_SUM_TYPE cumulativeSum(boost::extents[features->size()][bloomWidth/8]);
-    for (uint featureIdx = 0; featureIdx  < features->size(); featureIdx++)
-    {
-        for (int byteIdx = 0; byteIdx < bloomWidth/8; byteIdx++)
-        {
-        		int bloomIdx = (int)(*features)[featureIdx];
-                char byte = blooms[bloomIdx]->get_full_byte(byteIdx);
-                // start with this rows byte ...
-				cumulativeSum[featureIdx][byteIdx] = byte2ushortptr[(int)byte]; 
-        		if (featureIdx != 0) // ... add in the previous row's byte, if one.
-        			cumulativeSum[featureIdx][byteIdx] += cumulativeSum[featureIdx-1][byteIdx];
-        }
-    }
-    
-    if (debug)
-    {
-    	cerr << " Cumulative sum " << endl;
-    	for (uint featureIdx =0 ; featureIdx < features->size(); featureIdx++)
-    	{
-   			for (int byteIdx = 0; byteIdx < bloomWidth/8; byteIdx++)
-        	{   
-				char* chars = (char*)&cumulativeSum[featureIdx][byteIdx];	
-        		for (int i = 0; i < 8; i++) cerr << (int)chars[i] << "\t";
-        	}
-        	cerr << endl;
-    	}
-    }
-    
-	//TODO consider keeping the feature vectors for efficiency
-	
-	// determine good ids pairs from our cumulativeSum array 
-	set< pair<int,int> > * idPairs= new set< pair<int,int> >;
-	findIdPairs(cumulativeSum, idPairs);
-	
-	int numPairs =  idPairs->size();
-	if (debug) cerr << "Num pairs found:" << numPairs << endl;
-	// store away the score (the bitsum of the anded columns) for each pair START
-
-		
-	delete(features); // TODO put on stack??
-	delete(idPairs);
-	
-	return numPairs;
-}
-
-
-void PelusaOverlapper::findIdPairs(
-	CUMULATIVE_SUM_TYPE cumulativeSums, 
-	set< pair<int,int> > * idPairs)
-{
-	// TODO allow for more than just first half prefix and second half suffix.
-	int numBounds = 3;
-	int numReadFeatures = cumulativeSums.shape()[0];
-	int bounds[3][2] = { 	{0, numReadFeatures/2}, 
-							{numReadFeatures/2+1, numReadFeatures-1}, 
-							{0, numReadFeatures-1} };
-	
-	for (int boundIdx=0; boundIdx < numBounds; boundIdx++)
-	{
-		if (debug) cerr << "Analyzing bound " << boundIdx << endl;
-		list< pair<ushort, int> > * maximizer = new list< pair<ushort, int> >;
-		for (uint longIdx = 0; longIdx < cumulativeSums.shape()[1]; longIdx++)
-		{
-			// calculate the sum from the first bound to the second bound at this particular
-			// long value
-			// TODO this is a BUG, should not subtract as longs.
-			unsigned long long value = 	  cumulativeSums[ bounds[boundIdx][1] ][ longIdx ] 
-										- cumulativeSums[ bounds[boundIdx][0] ][ longIdx ];
-			
-			// then place each of the 8 chars in this long value into the maximize list
-			ushort* chars = (ushort*)&value;
-			for (int charIdx = 0; charIdx < 8; charIdx++) // TODO assumes ulonglong is 8bytes
-			{
-				// TODO the 8's are ugly!
-				pair<ushort, int> newPair = pair<ushort, int>( chars[charIdx], longIdx*8 + charIdx);
-				maximizer->push_back(newPair);
-			}
-			
-		}
-		// now sort the maximizer to find the chars with the largest sums
-		maximizer->sort();
-		maximizer->reverse();
-		maximizer->resize(topColumns);	
-		
-		list< pair<ushort, int> >::iterator firstPairIterator;
-  		for ( firstPairIterator=maximizer->begin() ; firstPairIterator != maximizer->end(); firstPairIterator++ )
-  		{
-  			list< pair<ushort, int> >::iterator secondPairIterator;
-			if (debug) cerr << (uint)(*firstPairIterator).first << " " <<  
-				(int)(*firstPairIterator).second<< endl;
-			for ( secondPairIterator=firstPairIterator; secondPairIterator != maximizer->end(); secondPairIterator++ )
-			{
-				if (firstPairIterator == secondPairIterator) continue;
-
-				int firstInt =  (*firstPairIterator).second;
-				int secondInt = (*secondPairIterator).second;
-				pair<int, int> newPair = firstInt < secondInt ?	
-											pair<int, int>(firstInt, secondInt) 	:
-											pair<int, int>(secondInt, firstInt);
-				// if so, add them to our vector of idPairs											
-				if (hashToIds.count( newPair ) != 0)
-				{
-					idPairs->insert( newPair );
-				}
-			}
-		}
-			
-		delete(maximizer);
-	}
-}*/

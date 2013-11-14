@@ -64,6 +64,7 @@ class PelusaOverlapper
 		int queryRecord(FastaRecord * record, map<string, int>* id2score);
 	
 		// private:
+        void findTopIndices(int* sumFeatures, vector<int>* topIndices);
 		void initializeBlooms();
 		void populateBlooms();
 		void queryBlooms();		
@@ -75,10 +76,8 @@ class PelusaOverlapper
 		vector<bit_array_c*> blooms;
 		BYTE_TO_SHORT_TYPE * byte2shorts;
 		FeatureEncoder * encoder;
-		map<pair<uint, uint>, vector<string>* > hashToIds;
+		map<pair<uint, uint>, string> hashToIds;
 		int collisionCount;
-		
-		
 };
 
 class PelusaWorker
@@ -103,6 +102,5 @@ class PelusaWorker
     SingleAlign a;
 */
 };
-
 
 #endif /*PELUSAOVERLAPPER_H_*/

@@ -32,7 +32,6 @@ bool PelusaApp::processOptions(
       ( "target,t", po::value<string>()->default_value(""), "Target file in FASTA format" )
       ( "kmerLength,k", po::value<int>()->default_value(8), "Kmer length" )
       ( "bloomWidth,m", po::value<int>()->default_value(2000), "Bloom filter width (should be divisible by 8)" )
-      ( "numSegments,s", po::value<int>()->default_value(2), "Number query segments" )
       ( "topColumns,c", po::value<int>()->default_value(10), "Number of top columns to keep" )
       ( "nproc", po::value<int>()->default_value(1), "Number of processors to use" )
       ( "help", "Show this help message" )
@@ -81,11 +80,6 @@ bool PelusaApp::processOptions(
     if ( vm.count("bloomWidth")>0 )
     {
       	overlapper->setBloomWidth( vm["bloomWidth"].as<int>() );
-    }
-    
-    if ( vm.count("numSegments")>0 )
-    {
-    	overlapper->numSegments = vm["numSegments"].as<int>();
     }
     
     if ( vm.count("topColumns")>0 )
