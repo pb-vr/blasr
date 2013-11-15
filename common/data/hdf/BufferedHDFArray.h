@@ -361,6 +361,10 @@ class BufferedHDFArray : public HDFData, public HDFWriteBuffer<T> {
           /*
            * Load in the size of this dataset, and make a map to the whole thing.
            */
+          if (dimSize != NULL) {
+              delete[] dimSize;
+              dimSize = NULL;
+          }
           dimSize = new hsize_t[nDims];
           dataspace.getSimpleExtentDims(dimSize);
           arrayLength = dimSize[0];
