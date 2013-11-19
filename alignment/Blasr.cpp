@@ -4819,6 +4819,10 @@ int main(int argc, char* argv[]) {
             delete mapdb[procIndex].outFilePtr;
           }
         }
+        if (threads) {
+            delete threads;
+            threads = NULL;
+        }
       }
     }
     reader->Close();
