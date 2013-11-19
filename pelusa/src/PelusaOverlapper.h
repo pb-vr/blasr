@@ -53,7 +53,7 @@ class PelusaOverlapper
     	int numProcs;
     	int kmerLength;
     	int bloomWidth;
-    	int numSegments;
+        int targetFeatureStride;
     	int topColumns;
    		int numFeatures;	
 	
@@ -69,10 +69,6 @@ class PelusaOverlapper
 		void populateBlooms();
 		void queryBlooms();		
 		void addRecordFeatures(FastaRecord * record);
-		void findIdPairs(CUMULATIVE_SUM_TYPE cumulativeSums, 
-			set< pair<uint, uint> > * idPairs);
-		int pairAndedBitSum( pair<uint, uint>, vector<uint>* features);
-		
 		vector<bit_array_c*> blooms;
 		BYTE_TO_SHORT_TYPE * byte2shorts;
 		FeatureEncoder * encoder;

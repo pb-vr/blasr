@@ -2,8 +2,8 @@
 #
 #
 SHELL = /bin/bash
-# GCC = g++ -O3
-GCC = g++
+GCC = g++ -O3
+# GCC = g++
 SRC_DIR = src
 BUILD_DIR = build
 TARGET = pelusa
@@ -33,3 +33,6 @@ install:
 clean:
 	rm -rf $(BUILD_DIR)
 	rm -f $(OBJS)
+
+tests:
+	cram.py test/cram/*.t

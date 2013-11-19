@@ -19,6 +19,7 @@ PelusaOverlapper::PelusaOverlapper()
 		targetFile(""),
 		numProcs(1),
 		kmerLength(8),
+        targetFeatureStride(1),
 		encoder(NULL)
 {
 	
@@ -174,7 +175,9 @@ void PelusaOverlapper::addRecordFeatures(FastaRecord * record)
 	// TODO replace with a stack array for efficiency?
 	vector<uint>* features = new vector<uint>; 
 	encoder->encode(record->sequence, features);
-	for (uint featureIdx=0; featureIdx < features->size(); featureIdx++)
+	for (uint featureIdx=0; 
+         featureIdx < features->size(); 
+         featureIdx+=targetFeatureStride)
 	{
 		// if (debug) cerr << "Feature " << featureIdx << "=" << (*features)[featureIdx] << endl;
 		bit_array_c* featureBloom = blooms[ (uint)(*features)[featureIdx] ];
@@ -341,8 +344,8 @@ const string PelusaOverlapper::toString()
 	stream << "targetFile  = " << targetFile  << endl;
 	stream << "numProcs    = " << numProcs    << endl;
 	stream << "kmerLength  = " << kmerLength  << endl;		
+	stream << "targetFeatureStride = " << targetFeatureStride << endl;		
 	stream << "bloomWidth  = " << bloomWidth  << endl;	
-	stream << "numSegments = " << numSegments << endl;
 	stream << "topColumns  = " << topColumns  << endl;
 	for (int bloomIdx = 0; bloomIdx < numFeatures; bloomIdx++)
 	{	

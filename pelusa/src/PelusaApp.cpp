@@ -33,6 +33,7 @@ bool PelusaApp::processOptions(
       ( "kmerLength,k", po::value<int>()->default_value(8), "Kmer length" )
       ( "bloomWidth,m", po::value<int>()->default_value(2000), "Bloom filter width (should be divisible by 8)" )
       ( "topColumns,c", po::value<int>()->default_value(10), "Number of top columns to keep" )
+      ( "targetFeatureStride,s", po::value<int>()->default_value(1), "Number of features to skip when populating the target bloom filters" )
       ( "nproc", po::value<int>()->default_value(1), "Number of processors to use" )
       ( "help", "Show this help message" )
       ( "debug", po::bool_switch()->default_value(false), "Enable debugging output" )
@@ -75,6 +76,11 @@ bool PelusaApp::processOptions(
     if ( vm.count("kmerLength")>0 )
     {
       	overlapper->kmerLength = vm["kmerLength"].as<int>();
+    }
+
+    if ( vm.count("targetFeatureStride")>0 )
+    {
+      	overlapper->targetFeatureStride = vm["targetFeatureStride"].as<int>();
     }
     
     if ( vm.count("bloomWidth")>0 )
