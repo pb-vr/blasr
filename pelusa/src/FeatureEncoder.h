@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <set>
 #include <assert.h>
 
 #define BASE2UINTLENGTH 256
@@ -15,7 +16,7 @@ class FeatureEncoder
 	public:
     	FeatureEncoder(int k);
     	//~PelusaOverlapper();
-		void encode(string const& input, vector<unsigned int>* features);
+		void encode(string const& input, vector<unsigned int>* features, bool unique);
 		int getNumFeatures();
 		
 	private:

@@ -28,10 +28,13 @@ void FeatureEncoder::initialize()
 	numFeatures = 1 << (k*2);
 }
 
-void FeatureEncoder::encode(string const& input, vector<unsigned int>* features)
+void FeatureEncoder::encode(string const& input, 
+                            vector<unsigned int>* features, 
+                            bool unique)
 {
 	assert(input.length() >= (unsigned int) k);
 	features->push_back( feature(input, 0) );
+    set<unsigned int>* kmers = new(set<unsigned int>);
 	for(unsigned int featureStart = 1; 
 			featureStart < input.length() - k + 1;
 			featureStart++)
@@ -39,8 +42,13 @@ void FeatureEncoder::encode(string const& input, vector<unsigned int>* features)
 		unsigned int lastFeature = (*features)[features->size()-1];
 		unsigned int feature = 
 			nextFeature( lastFeature, input[ featureStart + k - 1 ]);
-		features->push_back( feature );
+        if (kmers->count(feature) == 0 || !unique)
+        {
+            kmers->insert(feature);
+		    features->push_back(feature);
+        }
 	}
+    delete(kmers);
 }
 
 unsigned int FeatureEncoder::feature(string const string, int stringIdx)

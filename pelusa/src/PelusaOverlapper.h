@@ -47,7 +47,8 @@ class PelusaOverlapper
     	void run();
 
 		// TODO private these should really be private 
-		int debug;
+		bool debug;
+		bool unique;
   		string queryFile;
   		string targetFile;
     	int numProcs;

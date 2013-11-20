@@ -19,6 +19,7 @@ PelusaOverlapper::PelusaOverlapper()
 		targetFile(""),
 		numProcs(1),
 		kmerLength(8),
+		unique(false),
         targetFeatureStride(1),
 		encoder(NULL)
 {
@@ -174,7 +175,7 @@ void PelusaOverlapper::addRecordFeatures(FastaRecord * record)
 	// set the bits at the hashed index positions in each feature's bloom filter
 	// TODO replace with a stack array for efficiency?
 	vector<uint>* features = new vector<uint>; 
-	encoder->encode(record->sequence, features);
+	encoder->encode(record->sequence, features, unique);
 	for (uint featureIdx=0; 
          featureIdx < features->size(); 
          featureIdx+=targetFeatureStride)
@@ -241,7 +242,7 @@ int PelusaOverlapper::queryRecord(
 		return 0;
 	}
 	vector<uint>* features = new vector<uint>; 
-	encoder->encode(record->sequence, features);
+	encoder->encode(record->sequence, features, unique);
 	
   	int* sumFeatures = new(int[bloomWidth]);
     std::fill(sumFeatures, sumFeatures + bloomWidth, 0);

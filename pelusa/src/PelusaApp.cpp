@@ -33,6 +33,7 @@ bool PelusaApp::processOptions(
       ( "kmerLength,k", po::value<int>()->default_value(8), "Kmer length" )
       ( "bloomWidth,m", po::value<int>()->default_value(2000), "Bloom filter width (should be divisible by 8)" )
       ( "topColumns,c", po::value<int>()->default_value(10), "Number of top columns to keep" )
+      ( "unique,u", po::bool_switch()->default_value(false), "Unique kmers" )
       ( "targetFeatureStride,s", po::value<int>()->default_value(1), "Number of features to skip when populating the target bloom filters" )
       ( "nproc", po::value<int>()->default_value(1), "Number of processors to use" )
       ( "help", "Show this help message" )
@@ -50,6 +51,7 @@ bool PelusaApp::processOptions(
     }
      
     overlapper->debug = vm["debug"].as<bool>();
+    overlapper->unique = vm["unique"].as<bool>();
     
     if ( vm.count( "query" )==0 || vm["query"].as<string>().length()==0 )
     {
