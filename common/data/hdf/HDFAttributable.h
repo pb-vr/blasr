@@ -9,13 +9,14 @@
 using namespace std;
 using namespace H5;
 
-void CallStoreAttributeName(H5Object &obj, string attrName, void *attrListPtr);
+void CallStoreAttributeName(H5Location &obj, string attrName, void *attrListPtr);
 
 class HDFAttributable {
  public:
 	vector<string> attributeNameList;
 
-	void StoreAttributeNames(H5Object &thisobject, vector<string> &attributeNames) {
+ private:
+	void StoreAttributeNames(H5Location &thisobject, vector<string> &attributeNames) {
 		void *destAndData[2];
 		int nAttr = thisobject.getNumAttrs();
 		unsigned int bounds[2];
@@ -26,6 +27,7 @@ class HDFAttributable {
 														bounds, (void*) &attributeNames);
 	}
 
+ public:
   virtual H5Object* GetObject() {
     return NULL;
   }
@@ -33,7 +35,7 @@ class HDFAttributable {
 	int ContainsAttribute(string attributeName) {
 		int i;
     vector<string> tmpAttributeNames;
-    H5Object *obj = GetObject();
+    H5Location *obj = GetObject();
     assert(obj != NULL);
     StoreAttributeNames(*obj, tmpAttributeNames);
 		for (i = 0; i < tmpAttributeNames.size(); i++) {
@@ -44,7 +46,7 @@ class HDFAttributable {
 
 };
 
-void CallStoreAttributeName(H5Object &obj, string attrName, void *attrList){ 
+void CallStoreAttributeName(H5Location &obj, string attrName, void *attrList){ 
 	((vector<string>*)attrList)->push_back(attrName);
  }
 
