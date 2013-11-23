@@ -2,8 +2,7 @@
 # Definitions common to all make files for unit test.
 #
 
-HDF5INCLUDEDIR ?= ../../seymour/dist/common/include
-HDF5LIBDIR     ?= ../../seymour/dist/common/lib/
+H5DIR      = ../../seymour/dist/common/
 HDF5LIB    = hdf5
 HDF5LIBCPP = hdf5_cpp
 
@@ -16,17 +15,15 @@ GTEST_MAINA   = $(GTEST_DIR)/make/gtest_main.a
 
 
 INCLUDEDIRS = -I $(GTEST_DIR) -I $(GTEST_DIR)/include \
-			  -I $(PBCPP_DIR)/common -I $(HDF5INCLUDEDIR)
+			  -I $(PBCPP_DIR)/common 
 
 
-GCCOPTS = -O3 -Wno-div-by-zero
-
-CPPOPTS = $(GCCOPTS) $(INCLUDEDIRS)
-CCOPTS  = $(GCCOPTS) $(INCLUDEDIRS)  
+GCCOPTS = -O3 -Wno-div-by-zero $(INCLUDEDIRS)  
+CCOPTS = $(GCCOPTS)
 
 CPP = g++
 
-LDFLAGS = -lpthread -L$(HDF5LIBDIR)
+LDFLAGS ?= -lpthread 
 
 
 

@@ -14,4 +14,5 @@ clean:
 	@(if [ -e common/Makefile ]; \
 	then $(MAKE) -C common -f Makefile clean; \
 	fi)
+	@rm -f *.xml
 

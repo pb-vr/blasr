@@ -17,6 +17,7 @@
  */
 #include "HDFFile.h"
 #include "HDFScanDataReader.h"
+#include "HDFBasReader.h"
 #include "HDFRegionTableReader.h"
 #include "datastructures/reads/RegionTable.h"
 #include <vector>
