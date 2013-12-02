@@ -609,7 +609,9 @@ void SetHelp(string &str) {
              << "To cite BLASR, please use: Chaisson M.J., and Tesler G., Mapping " << endl
              << "single molecule sequencing reads using Basic Local Alignment with " << endl
              << "Successive Refinement (BLASR): Theory and Application, BMC " << endl
-             << "Bioinformatics 2012, 13:238 ." << endl << endl;
+             << "Bioinformatics 2012, 13:238." << endl 
+             << "Please report any bugs to "
+             << "'https://github.com/PacificBiosciences/blasr/issues'." << endl << endl;
   str = helpStream.str();
 }
 
