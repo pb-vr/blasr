@@ -603,8 +603,8 @@ void SetHelp(string &str) {
 //             << "   -ignoreQuality" << endl
 //             << "                 Ignore quality values when computing alignments (they still may be used." << endl 
 //             << "                 when mapping)." << endl << endl
-             << " -v            Print some verbose information." << endl 
-             << " -V 2          Make verbosity more verbose.  Probably only useful for development." << endl
+//             << " -v            Print some verbose information." << endl 
+//             << " -V 2          Make verbosity more verbose.  Probably only useful for development." << endl
              << " -h            Print this help file." << endl << endl
              << "To cite BLASR, please use: Chaisson M.J., and Tesler G., Mapping " << endl
              << "single molecule sequencing reads using Basic Local Alignment with " << endl
