@@ -568,6 +568,7 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
         seq.SetQVScale(qvScale);
 		curBasePos += seqLength;
         } catch(DataSetIException e) {
+            e.printError();
             cout << "ERROR, could not read quality metrics for FASTQ Sequence " 
                  << seq.GetName() << endl;
             exit(1);
