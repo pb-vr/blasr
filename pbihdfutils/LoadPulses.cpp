@@ -2100,13 +2100,13 @@ int main(int argc, char* argv[]) {
         }
 
         // Now load frame rate.
-        if (AnyFieldRequiresFrameRate(datasetFields)) {
-            if (useBaseFile) {
-                cmpReader.movieInfoGroup.StoreFrameRate(m, baseFile.GetFrameRate());
-            } else
-            if (usePulseFile) {
-                cmpReader.movieInfoGroup.StoreFrameRate(m, pulseFile.GetFrameRate());
-            }
+        // if (AnyFieldRequiresFrameRate(datasetFields)) {
+        // Load frame rate anyway to ensure that cmp.h5 files are consistent.
+        if (useBaseFile) {
+            cmpReader.movieInfoGroup.StoreFrameRate(m, baseFile.GetFrameRate());
+        } else
+        if (usePulseFile) {
+            cmpReader.movieInfoGroup.StoreFrameRate(m, pulseFile.GetFrameRate());
         }
 
         //
