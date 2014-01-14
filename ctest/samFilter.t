@@ -86,3 +86,9 @@ Set up the executable: samFilter.
   $ tail -n+7 $STDFILE > $TMP2 
   $ diff $TMP1 $TMP2 
   $ rm $TMP1 $TMP2 
+
+#Test samFilter with -filterAdapterOnly
+  $ $EXEC $DATDIR/filterAdapterOnly.sam $DATDIR/references/H1_6_Scal_6x/sequence/H1_6_Scal_6x.fasta $OUTDIR/filterAdapterOnly.sam -filterAdapterOnly $DATDIR/references/H1_6_Scal_6x/annotations/H1_6_Scal_6x_adapters.gff
+  $ tail -n+6 $OUTDIR/filterAdapterOnly.sam |cut -f 1,2,3,4
+  m130302_124313_42130_c100502672550000001523078308081365_s1_p0/10817\t16\t11k_plasmidbell_H1_6_Scal_6x\t29466 (esc)
+
