@@ -41,6 +41,7 @@
 #include "datastructures/alignment/FilterCriteria.h"
 #include "datastructures/metagenome/TitleTable.h"
 #include "datastructures/alignmentset/SAMToAlignmentCandidateAdapter.h"
+#include "data/gff/GFFFile.h"
 
 //#define USE_GOOGLE_PROFILER
 #ifdef USE_GOOGLE_PROFILER
@@ -48,7 +49,7 @@
 #endif
 
 char VERSION[] = "v0.1.0";
-char PERFORCE_VERSION_STRING[] = "$Change: 126414 $";
+char PERFORCE_VERSION_STRING[] = "$Change: 130308 $";
 // By default negative score is better.
 SCORESIGN scoreSign = NEG;
 
@@ -200,6 +201,58 @@ void ConvertTitlesToTitleTableIndices(vector<FASTASequence> & references,
     tt.Free();
 }
 
+// Return true if the alignment can only map to an adapter specified 
+// in the adapter GFF file. 
+// A sample record in adapter GFF file:
+// ref000001   .   adapter 10955   10999   0.00    +   .   xxxx
+// ref000001   .   adapter 32886   32930   0.00    +   .   xxxx 
+// Note that the first field (e.g., 'ref000001') is id of sequence  
+// in a reference repository, not sequence name, so we need to 
+// reconstruct the mapping between sequence id and sequence name.
+bool CheckAdapterOnly(GFFFile & adapterGffFile, //Adapter gff file
+    AlignmentCandidate<> & alignment, // An alignment
+    map<string, int> & refNameToIndex) { 
+    // Map target sequence name to its index in reference repository.
+    if (refNameToIndex.find(alignment.tName) == refNameToIndex.end()) {
+        // This should not happen ...
+        cout << "ERROR, could not find alignment target name "
+             << alignment.tName << " in the reference file." << endl;
+        exit(1);
+    }
+    int refNameIndex = refNameToIndex[alignment.tName];
+    char buf [16];
+    sprintf(buf, "ref%06d", refNameIndex + 1);
+    // Reconstruct ref id in the format "ref00000?".
+    string refNameId(buf);
+    int FUZZY_OVERLAP = 20;
+    for(int eindex = 0; eindex < adapterGffFile.entries.size();
+            eindex++) { 
+        GFFEntry & entry = adapterGffFile.entries[eindex];
+        // Convert each GFF record from 1-based inclusive to 
+        // 0-based exclusive.
+        if (entry.type == "adapter" and 
+            (entry.name == alignment.tName or
+             entry.name == refNameId)) {
+            UInt estart = entry.start - 1;
+            UInt eend = entry.end;
+            if (entry.strand == '-') {
+                UInt tmp = estart;
+                estart = alignment.tLength - 1 - eend;
+                eend = alignment.tLength - 1 - tmp;
+            }
+            if (not (eend < alignment.GenomicTBegin() or
+                 estart > alignment.GenomicTEnd())) {
+                int lengthUnion = max(eend, alignment.GenomicTEnd()) -
+                                  min(estart, alignment.GenomicTBegin());
+                if (lengthUnion < eend - estart + FUZZY_OVERLAP) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 int main(int argc, char* argv[]) {
 #ifdef USE_GOOGLE_PROFILER
     char *profileFileName = getenv("CPUPROFILE");
@@ -233,6 +286,7 @@ int main(int argc, char* argv[]) {
 
     bool parseSmrtTitle = false;
     string titleTableName = "";
+    string adapterGffFileName = "";
 
     CommandLineParser clp;
     clp.RegisterStringOption("file.sam", &samFileName,
@@ -332,6 +386,9 @@ int main(int argc, char* argv[]) {
             "blasr with -titleTable titleTableName, in which case "
             "reference titles in SAM are represented by their "
             "indices (e.g., 0, 1, 2, ...) in the title table.");
+    clp.RegisterStringOption("filterAdapterOnly", &adapterGffFileName,
+            "Use this option to remove reads which can only map to adapters " 
+            "specified in the GFF file.");
     clp.SetExamples(
             "Because SAM has optional tags that have different meanings"
             " in different programs, careful usage is required in order "
@@ -435,7 +492,11 @@ int main(int argc, char* argv[]) {
 		CrucialOpen(outFileName, outFileStrm, std::ios::out);
 		outFilePtr = &outFileStrm;
 	}
-
+    
+    GFFFile adapterGffFile;
+    if (adapterGffFileName != "")
+        adapterGffFile.ReadAll(adapterGffFileName);
+    
     SAMReader<SAMFullReferenceSequence, SAMReadGroup, SAMAlignment> samReader;
     FASTAReader fastaReader;
 
@@ -536,8 +597,8 @@ int main(int argc, char* argv[]) {
         }
 
         if (samAlignment.cigar.find('P') != string::npos) {
-            cout << "WARNING. Could not process sam record with 'P' in its cigar string."
-                 << endl;
+            cout << "WARNING. Could not process SAM record with 'P' in "
+                 << "its cigar string." << endl;
             continue;
         }
 
@@ -560,6 +621,16 @@ int main(int argc, char* argv[]) {
             if (verbosity > 0)  {
                 cout << "Aligner's score = "  << samAlignment.as 
                      << ", computed score = " << alignment.score << endl;
+            }
+
+            // Check whether this alignment can only map to adapters in 
+            // the adapter GFF file.
+            if (adapterGffFileName != "" and 
+                CheckAdapterOnly(adapterGffFile, alignment, refNameToIndex)) {
+                if (verbosity > 0)
+                    cout << alignment.qName << " fileter adapter only."
+                        << endl;
+                continue;
             }
 
             // Assign score to samAlignment.

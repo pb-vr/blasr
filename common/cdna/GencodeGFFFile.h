@@ -34,6 +34,7 @@ class GencodeGFFFile {
         entries.push_back(entry);
       }
     }
+    in.close();
   }
 };
 
