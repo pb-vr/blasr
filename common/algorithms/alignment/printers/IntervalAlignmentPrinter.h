@@ -73,7 +73,7 @@ public:
     }
 
     static void PrintHeader(ostream &out) {
-        out << "qName tName score pctSimilarity qStrand qStart qEnd qLength tStrand tStart tEnd tLength mapQV" << endl;
+        out << "qName tName score percentSimilarity qStrand qStart qEnd qLength tStrand tStart tEnd tLength mapQV" << endl;
         //ncells clusterScore probscore numSigClusters" << endl;
     }
 };
