@@ -7,10 +7,10 @@
 #include "VulgarAlignmentPrinter.h"
 
 void PrintCompareSequencesHeader(ostream &out) {
-  out << "qname qlength qstart qend qstrand "
-      << "tname tlength tstart tend tstrand "
-      << "score nummatch nummismatch numins numdel "
-      << "mapqv qalignedseq matchpattern talignedseq "
+  out << "qName qLength qStart qEnd qStrand "
+      << "tName tLength tStart tEnd tStrand "
+      << "score numMatch numMismatch numIns numDel "
+      << "mapQV qAlignedSeq matchPattern tAlignedSeq"
       << endl;
 }
 
@@ -78,10 +78,10 @@ template<typename T_Alignment, typename T_QuerySequence, typename T_TargetSequen
 	}
 					
     // Headers of m5 format are: 
-    //   queryId queryLength queryStart queryEnd queryStrand 
-    //   targetId targetLength targetStart targetEnd targetStrand 
-    //   score numOfMatches numOfMismatches numOfInsertions numOfDeletions
-    //   mapQV alignedQuery alignedMatch alignedTarget
+    // qName qSeqLength qStart qEnd qStrand 
+    // tName tSeqLength tStart tEnd tStrand
+    // score numMatch numMismatch numIns numDel
+    // mapQV qAlignedSeq matchPattern tAlignedSeq
 	out << queryStr << " " 
 			<< alignStr << " "
 			<< textStr ;

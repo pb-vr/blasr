@@ -21,7 +21,7 @@ class SummaryAlignmentPrinter {
             << alignment.qLength << " " << alignment.nCells << endl;
   }
   static void PrintHeader(ostream &out) {
-      out << "qname tname qstrand tstrand score pctsimilarity tstart tend tlength qstart qend qlength ncells" << endl;
+      out << "qName tName qStrand tStrand score pctSimilarity tStart tEnd tLength qStart qEnd qLength nCells" << endl;
   }
 };
 
