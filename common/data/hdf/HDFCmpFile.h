@@ -143,9 +143,9 @@ public:
         // Add some proxy data for now.
         HDFAtom<string> primaryVersionAtom, versionAtom;
         primaryVersionAtom.Create(rootGroup.rootGroup.group, "PrimaryVersion");
-        primaryVersionAtom.Write("1.3.1.0.104787");
+        primaryVersionAtom.Write("2.0.0");
         versionAtom.Create(rootGroup.rootGroup.group, "Version");
-        versionAtom.Write("1.3.1.SF");
+        versionAtom.Write("2.0.0");
     }
 
     void SetReadType(string readType) {
