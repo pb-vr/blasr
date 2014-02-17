@@ -1,7 +1,7 @@
 For testing samFilter
 Set up directories
   $ CURDIR=$TESTDIR
-  $ REMOTEDIR=/mnt/secondary-siv/secondarytest/testdata/BlasrTestData/ctest
+  $ REMOTEDIR=/mnt/secondary-siv/testdata/BlasrTestData/ctest
   $ DATDIR=$REMOTEDIR/data
   $ OUTDIR=$CURDIR/out
   $ STDDIR=$REMOTEDIR/stdout
