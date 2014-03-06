@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
         SMRTSequence seq;
         vector<ReadInterval> subreadIntervals;;
         SMRTSequence ccsSeq;
-        while (reader.GetNext(seq)) {
+        while (reader.GetNextBases(seq, printFastq)) {
             if (printOnlyBest) {
                 ccsReader.GetNext(ccsSeq);
             }

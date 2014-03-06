@@ -575,12 +575,50 @@ class T_HDFBasReader : public DatasetCollection, public HDFPulseDataFile {
         }
         return 1;
 	}
+  
+//
+// Read a SMRTSequence, but only the basecalls and maybe the QVs. This
+// makes pls2fasta more efficient.
+//
+ int GetNextBases(SMRTSequence &seq, bool readQVs) {
 
+    try {
+        if (curRead == nReads) {
+            return 0;
+        }
+        int seqLength = GetNextWithoutPosAdvance(seq);
+        seq.length = seqLength;
+
+        if(readQVs) {
+            if (seqLength > 0 ) {
+                if (includedFields["QualityValue"]) {
+                    seq.AllocateQualitySpace(seqLength);
+                    qualArray.Read((int)curBasePos, (int) curBasePos + seqLength, (unsigned char*) seq.qual.data);
+                }
+            }
+        }
+
+        seq.SetQVScale(qvScale);
+		curBasePos += seqLength;
+
+        seq.subreadStart = 0;
+        seq.subreadEnd   = seq.length;
+        zmwReader.GetNext(seq.zmwData);
+        seq.xy[0] = seq.zmwData.x;
+        seq.xy[1] = seq.zmwData.y;
+
+    } catch(DataSetIException e) {
+        cout << "ERROR, could not read bases or QVs for SMRTSequence " 
+            << seq.GetName() << endl;
+        exit(1);
+    }
+    return 1;
+ }
 //
 // Reading of SMRT Sequences reads both the sequence fields, and the
 // fields with ZMW information for identification of this read.
 //
-
+ 
  int GetNext(SMRTSequence &seq) {
 	 //
 	 // Read in quality values.

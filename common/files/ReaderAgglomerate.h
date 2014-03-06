@@ -282,6 +282,39 @@ public:
       Advance(stride-1);
     return numRecords;
   }
+  
+  int GetNextBases(SMRTSequence &seq, bool readQVs) {
+    int numRecords = 0;
+
+    if (Subsample(subsample) == 0) {
+      return 0;
+    }
+    switch(fileType) {
+    case Fasta:
+      cout << "ERROR! Can only GetNextBases from a Pulse or Base File." << endl;
+      assert(0);
+      break;
+    case Fastq:
+      cout << "ERROR! Can only GetNextBases from a Pulse or Base File." << endl;
+      assert(0);
+      break;
+    case HDFPulse:
+    case HDFBase:
+      numRecords = hdfBasReader.GetNextBases(seq, readQVs);
+      break;
+    case HDFCCSONLY:
+      cout << "ERROR! Reading CCS into a structure that cannot handle it." << endl;
+      assert(0);
+      break;
+    case HDFCCS:
+      cout << "ERROR! Can only GetNextBases from a Pulse or Base File." << endl;
+      assert(0);
+      break;
+    }
+    if (stride > 1)
+      Advance(stride-1);
+    return numRecords;
+  }
 
   int GetNext(CCSSequence &seq) {
     int numRecords = 0;
