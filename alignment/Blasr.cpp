@@ -399,13 +399,13 @@ public:
 void SetHelp(string &str) {
   stringstream helpStream;
   helpStream << "   Options for blasr " << endl
-             << "   Basic usage: 'blasr reads.{fasta,bas.h5} genome.fasta [-options] " << endl
+             << "   Basic usage: 'blasr reads.{fasta,bax.h5} genome.fasta [-options] " << endl
              << " option\tDescription (default_value)." << endl << endl
              << " Input Files." << endl
              << "   reads.fasta is a multi-fasta file of reads.  While any fasta file is valid input, " <<endl
-             << "               it is preferable to use pls.h5 or bas.h5 files because they contain" << endl
+             << "               it is preferable to use plx.h5 or bax.h5 files because they contain" << endl
              << "               more rich quality value information." << endl << endl
-             << "   reads.bas.h5|reads.pls.h5 Is the native output format in Hierarchical Data Format of " <<endl
+             << "   reads.bax.h5|reads.plx.h5 Is the native output format in Hierarchical Data Format of " <<endl
              << "               SMRT reads. This is the preferred input to blasr because rich quality" << endl
              << "               value (insertion,deletion, and substitution quality values) information is " << endl
              << "               maintained.  The extra quality information improves variant detection and mapping"<<endl
@@ -423,16 +423,16 @@ void SetHelp(string &str) {
              << "               Read in a read-region table in HDF format for masking portions of reads." << endl
              << "               This may be a single table if there is just one input file, " << endl
              << "               or a fofn.  When a region table is specified, any region table inside " << endl
-             << "               the reads.bas.h5 or reads.bas.h5 files are ignored."<< endl
+             << "               the reads.plx.h5 or reads.bax.h5 files are ignored."<< endl
 //             << "   -ccsFofn ccsFofn" << endl
 //             << "               Read in a ciruclar consensus sequence (ccs) file in HDF format. " << endl
 //             << "               This may be a single ccs.h5 file if there is just one input file, " << endl
 //             << "               or a fofn. When a ccs file (or fofn) is specified, any ccs data inside the " << endl
-//             << "               read.bas.h5 file (or files) are ignored." << endl
+//             << "               read.bax.h5 file (or files) are ignored." << endl
              << endl 
              << " Options for modifying reads. There is ancilliary information about substrings of reads " << endl
              << "               that is stored in a 'region table' for each read file.  Because " << endl
-             << "               HDF is used, the region table may be part of the .bas.h5 or .pls.h5 file," << endl
+             << "               HDF is used, the region table may be part of the .bax.h5 or .plx.h5 file," << endl
              << "               or a separate file.  A contiguously read substring from the template " << endl
              << "               is a subread, and any read may contain multiple subreads. The boundaries " << endl
              << "               of the subreads may be inferred from the region table either directly or " <<endl
@@ -630,9 +630,9 @@ void PrintDiscussion() {
   cout << "SYNOPSIS" << endl
        << "         blasr reads.fasta genome.fasta " << endl << endl
        << "         blasr reads.fasta genome.fasta -sa genome.fasta.sa" << endl << endl
-       << "         blasr reads.bas.h5 genome.fasta [-sa genome.fasta.sa] " << endl << endl
-       << "         blasr reads.bas.h5 genome.fasta -sa genome.fasta.sa -maxScore -100 -minMatch 15 ... " << endl << endl
-       << "         blasr reads.bas.h5 genome.fasta -sa genome.fasta.sa -nproc 24 -out alignment.out ... " << endl << endl
+       << "         blasr reads.bax.h5 genome.fasta [-sa genome.fasta.sa] " << endl << endl
+       << "         blasr reads.bax.h5 genome.fasta -sa genome.fasta.sa -maxScore -100 -minMatch 15 ... " << endl << endl
+       << "         blasr reads.bax.h5 genome.fasta -sa genome.fasta.sa -nproc 24 -out alignment.out ... " << endl << endl
        << "DESCRIPTION " << endl
        << "  blasr is a read mapping program that maps reads to positions " << endl
        << "  in a genome by clustering short exact matches between the read and" << endl
@@ -647,11 +647,11 @@ void PrintDiscussion() {
        << "  specified." << endl
        << "  " << endl
        << "  Although reads may be input in FASTA format, the recommended input is HDF" << endl
-       << "  bas.h5 and pls.h5 files because these contain qualtiy value" << endl
+       << "  bax.h5 and plx.h5 files because these contain qualtiy value" << endl
        << "  information that is used in the alignment and produces higher quality" << endl
        << "  variant detection.  " << endl
        << "  " << endl
-       << "  Read filtering information is contained in the .bas.h5 input files as" << endl
+       << "  Read filtering information is contained in the .bax.h5 input files as" << endl
        << "  well as generated by other post-processing programs with analysis of" << endl
        << "  pulse files and read in from a separate .region.h5 file.  The current" << endl
        << "  set of filters that are applied to reads are high quality region" << endl
@@ -4045,13 +4045,13 @@ int main(int argc, char* argv[]) {
   SetConciseHelp(conciseHelpString);
   
   stringstream usageSStrm;
-  usageSStrm << "   Basic usage: 'blasr reads.{fasta,bas.h5} genome.fasta [-options] " << endl
+  usageSStrm << "   Basic usage: 'blasr reads.{fasta,bax.h5} genome.fasta [-options] " << endl
              << " [option]\tDescription (default_value)." << endl << endl
              << " Input Files." << endl
              << "   reads.fasta is a multi-fasta file of reads.  While any fasta file is valid input, " 
-             "it is preferable to use pls.h5 or bas.h5 files because they contain "
+             "it is preferable to use plx.h5 or bax.h5 files because they contain "
              "more rich quality value information." << endl
-             << "   reads.bas.h5|reads.pls.h5 Is the native output format in Hierarchical Data Format of "
+             << "   reads.bax.h5|reads.plx.h5 Is the native output format in Hierarchical Data Format of "
     "SMRT reads. This is the preferred input to blasr because rich quality"
     "value (insertion,deletion, and substitution quality values) information is "
     "maintained.  The extra quality information improves variant detection and mapping"<<

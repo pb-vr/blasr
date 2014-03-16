@@ -55,7 +55,7 @@ class HDFCCSReader : public T_HDFBasReader<T_Sequence> {
 		bool fileContainsCCS = false;
 		HDFGroup pulseDataGroup;
 		if (pulseDataGroup.Initialize(this->hdfBasFile, "PulseData") == 0) {
-      cout << "ERROR, ccs base file " << ccsBasFileName 
+      cout << "ERROR, h5 file " << ccsBasFileName 
            << " does not have a PulseData field." << endl;
       exit(1);
     }
