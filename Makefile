@@ -12,7 +12,7 @@ endif
 INSTALL_LIB_DIR = $(PREFIX)/lib
 INSTALL_BIN_DIR = $(PREFIX)/bin
 
-# LIB_LIST = 
+# LIB_LIST =
 
 EXE_LIST =  \
   alignment \
