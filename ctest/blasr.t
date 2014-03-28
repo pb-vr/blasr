@@ -22,7 +22,7 @@ Test blasr with -sam
   [INFO]* (glob)
 
   $ sed -n '5,$ p' $OUTDIR/ecoli.sam | sort | cut -f 1-11 > $TMP1
-  $ sed -n '5,$ p' $STDDIR/ecoli.sam | sort | cut -f 1-11 > $TMP2
+  $ sed -n '5,$ p' $STDDIR/ecoli_2014_03_28.sam | sort | cut -f 1-11 > $TMP2
   $ diff $TMP1 $TMP2
   $ rm $TMP1 $TMP2
 
@@ -92,7 +92,7 @@ Test affineAlign
   $ $EXEC $DATDIR/ecoli_affine.fasta $DATDIR/ecoli_reference.fasta -m 0 -out $OUTDIR/ecoli_affine.m0 -affineAlign -insertion 100 -deletion 100
   [INFO]* (glob)
   [INFO]* (glob)
-  $ diff $OUTDIR/ecoli_affine.m0 $STDDIR/ecoli_affine.m0
+  $ diff $OUTDIR/ecoli_affine.m0 $STDDIR/ecoli_affine_2014_03_28.m0
 
 
 Test -holeNumbers
@@ -132,7 +132,7 @@ Test -concordant
   [INFO]* (glob)
   $ sed -n 6,110864p $OUTDIR/concordant.sam > $OUTDIR/tmp1 
   $ sort $OUTDIR/tmp1 > $OUTDIR/tmp11
-  $ sed -n 6,110864p $STDDIR/concordant.sam > $OUTDIR/tmp2
+  $ sed -n 6,110864p $STDDIR/concordant_2014_03_28.sam > $OUTDIR/tmp2
   $ sort $OUTDIR/tmp2 > $OUTDIR/tmp22
   $ diff $OUTDIR/tmp11 $OUTDIR/tmp22
 
@@ -159,7 +159,7 @@ Test using *.ccs.h5 as input
   $ $EXEC $DATDIR/ccsasinput.fofn $DATDIR/ccsasinput.fasta -m 4 -out $OUTDIR/ccsasinput.m4
   [INFO]* (glob)
   [INFO]* (glob)
-  $ diff $OUTDIR/ccsasinput.m4 $STDDIR/ccsasinput.m4
+  $ diff $OUTDIR/ccsasinput.m4 $STDDIR/ccsasinput_2014_03_28.m4
 
 Test -useccsall with Large genome.
   $ BASFILE=/mnt/data3/vol53/2450530/0014/Analysis_Results/m130507_052228_42161_c100519212550000001823079909281305_s1_p0.3.bax.h5
@@ -170,6 +170,6 @@ Test -useccsall with Large genome.
   $ $EXEC $BASFILE $REFFA -out $OUTFILE -m 4 -sa $REFSA -holeNumbers 109020
   [INFO]* (glob)
   [INFO]* (glob)
-  $ diff $STDDIR/intflow.m4 $OUTFILE
+  $ diff $STDDIR/intflow_2014_03_28.m4 $OUTFILE
 
 

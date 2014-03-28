@@ -2561,6 +2561,8 @@ int FindMaxLengthAlignment(vector<T_AlignmentCandidate*> alignmentPtrs,
 }
 
 bool AlignmentsOverlap(T_AlignmentCandidate &alnA, T_AlignmentCandidate &alnB, float minPercentOverlap) {
+    //Update AlignmentsOverlap so that if A covers the entire alignment of B or vice verse,
+    //return true regardless of overlap percentage.
   int alnAStart, alnAEnd, alnBStart, alnBEnd;
   bool useForwardStrand=true;
   alnA.GetQInterval(alnAStart, alnAEnd, useForwardStrand);
@@ -2568,10 +2570,11 @@ bool AlignmentsOverlap(T_AlignmentCandidate &alnA, T_AlignmentCandidate &alnB, f
   // Look if one alignment encompasses the other
   int ovp = 0;
   if (alnAStart <= alnBStart and alnAEnd >= alnBEnd) {
-    ovp = alnBEnd - alnBStart;
+      return true;
   }
   else if (alnBStart <= alnAStart and alnBEnd >= alnAEnd) {
-    ovp = alnAEnd - alnAStart;
+      return true;
+      //ovp = alnAEnd - alnAStart;
   }
   else {
     //
