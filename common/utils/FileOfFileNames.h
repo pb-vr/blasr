@@ -5,16 +5,31 @@
 #include <vector>
 #include <fstream>
 #include "../utils.h"
+#include "../data/hdf/HDFNewBasReader.h"
+
 class FileOfFileNames {
- public:
+public:
 
 	static void StoreFileOrFileList(string fileName, vector<string> &fofnList) {
+        vector<string> tmpList;
 		if (IsFOFN(fileName)) {
-			FOFNToList(fileName, fofnList);
+			FOFNToList(fileName, tmpList);
 		}
 		else {
-			fofnList.push_back(fileName);
+			tmpList.push_back(fileName);
 		}
+        for (int i = 0; i < int(tmpList.size()); i++) {
+            if (FileOfFileNames::IsFOFN(tmpList[i])) {
+                cout << "ERROR. Nested File of File Names are not allowed. " 
+                     << endl;
+                exit(1);
+            } else if (FileOfFileNames::IsBasH5(tmpList[i])) {
+                vector<string> baxFNs = FileOfFileNames::Bas2Bax(tmpList[i]);
+                fofnList.insert(fofnList.end(), baxFNs.begin(), baxFNs.end());
+            } else {
+                fofnList.push_back(tmpList[i]);
+            }
+        }
 	}
 
 	static void FOFNToList(string &fofnFileName, vector<string> &fofnList) {
@@ -31,7 +46,6 @@ class FileOfFileNames {
 
 	static bool IsFOFN(string &fileName) {
 		string::size_type dotPos = fileName.rfind(".");
-		bool fileNameIsFOFN = false;
 		if (dotPos != string::npos) {
 			string extension;
 			extension.assign(fileName, dotPos+1, fileName.size() - (dotPos+1));
@@ -42,31 +56,48 @@ class FileOfFileNames {
 		return false;
 	}
 
-
-  static int ExpandFileNameList(vector<string> &fileNames) {
-    int rfn;
-    vector<string> expandedFileNames;
-    for (rfn = 0; rfn < fileNames.size(); rfn++) {
-      if (FileOfFileNames::IsFOFN(fileNames[rfn])) {
-        string fofnFileName = fileNames[rfn];
-        vector<string> fofnFileNames;
-        FileOfFileNames::FOFNToList(fofnFileName, fofnFileNames);
-        int f;
-        for (f = 0; f < fofnFileNames.size(); f++) {
-          if (FileOfFileNames::IsFOFN(fofnFileNames[f])) {
-            cout << "ERROR. Nested File of File Names are not allowed. " << endl;
-            exit(1);
-          }
-          expandedFileNames.push_back(fofnFileNames[f]);
+    static bool IsBasH5(string & fileName) {
+        // Return true if file ends with bas.h5
+        if (fileName.size() > 6) {
+            if (fileName.rfind("bas.h5") == fileName.size() - 6) {
+                return true;
+            }
         }
-      }
-      else {
-        expandedFileNames.push_back(fileNames[rfn]);
-      }
+        return false;
     }
-    fileNames = expandedFileNames;
-    return fileNames.size();
-  }
+
+    static vector<string> Bas2Bax(string & basFN) {
+        // There are two types of bas.h5 files. 
+        // Before SMRT 2.0, bas.h5 files contain all the /PulseData data, 
+        // in this case, return the bas.h5.
+        // After SMRT 2.0, bas.h5 files have been changed to only contain 
+        // paths to bax.h5 files (in the /MultiPart/Parts group), while
+        // all base calls and QVs are in bax.h5 files. In this case, 
+        // return path to the bax.h5 files. Assumption is that bax.h5 
+        // files are in the same directory as bas.h5 file.
+        vector<string> baxFNs; 
+        HDFNewBasReader reader;
+        if (reader.Initialize(basFN) != 0) {
+            baxFNs = reader.GetBaxFileNames();
+        } else {
+            baxFNs.push_back(basFN);
+        }
+        reader.Close();
+        return baxFNs;
+    }
+
+    static int ExpandFileNameList(vector<string> &fileNames) {
+        int rfn;
+        vector<string> expandedFileNames;
+        for (rfn = 0; rfn < fileNames.size(); rfn++) {
+            vector<string> tmpList; 
+	        FileOfFileNames::StoreFileOrFileList(fileNames[rfn], tmpList);
+            expandedFileNames.insert(expandedFileNames.end(), 
+                                     tmpList.begin(), tmpList.end());
+        }
+        fileNames = expandedFileNames;
+        return fileNames.size();
+    }
 
 };
 

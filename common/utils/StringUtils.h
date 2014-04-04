@@ -154,5 +154,20 @@ int AssignUntilFirstSpace(char *orig, int origLength, string &result) {
 	return i;
 }
 
+string RStrip(string & fileName) {
+    // Remove right-ended spaces 
+    int i = fileName.size();
+    if (i == 0) {
+        return "";
+    }
+    while (i >= 1) {
+        i--;
+        if (not IsWhitespace(fileName[i])) {
+            break;
+        }
+    }
+    return fileName.substr(0, i + 1);
+}
+
 
 #endif
