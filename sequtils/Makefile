@@ -137,7 +137,7 @@ bin/filterseq: bin/FilterSeq.o
 	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@
 
 bin/bsdb: bin/BuildSequenceDB.o
-	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@
+	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@ $(HDF5LDFLAGS) 
 
 bin/simpleShredder: bin/SimpleShredder.o
 	$(CPP) $(CPPOPTS) $< $(STATIC) -o $@
