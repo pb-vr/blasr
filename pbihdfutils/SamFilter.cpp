@@ -49,7 +49,7 @@
 #endif
 
 char VERSION[] = "v0.1.0";
-char PERFORCE_VERSION_STRING[] = "$Change: 130308 $";
+char PERFORCE_VERSION_STRING[] = "$Change: 133713 $";
 // By default negative score is better.
 SCORESIGN scoreSign = NEG;
 
@@ -128,7 +128,8 @@ void GetNextSAMAlignmentGroup(vector<SAMAlignment> & allSAMAlignments,
 
 // Get the best SAM alignments whose alignment score are the best. 
 // Assume that alignments in allSAMAlignments[groupBegin, groupEnd)
-// all have the same queryName and are sorted by score and tPos.
+// all have the same queryName and are sorted by score and tPos 
+// asscendingly: worst, ...., best
 void GetBestSAMAlignmentsInGroup(vector<SAMAlignment> & allSAMAlignments, 
                                  const unsigned int & groupBegin, 
                                  const unsigned int & groupEnd, 
@@ -137,16 +138,17 @@ void GetBestSAMAlignmentsInGroup(vector<SAMAlignment> & allSAMAlignments,
     assert(groupEnd  <= allSAMAlignments.size() and
            groupBegin < groupEnd);
 
-    bestBegin = groupBegin;
-    bestEnd   = bestBegin + 1;
+    bestEnd = groupEnd;
+    bestBegin = groupEnd - 1;
     int groupBestScore = allSAMAlignments[bestBegin].score;
     string queryName = allSAMAlignments[bestBegin].qName;
-    while(bestEnd < groupEnd) {
-        assert(allSAMAlignments[bestEnd].qName == queryName);
-        if (allSAMAlignments[bestEnd].score == groupBestScore)
-            bestEnd ++;
+    while (bestBegin >= groupBegin and bestBegin < groupEnd) {
+        assert(allSAMAlignments[bestBegin].qName == queryName);
+        if (allSAMAlignments[bestBegin].score == groupBestScore)
+            bestBegin -= 1;
         else break;
     }
+    bestBegin += 1;
 }
 
 // Apply hit policy to a group of SAM alignments and return indices
