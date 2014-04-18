@@ -2527,6 +2527,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
 
 void SumMismatches(SMRTSequence &read,
                    T_AlignmentCandidate &alignment,
+                   int mismatchScore,
                    int fullIntvStart, int fullIntvEnd,
                    int &sum) {
   int alnStart, alnEnd;
@@ -2540,6 +2541,9 @@ void SumMismatches(SMRTSequence &read,
     for (p = alnEnd; p < fullIntvEnd; p++) {
       sum += read.substitutionQV[p];
     }
+  } else {
+      // bug 24363, compute mismatch score when QV is not available.
+      sum += mismatchScore * ((alnStart - fullIntvStart) + (fullIntvEnd - alnEnd));
   }
 }
 
@@ -2651,6 +2655,9 @@ void StoreMapQVs(SMRTSequence &read,
   DistanceMatrixScoreFunction<DNASequence, FASTQSequence> distScoreFn;
   distScoreFn.del = params.deletion;
   distScoreFn.ins = params.insertion;
+  // bug 24363, set affineOpen and affineExtend for distScoreFn
+  distScoreFn.affineOpen = params.affineOpen; 
+  distScoreFn.affineExtend = params.affineExtend;
   distScoreFn.InitializeScoreMatrix(SMRTLogProbMatrix);
   IDSScoreFunction<DNASequence, FASTQSequence> idsScoreFn;
   idsScoreFn.ins = params.insertion;
@@ -2665,16 +2672,19 @@ void StoreMapQVs(SMRTSequence &read,
   //
   for (a = 0; a < alignmentPtrs.size(); a++) {
     if (params.ignoreQualities == false) {
+      // bug 24363, pass -affineAlign to compute correct alignment score.
       alignmentPtrs[a]->probScore = -ComputeAlignmentScore(*alignmentPtrs[a],
                                                           alignmentPtrs[a]->qAlignedSeq,
                                                           alignmentPtrs[a]->tAlignedSeq,
-                                                          idsScoreFn) / 10.0;
+                                                          idsScoreFn,
+                                                          params.affineAlign) / 10.0;
     }
     else {
       alignmentPtrs[a]->probScore = -ComputeAlignmentScore(*alignmentPtrs[a],
                                                            alignmentPtrs[a]->qAlignedSeq,
                                                            alignmentPtrs[a]->tAlignedSeq,
-                                                           distScoreFn) / 10.0;
+                                                           distScoreFn,
+                                                           params.affineAlign) / 10.0;
     }
   }
   PartitionOverlappingAlignments(alignmentPtrs, partitions, params.minFractionToBeConsideredOverlapping);
@@ -2749,7 +2759,10 @@ void StoreMapQVs(SMRTSequence &read,
       alignmentPtrs[*partIt]->GetQInterval(alnStart, alnEnd, convertToForwardStrand);
       if (alnStart - partitionBeginPos[p] > MAPQV_END_ALIGN_WIGGLE or
           partitionEndPos[p] - alnEnd > MAPQV_END_ALIGN_WIGGLE) {
-        SumMismatches(read, *alignmentPtrs[*partIt], partitionBeginPos[p], partitionEndPos[p], mismatchSum);
+          // bug 24363, use updated SumMismatches to compute mismatch score when 
+          // no QV is available.
+        SumMismatches(read, *alignmentPtrs[*partIt], 15,
+                      partitionBeginPos[p], partitionEndPos[p], mismatchSum);
       }
       //
       // Random sequence can be aligned with about 50% similarity due

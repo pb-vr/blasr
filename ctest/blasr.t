@@ -15,17 +15,30 @@ Define tmporary files
 
 Test blasr on ecoli.
 Test blasr with -sam
+
+# The following job takes a very long time to finish, let us use a subset of reads instead
 #See $STDOUT/ecoli_v1.4.sam for 1.4 output.
-  $ rm -rf $OUTDIR/ecoli.sam
-  $ $EXEC $DATDIR/ecoli.fasta $DATDIR/ecoli_reference.fasta -sam -out $OUTDIR/ecoli.sam -nproc 15
+# $STDOUT/ecoli_2014_03_28.sam for bug before mapQV for affineAlign/align without QV is fixed.
+
+#  $ rm -rf $OUTDIR/ecoli.sam
+#  $ $EXEC $DATDIR/ecoli.fasta $DATDIR/ecoli_reference.fasta -sam -out $OUTDIR/ecoli.sam -nproc 15
+#  [INFO]* (glob)
+#  [INFO]* (glob)
+#
+#  $ sed -n '5,$ p' $OUTDIR/ecoli.sam | sort | cut -f 1-11 > $TMP1
+#  $ sed -n '5,$ p' $STDDIR/ecoli_2014_04_18.sam | sort | cut -f 1-11 > $TMP2
+#  $ diff $TMP1 $TMP2
+#  $ rm $TMP1 $TMP2
+
+  $ rm -rf $OUTDIR/ecoli_subset.sam
+  $ $EXEC $DATDIR/ecoli_subset.fasta $DATDIR/ecoli_reference.fasta -sam -out $OUTDIR/ecoli_subset.sam -nproc 15
   [INFO]* (glob)
   [INFO]* (glob)
 
-  $ sed -n '5,$ p' $OUTDIR/ecoli.sam | sort | cut -f 1-11 > $TMP1
-  $ sed -n '5,$ p' $STDDIR/ecoli_2014_03_28.sam | sort | cut -f 1-11 > $TMP2
+  $ sed -n '5,$ p' $OUTDIR/ecoli_subset.sam | sort | cut -f 1-11 > $TMP1
+  $ sed -n '5,$ p' $STDDIR/ecoli_subset_2014_04_18.sam | sort | cut -f 1-11 > $TMP2
   $ diff $TMP1 $TMP2
   $ rm $TMP1 $TMP2
-
 
 Test blasr with -m 0 ~ 5 
   $ rm -rf $OUTDIR/read.m0
@@ -58,21 +71,40 @@ Test blasr with -m 0 ~ 5
   [INFO]* (glob)
   $ diff $OUTDIR/read.m4 $STDDIR/read.m4
 
+
 Test blasr with *.fofn input
-  $ rm -rf $OUTDIR/lambda_bax.m4 
-  $ $EXEC $DATDIR/lambda_bax.fofn $DATDIR/lambda_ref.fasta -m 4 -out lambda_bax_tmp.m4 -nproc 15 -minMatch 14
+#  $ rm -rf $OUTDIR/lambda_bax.m4 
+#  $ $EXEC $DATDIR/lambda_bax.fofn $DATDIR/lambda_ref.fasta -m 4 -out lambda_bax_tmp.m4 -nproc 15 -minMatch 14
+#  [INFO]* (glob)
+#  [INFO]* (glob)
+#  $ sort lambda_bax_tmp.m4 > $OUTDIR/lambda_bax.m4
+#  $ diff $OUTDIR/lambda_bax.m4 $STDDIR/lambda_bax.m4
+# This test takes a long time, use a subset instad. 
+
+  $ rm -rf $OUTDIR/lambda_bax_subset.m4
+  $ $EXEC $DATDIR/lambda_bax.fofn $DATDIR/lambda_ref.fasta -m 4 -out $OUTDIR/lambda_bax_tmp_subset.m4 -nproc 15 -minMatch 14 -holeNumbers 1-1000 -sa $DATDIR/lambda_ref.sa
   [INFO]* (glob)
   [INFO]* (glob)
-  $ sort lambda_bax_tmp.m4 > $OUTDIR/lambda_bax.m4
-  $ diff $OUTDIR/lambda_bax.m4 $STDDIR/lambda_bax.m4
+  $ sort $OUTDIR/lambda_bax_tmp_subset.m4 > $OUTDIR/lambda_bax_subset.m4
+  $ diff $OUTDIR/lambda_bax_subset.m4 $STDDIR/lambda_bax_subset.m4
+
 
 Test blasr with -noSplitSubreads 
-  $ rm -rf $OUTDIR/lambda_bax_noSplitSubreads.m4 $OUTDIR/lambda_bax_noSplitSubreads.m4
-  $ $EXEC $DATDIR/lambda_bax.fofn $DATDIR/lambda_ref.fasta -noSplitSubreads -m 4 -out lambda_bax_noSplitSubreads_tmp.m4 -nproc 15
+#  $ rm -rf $OUTDIR/lambda_bax_noSplitSubreads.m4 
+#  $ $EXEC $DATDIR/lambda_bax.fofn $DATDIR/lambda_ref.fasta -noSplitSubreads -m 4 -out lambda_bax_noSplitSubreads_tmp.m4 -nproc 15
+#  [INFO]* (glob)
+#  [INFO]* (glob)
+#  $ sort lambda_bax_noSplitSubreads_tmp.m4 > $OUTDIR/lambda_bax_noSplitSubreads.m4
+#  $ diff $OUTDIR/lambda_bax_noSplitSubreads.m4 $STDDIR/lambda_bax_noSplitSubreads.m4
+# This test takes a long time, use a subset instad. 
+
+  $ rm -rf $OUTDIR/lambda_bax_noSplitSubreads_subset.m4 
+  $ $EXEC $DATDIR/lambda_bax.fofn $DATDIR/lambda_ref.fasta -noSplitSubreads -m 4 -out $OUTDIR/lambda_bax_noSplitSubreads_tmp_subset.m4 -nproc 15 -holeNumbers 1-1000 -sa $DATDIR/lambda_ref.sa
   [INFO]* (glob)
   [INFO]* (glob)
-  $ sort lambda_bax_noSplitSubreads_tmp.m4 > $OUTDIR/lambda_bax_noSplitSubreads.m4
-  $ diff $OUTDIR/lambda_bax_noSplitSubreads.m4 $STDDIR/lambda_bax_noSplitSubreads.m4
+  $ sort $OUTDIR/lambda_bax_noSplitSubreads_tmp_subset.m4 > $OUTDIR/lambda_bax_noSplitSubreads_subset.m4
+  $ diff $OUTDIR/lambda_bax_noSplitSubreads_subset.m4 $STDDIR/lambda_bax_noSplitSubreads_subset.m4
+
 
 Test alignment score
   $ rm -rf $OUTDIR/testscore.m0
@@ -92,7 +124,8 @@ Test affineAlign
   $ $EXEC $DATDIR/ecoli_affine.fasta $DATDIR/ecoli_reference.fasta -m 0 -out $OUTDIR/ecoli_affine.m0 -affineAlign -insertion 100 -deletion 100
   [INFO]* (glob)
   [INFO]* (glob)
-  $ diff $OUTDIR/ecoli_affine.m0 $STDDIR/ecoli_affine_2014_03_28.m0
+  $ diff $OUTDIR/ecoli_affine.m0 $STDDIR/ecoli_affine_2014_04_18.m0
+# Note that MapQV for -affineAlign has been fixed in 2014 04 18, bug 24363 
 
 
 Test -holeNumbers
@@ -126,19 +159,30 @@ Test -useccsall with bestn = 1
   $ rm $TMP1 $TMP2
 
 Test -concordant
-  $ rm -rf $OUTDIR/concordant.sam
-  $ $EXEC $DATDIR/ecoli_lp.fofn $DATDIR/ecoli_reference.fasta -concordant -sam -out $OUTDIR/concordant.sam -nproc 8
+#  $ rm -rf $OUTDIR/concordant.sam
+#  $ $EXEC $DATDIR/ecoli_lp.fofn $DATDIR/ecoli_reference.fasta -concordant -sam -out $OUTDIR/concordant.sam -nproc 8
+#  [INFO]* (glob)
+#  [INFO]* (glob)
+#  $ sed -n 6,110864p $OUTDIR/concordant.sam > $OUTDIR/tmp1 
+#  $ sort $OUTDIR/tmp1 > $OUTDIR/tmp11
+#  $ sed -n 6,110864p $STDDIR/concordant_2014_03_28.sam > $OUTDIR/tmp2
+#  $ sort $OUTDIR/tmp2 > $OUTDIR/tmp22
+#  $ diff $OUTDIR/tmp11 $OUTDIR/tmp22
+#  $ rm -rf $OUTDIR/tmp1 $OUTDIR/tmp2 $OUTDIR/tmp11 $OUTDIR/tmp22
+# This test takes a long time, use a subset instad. 
+
+  $ rm -rf $OUTDIR/concordant_subset.sam
+  $ $EXEC $DATDIR/ecoli_lp.fofn $DATDIR/ecoli_reference.fasta -concordant -sam -out $OUTDIR/concordant_subset.sam -nproc 12 -holeNumbers 1-10000 -sa $DATDIR/ecoli_reference.sa
   [INFO]* (glob)
   [INFO]* (glob)
-  $ sed -n 6,110864p $OUTDIR/concordant.sam > $OUTDIR/tmp1 
+  $ sed -n 6,110864p $OUTDIR/concordant_subset.sam > $OUTDIR/tmp1 
   $ sort $OUTDIR/tmp1 > $OUTDIR/tmp11
-  $ sed -n 6,110864p $STDDIR/concordant_2014_03_28.sam > $OUTDIR/tmp2
+  $ sed -n 6,110864p $STDDIR/concordant_subset_2014_04_18.sam > $OUTDIR/tmp2
   $ sort $OUTDIR/tmp2 > $OUTDIR/tmp22
   $ diff $OUTDIR/tmp11 $OUTDIR/tmp22
-
   $ rm -rf $OUTDIR/tmp1 $OUTDIR/tmp2 $OUTDIR/tmp11 $OUTDIR/tmp22
 
-Test -concordant 
+Test -concordant, case 2
   $ rm -f $OUTDIR/concordant2.samtom4 $OUTDIR/concordant2.sam $OUTDIR/not_concordant2.m4
   $ FOFN=$DATDIR/concordant.fofn
   $ REF=$DATDIR/lambda_ref.fasta

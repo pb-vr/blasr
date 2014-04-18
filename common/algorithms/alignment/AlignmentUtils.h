@@ -84,7 +84,15 @@ int ComputeAlignmentScore(string &queryStr, string &textStr, T_ScoreFn &scoreFn,
                     ++gapEnd;
                 }
                 int gapLength = gapEnd - i;
-                score += scoreFn.affineOpen + gapLength * scoreFn.affineExtend;
+                // bug 24363, use min of affineScore and gapScore
+                int affineScore = scoreFn.affineOpen + gapLength * scoreFn.affineExtend;
+                int gapScore;
+                if (queryStr[gapEnd-1] == '-') {
+                    gapScore = scoreFn.del * gapLength;
+                } else {
+                    gapScore = scoreFn.ins * gapLength;
+                }
+                score += min(gapScore, affineScore);
                 //
                 // Advance past gap -1, so that at the top of the for loop i
                 // will be at the end of the gap.
@@ -129,20 +137,25 @@ int ComputeAlignmentScore(Alignment &alignment,
 		}
     if (alignment.gaps.size() == alignment.blocks.size() + 1) {
       for (gi = 0; gi < alignment.gaps[b+1].size(); gi++) {
+        int gapLength = alignment.gaps[b+1][gi].length;
+        int affineScore = scoreFn.affineOpen + gapLength * scoreFn.affineExtend;
         if (alignment.gaps[b+1][gi].seq == Gap::Target) {
-            if (useAffinePenalty) {
-                alignmentScore += scoreFn.affineOpen + alignment.gaps[b+1][gi].length * scoreFn.affineExtend;
+            // bug 24363, use min of affineScore and gapScore
+            int gapScore = gapLength * scoreFn.ins;
+            if (useAffinePenalty and affineScore < gapScore ) {
+                alignmentScore += affineScore; 
             }
             else {
-                alignmentScore += alignment.gaps[b+1][gi].length * scoreFn.ins;
+                alignmentScore += gapScore;
             }
         }
         else {
-            if (useAffinePenalty) {
-                alignmentScore += scoreFn.affineOpen + alignment.gaps[b+1][gi].length * scoreFn.affineExtend;
+            int gapScore = gapLength * scoreFn.del;
+            if (useAffinePenalty and affineScore < gapScore) {
+                alignmentScore += affineScore; 
             }
             else {
-                alignmentScore += alignment.gaps[b+1][gi].length * scoreFn.del;
+                alignmentScore += gapScore; 
             }
         }
       }
