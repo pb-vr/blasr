@@ -18,16 +18,16 @@ Set up the executable: samFilter.
 
   $ rm -f $OUTFILE
   $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE -minAccuracy 70 -minPctSimilarity 30 -hitPolicy all
-  $ tail -n+7 $OUTFILE > $TMP1 
-  $ tail -n+7 $STDFILE > $TMP2 
+  $ tail -n+7 $OUTFILE |sort > $TMP1 
+  $ tail -n+7 $STDFILE |sort > $TMP2 
   $ diff $TMP1 $TMP2 
   $ rm $TMP1 $TMP2 
 
 #Test whether minAccuracy and minPctSimilarity can be float.
   $ rm -f $OUTFILE
   $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE -minAccuracy 70.0 -minPctSimilarity 30.0 -hitPolicy all
-  $ tail -n+7 $OUTFILE > $TMP1 
-  $ tail -n+7 $STDFILE > $TMP2 
+  $ tail -n+7 $OUTFILE | sort > $TMP1 
+  $ tail -n+7 $STDFILE | sort > $TMP2 
   $ diff $TMP1 $TMP2 
   $ rm $TMP1 $TMP2 
 

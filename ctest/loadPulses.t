@@ -184,18 +184,19 @@ Set up the executable: loadPulses.
   $ CMP_IN=$DATDIR/ccs_lp.cmp.h5
   $ CMP_OUT=$OUTDIR/ccs_lp.cmp.h5
 
+  # The original pls.h5 files disappeared, to use another dataset instead.
   $ rm -f CMP_OUT
   $ cp $CMP_IN $CMP_OUT
   $ $EXEC $FOFN_IN $CMP_OUT -bymetric -metrics QualityValue
   [INFO] * [loadPulses] started. (glob)
-  loading 2182 alignments for movie 1
-  loading 4494 alignments for movie 2
+  loading 100 alignments for movie 1
+  loading 45 alignments for movie 2
   [INFO] * [loadPulses] ended. (glob)
 
   $ h5ls -r $CMP_OUT | grep "AlnInfo"
   /AlnInfo                 Group
-  /AlnInfo/AlnIndex        Dataset {6676/Inf, 22}
-  /AlnInfo/NumPasses       Dataset {6676/Inf}
+  /AlnInfo/AlnIndex        Dataset {145/Inf, 22}
+  /AlnInfo/NumPasses       Dataset {145/Inf}
 
 
 #Test loadPulses *.fofn cmp.h5 where *.fofn can either contain ccs.h5 or bas.h5
@@ -219,8 +220,8 @@ Set up the executable: loadPulses.
   [INFO] * [loadPulses] started. (glob)
   loading 11 alignments for movie 1
   [INFO] * [loadPulses] ended. (glob)
-
+ 
   $ h5diff $CCS_OUT $BAS_OUT
-  dataset: </FileLog/CommandLine> and </FileLog/CommandLine>
-  \d+ differences found (re)
+  dataset: </FileLog/CommandLine> and </FileLog/CommandLine> (glob)
+  * differences found (glob)
   [1]
