@@ -15,7 +15,8 @@ $(EXECS): % : %.o
 	$(CXX) $(CCOPTS) -c $< -o $@
 
 gtest: $(EXECS)
-	@(for exe in $(EXECS); do echo "Running $$exe"; ./$$exe -gtest_output=xml:$(ROOT_DIR)/$$exe.xml; done;)
+	#@(for exe in $(EXECS); do echo "Running $$exe"; ./$$exe -gtest_output=xml:$(ROOT_DIR)/$$exe.xml; done;)
+	@(for exe in $(EXECS); do echo "Running $$exe"; ./$$exe --gtest_output=xml:$(ROOT_DIR)/$$exe.xml; done;)
 
 clean: 
 	@rm -f $(OBJECTS) $(EXECS)

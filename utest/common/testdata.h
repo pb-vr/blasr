@@ -26,8 +26,8 @@ const string baxFile2 =
      "m130302_011223_pd1_c000000092559900001500000112311511_s1_p0.2.bax.h5");
 
 const string plsFile1 = 
-    ("/mnt/data3/vol56/2530449/0004/Analysis_Results/"
-     "m130113_135421_00126_c100449472550000001523046302151300_s1_p0.pls.h5");
+    ("/home/UNIXHOME/yli/yliWorkspace/private/yli/data/testLoadPulses/"
+     "m121215_065521_richard_c100425710150000001823055001121371_s1_p0.pls.h5");
 
 const string ccsFile1 = 
     ("/home/UNIXHOME/yli/yliWorkspace/software/bioinformatics/tools/"
@@ -35,7 +35,7 @@ const string ccsFile1 =
      "m130328_211423_ethan_c100499512550000001823070408081371_s1_p0.ccs.h5");
 
 const string fastaFile1 = 
-    ("/mnt/secondary-siv/secondarytest/testdata/BlasrTestData/utest/"
+    ("/mnt/secondary-siv/testdata/BlasrTestData/utest/"
      "data/read.fasta");
 
 const string fastqFile1 = 
@@ -44,10 +44,10 @@ const string fastqFile1 =
      "m130328_211423_ethan_c100499512550000001823070408081371_s1_p0.fastq");
 
 const string titleTable1 = 
-    ("/mnt/secondary-siv/secondarytest/testdata/BlasrTestData/utest/"
+    ("/mnt/secondary-siv/testdata/BlasrTestData/utest/"
      "data/titleTable1");
  
 const string rgnFile1 =
-    ("/mnt/secondary-siv/secondarytest/testdata/BlasrTestData/utest/"
+    ("/mnt/secondary-siv/testdata/BlasrTestData/utest/"
      "data/test_regionTable.rgn.h5");
 

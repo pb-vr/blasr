@@ -43,7 +43,7 @@ TEST_F(HDFPlsReaderTEST, ReadToPulseFile) {
     reader.ReadPulseFileInit(pulseFile);
     reader.ReadPulseFile(pulseFile);
     ASSERT_EQ(pulseFile.platformId, 0);
-    ASSERT_EQ(pulseFile.startFrame.size(), 750921871);
+    ASSERT_EQ(pulseFile.startFrame.size(), 197626964);
 }
 
 
