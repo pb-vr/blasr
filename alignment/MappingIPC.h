@@ -14,7 +14,7 @@
 #include "files/ReaderAgglomerate.hpp"
 #include "MappingMetrics.hpp"
 #include "suffixarray/SuffixArrayTypes.hpp"
-#include "datastructures/metagenome/SequenceIndexDatabase.hpp"
+#include "metagenome/SequenceIndexDatabase.hpp"
 #include "reads/RegionTable.hpp"
 #include "bwt/BWT.hpp"
 /*
