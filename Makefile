@@ -37,9 +37,10 @@ g: G_OPTIMIZE = -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fn
 g: G_LIBS = -Wl --eh-frame-hdr -fno-builtin-malloc -L/home/UNIXHOME/yli/lib -ltcmalloc -lunwind -lprofiler $(LIBS)
 
 
-all debug profile g: blasr 
+exe=libblasr
+all debug profile g: $(exe) 
 
-blasr: Blasr.o
+$(exe): Blasr.o
 	$(CXX) $(LIBDIRS) $(OPTIMIZE) $(G_OPTIMIZE) -static -o $@ $^ $(LIBS) $(G_LIBS)
 
 Blasr.o: Blasr.cpp
@@ -48,7 +49,7 @@ Blasr.o: Blasr.cpp
 .INTERMEDIATE: $(OBJS)
 
 clean: 
-	rm -f blasr
+	rm -f $(exe)
 	rm -f $(OBJS) $(DEPS)
 
 -include $(DEPS)
