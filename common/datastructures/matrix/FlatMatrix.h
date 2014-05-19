@@ -58,6 +58,17 @@ class FlatMatrix2D {
 	unsigned int Size() {
 		return nRows * nCols;
 	}
+
+    void Fill(T value) {
+        fill(matrix, &matrix[totalSize], value);
+    }
+    //
+    // Pseudonym for grow.
+    //
+    void Resize(int _nRows, int _nCols) {
+        Grow(_nRows, _nCols);
+    }
+
 	void Resize(unsigned int totalSize) {
 		if (matrix != NULL) {
 			delete[] matrix;
@@ -78,6 +89,14 @@ class FlatMatrix2D {
 			Grow(_nRows, _nCols);
 		}
 	}
+
+	void Clear() {
+		delete[] matrix;
+		matrix = NULL;
+		nRows = nCols = 0;
+		totalSize = 0;
+	}
+
 	void Grow(int _nRows, int _nCols) {
 		nRows = _nRows;
 		nCols = _nCols;
@@ -181,9 +200,5 @@ class FlatMatrix3D {
         }
     }
 };
-		
-	
-
-
 
 #endif
