@@ -49,7 +49,7 @@
 #endif
 
 char VERSION[] = "v0.1.0";
-char PERFORCE_VERSION_STRING[] = "$Change: 133713 $";
+char PERFORCE_VERSION_STRING[] = "$Change: 134995 $";
 // By default negative score is better.
 SCORESIGN scoreSign = NEG;
 
@@ -61,7 +61,7 @@ SCORESIGN scoreSign = NEG;
 //                 insertion & deletion scores
 enum SCOREFUNC {ALIGNERSCORE, EDITDIST, BLASRSCORE, USERSCORE};
 
-enum HITPOLICY {RANDOM, ALL, ALLBEST, RANDOMBEST};//, LEFTPOSITIVE};
+enum HITPOLICY {RANDOM, ALL, ALLBEST, RANDOMBEST, LEFTMOST};
 
 // Return a multiple hit policy.
 HITPOLICY setHitPolicy(const string & hitPolicyStr) {
@@ -69,6 +69,7 @@ HITPOLICY setHitPolicy(const string & hitPolicyStr) {
     else if (hitPolicyStr == "all")        return ALL;
     else if (hitPolicyStr == "allbest")    return ALLBEST;
     else if (hitPolicyStr == "randombest") return RANDOMBEST;
+    else if (hitPolicyStr == "leftmost")   return LEFTMOST;
     else {
         cout <<"ERROR, the specified multiple hit policy " 
              << hitPolicyStr <<" is not supported." << endl;
@@ -173,7 +174,11 @@ vector<unsigned int> ApplyHitPolicy(HITPOLICY hitPolicy,
                 hitIndices.push_back(i);
             }
         } else if (hitPolicy == RANDOMBEST) {
-            hitIndices.push_back(rand()%(bestEnd - bestBegin) + bestBegin);
+            hitIndices.push_back(rand()%(bestEnd-bestBegin) + bestBegin);
+        } else if (hitPolicy == LEFTMOST) {
+            hitIndices.push_back(bestBegin);
+        } else {
+            assert(false);
         }
     }
     return hitIndices;
@@ -284,7 +289,7 @@ int main(int argc, char* argv[]) {
 
     FilterCriteria filterCriteria;
     string hitPolicyStr = "randombest";
-    HITPOLICY hitPolicy = ALLBEST; 
+    HITPOLICY hitPolicy = RANDOMBEST; 
 
     bool parseSmrtTitle = false;
     string titleTableName = "";
@@ -323,7 +328,9 @@ int main(int argc, char* argv[]) {
             "  random  : selects a random hit.\n"
             "  all     : selects all hits.\n"
             "  allbest : selects all the best alignment score hits.\n"
-            "  randombest: selects a random hit from all best alignment score hits.");
+            "  randombest: selects a random hit from all best alignment score hits.\n"
+            "  leftmost: selects a hit which has the best alignment score and \n" 
+            "            has the smallest mapping coordinate in any reference.");
     clp.RegisterStringOption("scoreFunction", &scoreFuncStr,
             "(alignerscore) Specify an alignment score function from "
             "[alignerscore, editdist, blasrscore, userscore]\n" // affine
@@ -402,15 +409,15 @@ int main(int argc, char* argv[]) {
             "xe tags are used to define the interval of a read that is "
             "aligned.  The CIGAR string is relative to this interval.");
 
+    clp.ParseCommandLine(argc, argv);
+    filterCriteria.verbosity = verbosity; 
+
     // Set random number seed. 
     if (seed == 0) {
         srand(time(NULL));
     } else {
-        srand(0);
+        srand(seed);
     }
-
-    clp.ParseCommandLine(argc, argv);
-    filterCriteria.verbosity = verbosity; 
 
     // Set hit policy.
     hitPolicy = setHitPolicy(hitPolicyStr);
@@ -630,8 +637,8 @@ int main(int argc, char* argv[]) {
             if (adapterGffFileName != "" and 
                 CheckAdapterOnly(adapterGffFile, alignment, refNameToIndex)) {
                 if (verbosity > 0)
-                    cout << alignment.qName << " fileter adapter only."
-                        << endl;
+                    cout << alignment.qName << " filter adapter only."
+                         << endl;
                 continue;
             }
 

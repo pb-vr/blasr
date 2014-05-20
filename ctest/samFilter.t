@@ -65,6 +65,15 @@ Set up the executable: samFilter.
   $ rm $TMP1 $TMP2 
 
 
+# Test samFilter with -hitPolicy leftmost
+  $ OUTFILE=$OUTDIR/test_leftmost_out.sam
+
+  $ rm -f $OUTFILE
+  $ $EXEC $DATDIR/test_leftmost.sam $DATDIR/test_leftmost_target.fasta $OUTFILE -hitPolicy leftmost 
+  $ tail -n+6 $OUTFILE |cut -f 4 
+  1
+
+
 #Test samFilter with -scoreFunction 
   $ OUTFILE=$OUTDIR/lambda_bax_filter_5.sam
   $ STDFILE=$STDDIR/lambda_bax_filter_5.sam
