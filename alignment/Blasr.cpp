@@ -2592,10 +2592,17 @@ bool AlignmentsOverlap(T_AlignmentCandidate &alnA, T_AlignmentCandidate &alnB, f
       ovp = alnBEnd - alnAStart;
     }
   }
-  float ovpPercent = (2.0*ovp) / ((alnAEnd - alnAStart) + (alnBEnd - alnBStart));
-  // returns true when an overlap is found.
-  return ( ovpPercent > minPercentOverlap);
+  
+  // float ovpPercent = (2.0*ovp) / ((alnAEnd - alnAStart) + (alnBEnd - alnBStart));
+  float ovpPercent = 0;
+  if (alnAEnd - alnAStart > 0 and alnBEnd - alnBStart > 0) {
+      // overlap percentage: maximum overlap percent in A and B.
+      ovpPercent = max(float(ovp)/float(alnAEnd - alnAStart), 
+                       float(ovp)/float(alnBEnd - alnBStart));
+  }
 
+  // returns true when an overlap is found.
+  return (ovpPercent > minPercentOverlap);
 }
 
 

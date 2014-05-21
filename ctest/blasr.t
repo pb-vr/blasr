@@ -36,9 +36,12 @@ Test blasr with -sam
   [INFO]* (glob)
 
   $ sed -n '5,$ p' $OUTDIR/ecoli_subset.sam | sort | cut -f 1-11 > $TMP1
-  $ sed -n '5,$ p' $STDDIR/ecoli_subset_2014_05_04.sam | sort | cut -f 1-11 > $TMP2
+  $ sed -n '5,$ p' $STDDIR/ecoli_subset_2014_05_21.sam | sort | cut -f 1-11 > $TMP2
+  $ echo $TMP1
+  $ echo $TMP2
   $ diff $TMP1 $TMP2
   $ rm $TMP1 $TMP2
+
 
 Test blasr with -m 0 ~ 5 
   $ rm -rf $OUTDIR/read.m0
@@ -177,11 +180,11 @@ Test -concordant
   [INFO]* (glob)
   $ sed -n 6,110864p $OUTDIR/concordant_subset.sam > $OUTDIR/tmp1 
   $ sort $OUTDIR/tmp1 > $OUTDIR/tmp11
-  $ sed -n 6,110864p $STDDIR/concordant_subset_2014_05_04.sam > $OUTDIR/tmp2
+  $ sed -n 6,110864p $STDDIR/concordant_subset_2014_05_21.sam > $OUTDIR/tmp2
   $ sort $OUTDIR/tmp2 > $OUTDIR/tmp22
   $ diff $OUTDIR/tmp11 $OUTDIR/tmp22
   $ rm -rf $OUTDIR/tmp1 $OUTDIR/tmp2 $OUTDIR/tmp11 $OUTDIR/tmp22
-
+ 
 Test -concordant, case 2
   $ rm -f $OUTDIR/concordant2.samtom4 $OUTDIR/concordant2.sam $OUTDIR/not_concordant2.m4
   $ FOFN=$DATDIR/concordant.fofn
