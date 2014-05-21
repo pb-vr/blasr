@@ -4237,6 +4237,7 @@ int main(int argc, char* argv[]) {
   clp.RegisterFlagOption("useQuality", &params.ignoreQualities, "");
   clp.RegisterFlagOption("noFrontAlign", &params.extendFrontAlignment, "");
   clp.RegisterIntOption("minReadLength", &params.minReadLength, "", CommandLineParser::NonNegativeInteger);
+  clp.RegisterIntOption("minAlignLength", &params.minAlignLength, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterIntOption("maxReadLength", &params.maxReadLength, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterIntOption("minSubreadLength", &params.minSubreadLength, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterIntOption("minAvgQual", &params.minAvgQual, "", CommandLineParser::Integer);

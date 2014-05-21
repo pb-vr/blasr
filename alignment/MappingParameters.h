@@ -173,6 +173,8 @@ class MappingParameters {
   int   limsAlign;
   string holeNumberRangesStr;
   Ranges holeNumberRanges;
+  int minAlignLength;
+
 	void Init() {
     readIndex = -1;
     maxReadIndex = -1;
@@ -329,6 +331,7 @@ class MappingParameters {
     scaleMapQVByNumSignificantClusters = false;
     limsAlign = 0;
     holeNumberRangesStr = "";
+    minAlignLength = 0;
 	}
 
 	MappingParameters() {
