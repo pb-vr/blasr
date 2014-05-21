@@ -787,7 +787,7 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
   do {
 
     T_AlignmentCandidate *alignment = alignments[alignmentIndex];
-    alignment->clusterWeight= (*intvIt).size;
+    alignment->clusterWeight= (*intvIt).size; // totalAnchorSize == size
     alignment->clusterScore = (*intvIt).pValue;
 
     //
@@ -988,11 +988,49 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
         vector<ChainedMatchPos> *matches;
         vector<ChainedMatchPos> rcMatches;
         Alignment anchorsOnly;
+        DNASequence tAlignedSeq;
+        FASTQSequence qAlignedSeq;
+        //
+        // The strand bookkeeping is a bit confusing, so hopefully
+        // this will set things straight.
+        //
+        // If the alignment is forward strand, the coordinates of the
+        // blocks are relative to the forward read, starting at 0, not
+        // the subread start.
+        // If the alignment is reverse strand, the coordinates of the
+        // blocks are relative to the reverse strand, starting at the
+        // position of the subread on the reverse strand.
+        // 
+        // The coordinates of the blocks in the genome are always
+        // relative to the forward strand on the genome, starting at
+        // 0.  
+        //
+
+        //
+        // The first step to refining between anchors only is to make
+        // the anchors relative to the tAlignedSeq.
+        
+        matches = (vector<ChainedMatchPos>*) &(*intvIt).matches;
+        tAlignedSeq = alignment->tAlignedSeq;
+        qAlignedSeq = alignment->qAlignedSeq;
+
         if (alignment->tStrand == 0) {
-          matches = (vector<ChainedMatchPos>*) &(*intvIt).matches;
+            for (m = 0; m < matches->size(); m++) {
+                (*matches)[m].t -= alignment->tAlignedSeqPos;
+                (*matches)[m].q -= alignment->qAlignedSeqPos;
+            }
         }
         else  { 
-          rcMatches.resize((*intvIt).matches.size());
+            //
+            // Flip the entire alignment if it is on the reverse strand.
+            DNALength rcAlignedSeqPos = genome.MakeRCCoordinate(alignment->tAlignedSeqPos + alignment->tAlignedSeqLength - 1);
+            for (m = 0; m < matches->size(); m++) {
+                (*matches)[m].t -= rcAlignedSeqPos;
+                (*matches)[m].q -= alignment->qAlignedSeqPos;
+            }
+
+            alignment->tAlignedSeq.CopyAsRC(tAlignedSeq);
+            rcMatches.resize((*intvIt).matches.size());
           //
           // Make the reverse complement of the match list.
           //
@@ -1001,7 +1039,7 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
           for (m = 0; m < (*intvIt).matches.size(); m++) {
             int revCompIndex = rcMatches.size() - m - 1;
             rcMatches[revCompIndex].q = read.MakeRCCoordinate((*intvIt).matches[m].q + (*intvIt).matches[m].l - 1);
-            rcMatches[revCompIndex].t = genome.MakeRCCoordinate((*intvIt).matches[m].t + (*intvIt).matches[m].l - 1);
+            rcMatches[revCompIndex].t = tAlignedSeq.MakeRCCoordinate((*intvIt).matches[m].t + (*intvIt).matches[m].l - 1);
             rcMatches[revCompIndex].l = (*intvIt).matches[m].l;
           }
           matches = &rcMatches;
@@ -1016,12 +1054,15 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
           matchFile << (*matches)[m].q << " " << (*matches)[m].t << " " << (*matches)[m].l << endl;
         }
         */
+        DNASequence tSubSeq;
+        FASTQSequence qSubSeq;
         for (m = 0; matches->size() > 0 and m < matches->size() - 1; m++) {
           Block block;
-          block.qPos = (*matches)[m].q - alignment->qAlignedSeqPos;
-          block.tPos = (*matches)[m].t - alignment->tAlignedSeqPos;
+          block.qPos = (*matches)[m].q;
+          block.tPos = (*matches)[m].t;
           block.length = (*matches)[m].l;
-          
+         
+         
           //
           // Find the lengths of the gaps between anchors.
           //
@@ -1031,13 +1072,10 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
           float gapRatio = (1.0*tGap)/qGap;
 
           if (tGap > 0 and qGap > 0) {
-
-            DNASequence tSubSeq;
-            FASTQSequence qSubSeq;
             DNALength tPos, qPos;
             tPos = block.tPos + block.length;
             qPos = block.qPos + block.length;
-            tSubSeq.ReferenceSubstring(alignment->tAlignedSeq, tPos, tGap);
+            tSubSeq.ReferenceSubstring(tAlignedSeq, tPos, tGap);
             qSubSeq.ReferenceSubstring(alignment->qAlignedSeq, qPos, qGap);
             Alignment alignmentInGap;
             int alignScore;
@@ -1083,18 +1121,21 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
                 assert(alignmentInGap.blocks[b].qPos < alignment->qAlignedSeq.length);
               }
             }
+            // Add the original block
             alignment->blocks.push_back(block);
             anchorsOnly.blocks.push_back(block);
+            // Add the blocks for the refined alignment
             alignment->blocks.insert(alignment->blocks.end(),
                                      alignmentInGap.blocks.begin(),
                                      alignmentInGap.blocks.end());
           }
         }
 
+        // Add the last block
         m = (*matches).size() - 1;
         Block block;
-        block.qPos = (*matches)[m].q - alignment->qAlignedSeqPos;
-        block.tPos = (*matches)[m].t - alignment->tAlignedSeqPos;
+        block.qPos = (*matches)[m].q;
+        block.tPos = (*matches)[m].t;
 
         assert(block.tPos <= alignment->tAlignedSeq.length);
         assert(block.qPos <= alignment->qAlignedSeq.length);
@@ -1102,6 +1143,11 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
         block.length = (*matches)[m].l;
         alignment->blocks.push_back(block);        
         anchorsOnly.blocks.push_back(block);
+
+        //
+        // By convention, blocks start at 0, and the
+        // alignment->tPos,qPos give the start of the alignment.
+        // Modify the block positions so that they are offset by 0.
         alignment->tPos = alignment->blocks[0].tPos;
         alignment->qPos = alignment->blocks[0].qPos;
         int b;
@@ -1120,7 +1166,6 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
         anchorsOnly.qPos = alignment->qPos;
         ComputeAlignmentStats(*alignment, alignment->qAlignedSeq.seq, alignment->tAlignedSeq.seq,
                               distScoreFn);
-                //              SMRTDistanceMatrix, params.insertion, params.deletion);
       }
       else {
         alignScore = SDPAlign(alignment->qAlignedSeq, alignment->tAlignedSeq, distScoreFn, 
@@ -1131,7 +1176,6 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
                               params.extendFrontAlignment);
         ComputeAlignmentStats(*alignment, alignment->qAlignedSeq.seq, alignment->tAlignedSeq.seq,
                               distScoreFn);
-                 //             SMRTDistanceMatrix, params.insertion, params.deletion);
       }
     }
     else {
@@ -1182,7 +1226,7 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
       alignment->tAlignedSeq.TakeOwnership(tSubseq);
 
           
-      DNALength maximumExtendLength = 300;
+      DNALength maximumExtendLength = 500;
 
       if (alignment->blocks.size() > 0 ){
         int lastAlignedBlock = alignment->blocks.size() - 1;
@@ -1428,7 +1472,7 @@ int RemoveLowQualityAlignments(T_Sequence &read, vector<T_AlignmentCandidate*> &
   UInt i;
   for (i = 0; i < MIN(params.nCandidates, alignmentPtrs.size()); i++) { 
     if (params.verbosity > 0) {
-      cout << "  " << i << " " << alignmentPtrs[i]->score << endl;
+      cout << "Quality check  " << i << " " << alignmentPtrs[i]->score << endl;
     }
     if (alignmentPtrs[i]->blocks.size() == 0 or
         alignmentPtrs[i]->score > params.maxScore) {
@@ -1645,7 +1689,6 @@ void PairwiseLocalAlign(T_Sequence &qSeq, T_RefSequence &tSeq,
   }
   // Compute stats and assign a default alignment score using an edit distance.
   ComputeAlignmentStats(alignment, qSeq.seq, tSeq.seq, distScoreFn2);
-          //SMRTDistanceMatrix, params.indel, params.indel );
 
   if (params.scoreType == 1) {
     alignment.score = alignment.sumQVScore;
@@ -1701,7 +1744,6 @@ void RefineAlignment(vector<T_Sequence*> &bothQueryStrands,
                           alignmentCandidate.tAlignedSeq.seq, 
                           distScoreFn2);
                           //idsScoreFn);
-                          //SMRTDistanceMatrix, params.indel, params.indel);
     
     alignmentCandidate.blocks = refinedAlignment.blocks;
     alignmentCandidate.gaps   = refinedAlignment.gaps;
@@ -1771,7 +1813,6 @@ void RefineAlignment(vector<T_Sequence*> &bothQueryStrands,
                             qSeq.seq,
                             tSeq.seq, 
                             distScoreFn2, params.affineAlign);
-                            //SMRTDistanceMatrix, params.indel, params.indel);
       //
       // Copy the refine alignment, which may be a subsequence of the
       // alignmentCandidate into the alignment candidate.  
@@ -2860,11 +2901,24 @@ void StoreMapQVs(SMRTSequence &read,
 //
 void PrintAlignment(T_AlignmentCandidate &alignment, SMRTSequence &fullRead, MappingParameters &params, AlignmentContext &alignmentContext, ostream &outFile) {
   if (alignment.score > params.maxScore) {
+		if (params.verbosity > 0) {
+			cout << "Not using " << alignment.qAlignedSeqPos << " " << alignment.tAlignedSeqPos << " because score: " << alignment.score << " is too low (" << params.maxScore  << ")" << endl;
+		}
     return;
   }
   if (alignment.pctSimilarity < params.minPctIdentity) {
+		if (params.verbosity > 0) {
+			cout << "Not using " << alignment.qAlignedSeqPos << " " << alignment.tAlignedSeqPos << " because identity: " << alignment.pctSimilarity << " is too low (" << params.minPctIdentity  << ")" << endl;
+		}
     return;
   }
+  if (alignment.tAlignedSeq.length < params.minAlignLength) {
+        if (params.verbosity > 0) {
+			cout << "Not using " << alignment.qAlignedSeqPos << " " << alignment.tAlignedSeqPos << " because length: " << alignment.tAlignedSeq.length << " is too short (" << params.minAlignLength  << ")" << endl;
+		}
+		return;
+  }
+
   try {
     int lastBlock = alignment.blocks.size() - 1;
     if (params.printFormat == StickPrint) {
@@ -2980,6 +3034,9 @@ void PrintAlignments(vector<T_AlignmentCandidate*> alignmentPtrs,
       // score and continue.
       //
       aref->score = 0;
+      if (params.verbosity > 0) {
+          cout << "Zero blocks found for " << aref->qName << " " << aref->qAlignedSeqPos << " " << aref->tAlignedSeqPos << endl;
+      }
       continue;
     }
     
@@ -3000,7 +3057,6 @@ void PrintAlignments(vector<T_AlignmentCandidate*> alignmentPtrs,
             alignment.qAlignedSeq, 
             alignment.tAlignedSeq, 
             editdistScoreFn);
-            //EditDistanceMatrix, 1, 1);
     }
     
     PrintAlignment(*alignmentPtrs[i], read, params, alignmentContext, outFile);
@@ -4470,7 +4526,7 @@ int main(int argc, char* argv[]) {
       // There was no explicit specification of a suffix
       // array on the command line, so build it on the fly here.
       //
-      genome.ToThreeBit();    
+      genome.ToThreeBit();
       vector<int> alphabet;
       sarray.InitThreeBitDNAAlphabet(alphabet);
       sarray.LarssonBuildSuffixArray(genome.seq, genome.length, alphabet);
