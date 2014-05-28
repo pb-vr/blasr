@@ -373,7 +373,9 @@ void SAMAlignmentsToCandidates(SAMAlignment &sam,
     alignment.qPos = 0;
     alignment.tPos = 0;
 
+    // qAlignStart is the start of the alignment relative to the sequence in the SAM file.
     DNALength qAlignStart = qPos;
+    // tAlignStart is the start of the alignment in the genome.
     DNALength tAlignStart = tPos;
     
     int cigarEnd = cigarPos;

@@ -58,7 +58,11 @@ class SAMAlignment {
   int   nm;
   int   fi;
   string optTagStr; 
-  
+  //
+  // Quality values.
+  //
+  string qi, qd, qs, qm, ts, td;	
+
   SAMAlignment() {
     //
     // Initialize all optional fields.  Required fields will be
@@ -214,11 +218,30 @@ class SAMAlignment {
         }
         else if (kvName == "XQ") {
           strm >> xq;
+        } // Add quality values, including QualityValue?, 
+          // InsertionQV, DeletionQV, SubstitutionQV, 
+          // MergeQV and SubstitutionTag and DeletionTag
+        else if (kvName == "qi") {
+            strm >> qi;
         }
-
+        else if (kvName == "qd") {
+            strm >> qd;
+        }
+        else if (kvName == "qs") {
+        strm >> qs;
+        }
+        else if (kvName == "qm") {
+            strm >> qm;
+        }
+        else if (kvName == "ts") {
+            strm >> ts;
+        }
+        else if (kvName == "td") {
+            strm >> td;
+        }
       }
       else {
-        cout <<"ERROR.  Could not parse typed keyword value " << typedKVPair << endl;
+        cout << "ERROR. Could not parse typed keyword value " << typedKVPair << endl;
       }
     }
   }

@@ -43,6 +43,15 @@ class FASTQSequence : public FASTASequence {
     mergeQV.qvScale           = qvScale;
   }
 
+  QualityValueVector<QualityValue>* GetQVPointerByIndex(int index) {
+		if (index == 0) { return &qual; }
+		if (index == 1) { return &insertionQV; }
+		if (index == 2) { return &deletionQV; }
+		if (index == 3) { return &substitutionQV; }
+		if (index == 4) { return &mergeQV; }
+		return NULL;
+	}
+
 	int GetStorageSize() {
 		int total = 0;
 		int nQV = 0;
@@ -324,25 +333,68 @@ class FASTQSequence : public FASTASequence {
     PrintAsciiQual(out, lineLength);
   }
   
+  void PrintAsciiRichQuality(ostream &out, int whichQuality, int lineLength=50) {
+      unsigned char* qualPtr;
+      int charOffset = charToQuality;
+      if (whichQuality == 0) {
+          qualPtr = qual.data;
+      }
+      else if (whichQuality == 1) {
+          qualPtr = insertionQV.data;
+      }
+      else if (whichQuality == 2) {
+          qualPtr = deletionQV.data;
+      }
+      else if (whichQuality == 3) {
+          qualPtr = substitutionQV.data; 
+      }
+      else if (whichQuality == 4) {
+          qualPtr = mergeQV.data;
+      }
+      else if (whichQuality == 5) {
+          qualPtr = (unsigned char*) substitutionTag;
+          charOffset = 0;
+      }
+      else if (whichQuality == 6) {
+          qualPtr = (unsigned char*) deletionTag;
+          charOffset = 0;
+      }
+      int i;
+      if (lineLength == 0) {
+          for (i = 0; i < length; i++) {
+              if (qualPtr != NULL) {
+                  out << (char)(qualPtr[i]+charOffset);
+              }
+              else {
+                  // Fake bad quality
+                  out << "5";
+              }
+          }
+      }
+      else {
+          for (i = 0; i < length; i++) {
+              assert(((unsigned char) (qualPtr[i] + charOffset) > 32) &&
+                      ((unsigned char) (qualPtr[i] + charOffset) < 127));
+              if (qualPtr != NULL) {
+                  out << (char)(qualPtr[i]+charOffset);
+              }
+              else {
+                  // Fake pretty bad quality.
+                  out << "5";
+              }
+              assert(lineLength != 0);
+              if (i > 0 and (i+1) % lineLength==0) {
+                  out << endl;
+              }
+          }
+          if (i == 0 or i % lineLength != 0) {
+              out << endl;
+          }
+      }
+  }
+
   void PrintAsciiQual(ostream &out, int lineLength=50) {
-    int i;
-    if (lineLength == 0) {
-      for (i = 0; i < length; i++) {
-        out << (char)(qual[i]+charToQuality);
-      }
-    }
-    else {
-      for (i = 0; i < length; i++) {
-        out << (char)(qual[i]+charToQuality);
-        assert(lineLength != 0);
-        if (i > 0 and (i+1) % lineLength==0) {
-          out << endl;
-        }
-      }
-      if (i == 0 or i % lineLength != 0) {
-        out << endl;
-      }
-    }
+      PrintAsciiRichQuality(out, 0, lineLength);
   }
 
 

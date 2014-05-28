@@ -109,13 +109,21 @@ int Tokenize(string orig, string pattern, vector<string> &tokens) {
 
 using namespace std;
 template<typename T_Value>
-void ParseSeparatedList(const string &csl, vector<T_Value> &values, char delim=',') {
+void ParseSeparatedList(const string &csl, vector<T_Value> &values, char delim, int maxVals) {
+  //Parse up to 'maxVals' lines of lists.
   stringstream cslStrm(csl);
   T_Value val;
   string valString;
   string next;
+  int valIndex = 0;
   do {
-    getline(cslStrm, valString, delim);
+    if (maxVals == 0 or valIndex < maxVals - 1 ) {
+      getline(cslStrm, valString, delim);
+    }
+    else {
+      // If on last value, get the rest of the line.
+      getline(cslStrm, valString);
+    }
     if (cslStrm and valString.size() > 0) {
       stringstream valStrm(valString);
       if (! (valStrm  >> val) ) {
@@ -125,8 +133,14 @@ void ParseSeparatedList(const string &csl, vector<T_Value> &values, char delim='
         values.push_back(val);
       }
     }
+    valIndex++;
   }
   while (cslStrm);
+}
+
+template<typename T_Value>
+void ParseSeparatedList(const string &csl, vector<T_Value> &values, char delim=',') {
+	ParseSeparatedList(csl, values, delim, 0);
 }
 
 void ParseSeparatedList(const string &csl, vector<string> &values, char delim=',') {

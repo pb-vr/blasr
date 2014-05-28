@@ -6,7 +6,7 @@
 #include "SMRTSequence.h"
 #include "datastructures/alignment/AlignmentCandidate.h"
 #include "datastructures/alignment/AlignmentContext.h"
-
+#include "datastructures/alignmentset/SAMSupplementalQVList.h"
 
 #define MULTI_SEGMENTS 0x1
 #define ALL_SEGMENTS_ALIGNED 0x2
@@ -22,7 +22,7 @@
 
 namespace SAMOutput {
 
-  enum Clipping {hard, soft, none};
+  enum Clipping {hard, soft, subread, none};
 
   void BuildFlag(T_AlignmentCandidate &alignment, AlignmentContext &context, uint16_t &flag) {
 
@@ -79,8 +79,6 @@ namespace SAMOutput {
   void SetAlignedSequence(T_AlignmentCandidate &alignment, T_Sequence &read,
                           T_Sequence &alignedSeq,
                           Clipping clipping = none) {
-    DNALength qStart = alignment.QAlignStart();
-    DNALength qEnd   = alignment.QAlignEnd();
     //
     // In both no, and hard clipping, the dna sequence that is output
     // solely corresponds to the aligned sequence.
@@ -90,41 +88,35 @@ namespace SAMOutput {
 
 
     if (clipping == none or clipping == hard) {
+      DNALength qStart = alignment.QAlignStart();
+      DNALength qEnd   = alignment.QAlignEnd();
       clippedReadLength = qEnd - qStart;
       clippedStartPos   = qStart;
-      if (alignment.tStrand == 0) {
+    }
+    else if (clipping == soft) {
+      clippedReadLength = read.length - read.lowQualityPrefix - read.lowQualitySuffix;
+      clippedStartPos = read.lowQualityPrefix;
+    }
+    else if (clipping == subread) {
+        clippedReadLength = read.subreadEnd - read.subreadStart;
+        clippedStartPos = read.subreadStart;
+    }
+    else {
+      cout <<" ERROR! The clipping must be none, hard, subread, or soft when setting the aligned sequence." << endl;
+      assert(0);
+    }
+
+    //
+    // Set the aligned sequence according to the clipping boundaries.
+    //
+    if (alignment.tStrand == 0) {
         alignedSeq.ReferenceSubstring(read, clippedStartPos, clippedReadLength);
-      }
-      else {
+    }
+    else {
         T_Sequence subSeq;
         subSeq.ReferenceSubstring(read, clippedStartPos, clippedReadLength);
         subSeq.MakeRC(alignedSeq);
         alignedSeq.deleteOnExit = true;
-      }
-    }
-    else if (clipping == soft) {
-      clippedReadLength = read.length - read.lowQualityPrefix - read.lowQualitySuffix;
-      if (alignment.tStrand == 0) {
-        clippedStartPos = read.lowQualityPrefix;
-        alignedSeq.ReferenceSubstring(read, read.lowQualityPrefix, clippedReadLength);
-        alignedSeq.deleteOnExit = false;
-      }
-      else {
-        //
-        // If the alignment is a reverse complement, the soft clipped
-        // string still excludes the low quality prefix and suffix,
-        // but since the reverse string is printed, the prefix and
-        // suffix are reversed.
-        //
-
-        T_Sequence subSeq;
-        subSeq.ReferenceSubstring(read, read.lowQualityPrefix, clippedReadLength);
-        subSeq.MakeRC(alignedSeq);
-      }
-    }
-    else {
-      cout <<" ERROR! The clipping must be none, hard, or soft when setting the aligned sequence." << endl;
-      assert(0);
     }
   }
 
@@ -225,12 +217,11 @@ namespace SAMOutput {
  template<typename T_Sequence>
   void SetSoftClip(T_AlignmentCandidate &alignment,
                    T_Sequence &read,
+			       DNALength hardClipPrefix,
+                   DNALength hardClipSuffix,
                    DNALength &softClipPrefix, 
                    DNALength &softClipSuffix) {
     DNALength qStart, qEnd;
-    int hardClipPrefix = read.lowQualityPrefix;
-    int hardClipSuffix = read.lowQualitySuffix;
-
     qStart = alignment.QAlignStart();
     qEnd   = alignment.QAlignEnd();
 
@@ -243,8 +234,8 @@ namespace SAMOutput {
  template<typename T_Sequence>
   void SetHardClip(T_AlignmentCandidate &alignment, 
                    T_Sequence &read,
-                   int &prefixClip,
-                   int &suffixClip) {
+                   DNALength &prefixClip,
+                   DNALength &suffixClip) {
     //
     // Set the hard clipping assuming the read is in the forward
     // direction.
@@ -278,7 +269,10 @@ namespace SAMOutput {
   void CreateCIGARString(T_AlignmentCandidate &alignment,
                          T_Sequence &read,
                          string &cigarString,
-                         Clipping clipping=none) {
+                         Clipping clipping,
+                         DNALength &prefixSoftClip, DNALength &suffixSoftClip,
+                         DNALength &prefixHardClip, DNALength &suffixHardClip
+                        ) {
     cigarString = "";
     // All cigarString use the no clipping core
     vector<int> opSize;
@@ -288,30 +282,33 @@ namespace SAMOutput {
     // Clipping needs to be added
 
     if (clipping == hard) {
-      int prefixClip, suffixClip;
-      SetHardClip(alignment, read, prefixClip, suffixClip);
-      if (prefixClip > 0) {
-        opSize.insert(opSize.begin(), prefixClip);
+      SetHardClip(alignment, read, prefixHardClip, suffixHardClip);
+      if (prefixHardClip > 0) {
+        opSize.insert(opSize.begin(), prefixHardClip);
         opChar.insert(opChar.begin(), 'H');
       }
-      if (suffixClip > 0) {
-        opSize.push_back(suffixClip);
+      if (suffixHardClip > 0) {
+        opSize.push_back(suffixHardClip);
         opChar.push_back('H');
       }
+      prefixSoftClip = 0;
+      suffixSoftClip = 0;
     }
-    if (clipping == soft) {
+    if (clipping == soft or clipping == subread) {
       //
       // Even if clipping is soft, the hard clipping removes the 
       // low quality regions
       //
-      DNALength prefixSoftClip, suffixSoftClip;
-      DNALength prefixHardClip, suffixHardClip;
-      prefixHardClip = read.lowQualityPrefix;
-      suffixHardClip = read.lowQualitySuffix;
+      if (clipping == soft) {
+          prefixHardClip = read.lowQualityPrefix;
+          suffixHardClip = read.lowQualitySuffix;
+      }
+      else if (clipping == subread) {
+          prefixHardClip = max((DNALength) read.subreadStart, read.lowQualityPrefix);
+          suffixHardClip = max((DNALength)(read.length - read.subreadEnd), read.lowQualitySuffix);
+      }
 
-      SetSoftClip(alignment, read, prefixSoftClip, suffixSoftClip);
-
-
+      SetSoftClip(alignment, read, prefixHardClip, suffixHardClip, prefixSoftClip, suffixSoftClip);
 
       if (alignment.tStrand == 1) {
         swap(prefixHardClip, suffixHardClip);
@@ -353,6 +350,7 @@ namespace SAMOutput {
                       T_Sequence &read,
                       ostream &samFile,
                       AlignmentContext &context,
+                      SupplementalQVList &qvlist,
                       Clipping clipping = none,
                       int subreadIndex = 0,
                       int nSubreads = 0) {
@@ -360,7 +358,10 @@ namespace SAMOutput {
     string cigarString;
     uint16_t flag;
     T_Sequence alignedSequence;
-    CreateCIGARString(alignment, read, cigarString, clipping);
+    DNALength prefixSoftClip = 0, suffixSoftClip = 0;
+    DNALength prefixHardClip = 0, suffixHardClip = 0;
+
+    CreateCIGARString(alignment, read, cigarString, clipping, prefixSoftClip, suffixSoftClip, prefixHardClip, suffixHardClip);
     SetAlignedSequence(alignment, read, alignedSequence, clipping);
     BuildFlag(alignment, context, flag);
     samFile << alignment.qName << "\t" 
@@ -426,11 +427,6 @@ namespace SAMOutput {
     samFile << "RG:Z:" << context.readGroupId << "\t";
     samFile << "AS:i:" << alignment.score << "\t";
 
-    DNALength prefixSoftClip=0, suffixSoftClip=0;
-    DNALength prefixHardClip=0, suffixHardClip=0;
-    if (clipping == soft) {
-      SetSoftClip(alignment, read, prefixSoftClip, suffixSoftClip);
-    }
     //
     // "RG" read group Id
     // "AS" alignment score
@@ -442,8 +438,25 @@ namespace SAMOutput {
     // "NM" edit distance 
     // "FI" read alignment start position (1 based) 
     //
-    samFile << "XS:i:" << alignment.QAlignStart() + 1 - prefixSoftClip << "\t";
-    samFile << "XE:i:" << alignment.QAlignEnd() + 1 - prefixSoftClip << "\t";
+    
+    DNALength qAlignStart = alignment.QAlignStart();
+    DNALength qAlignEnd = alignment.QAlignEnd();
+
+    if (clipping == none) {
+      samFile << "XS:i:" << qAlignStart + 1 << "\t";
+      samFile << "XE:i:" << qAlignEnd + 1 << "\t";
+    }
+    else if (clipping == hard or clipping == soft or clipping == subread) {
+        DNALength xs = prefixHardClip;
+        DNALength xe = read.length - suffixHardClip;
+        if (alignment.tStrand == 1) {
+            xs = suffixHardClip;
+            xe = read.length - prefixHardClip;
+        }
+        samFile << "XS:i:" << xs + 1 << "\t"; // add 1 for 1-based indexing in sam
+        assert(read.length - suffixHardClip == prefixHardClip + alignedSequence.length);
+        samFile << "XE:i:" << xe + 1 << "\t";
+    }
     samFile << "XL:i:" << alignment.qAlignedSeq.length << "\t";
     samFile << "XT:i:1\t"; // reads are allways continuous reads, not
                         // referenced based circular consensus when
@@ -452,6 +465,14 @@ namespace SAMOutput {
     samFile << "FI:i:" << alignment.qAlignedSeqPos + 1;
     // Add query sequence length
     samFile << "\t" << "XQ:i:" << alignment.qLength;
+
+    //
+	// Write out optional quality values.  If qvlist does not 
+	// have any qv's signaled to print, this is a no-op.
+	//
+	// First transform characters that are too large to printable ones.
+	qvlist.FormatQVOptionalFields(alignedSequence);
+	qvlist.PrintQVOptionalFields(alignedSequence, samFile);
 
     samFile << endl;
 

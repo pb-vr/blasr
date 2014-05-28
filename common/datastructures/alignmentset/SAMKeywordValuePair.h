@@ -30,7 +30,7 @@ bool SplitSAMKeyValuePair(string &kvPair, string &key, string &value) {
 
 bool SplitSAMTypedKeyValuePair(string kvPair, string &key, string &kvType, string &value) {
   vector<string> strValues;
-  ParseSeparatedList(kvPair, strValues, ':');
+  ParseSeparatedList(kvPair, strValues, ':', 3);
   if (strValues.size() != 3) {
     return false;
   }

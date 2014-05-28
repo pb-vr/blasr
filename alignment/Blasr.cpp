@@ -463,8 +463,8 @@ void SetHelp(string &str) {
              << "   -bestn n (10)" <<endl
              << "               Report the top 'n' alignments." << endl
              << "   -sam        Write output in SAM format." << endl
-             << "   -clipping [none|hard|soft] (none)" << endl
-             << "               Use no/hard/soft clipping for SAM output."<< endl
+             << "   -clipping [none|hard|subread|soft] (none)" << endl
+             << "               Use no/hard/subread/soft clipping for SAM output."<< endl
              << "   -out out (terminal)  " << endl
              << "               Write output to 'out'." << endl
              << "   -unaligned file" << endl
@@ -506,6 +506,8 @@ void SetHelp(string &str) {
              << "   -placeRepeatsRandomly (false)" << endl
              << "               When there are multiple positions to map a read with equal alignment scores, place the" << endl
              << "               read randomly at one of them." <<endl
+             << "   -printSAMQV (false)" << endl
+             << "               Print quality values to sam files." << endl
              << endl 
              << " Options for anchoring alignment regions. This will have the greatest effect on speed and sensitivity." << endl
              << "   -minMatch m (12) " << endl
@@ -2930,7 +2932,7 @@ void PrintAlignment(T_AlignmentCandidate &alignment, SMRTSequence &fullRead, Map
                           alignment.qAlignedSeqPos, alignment.tAlignedSeqPos);
     }
     else if (params.printFormat == SAM) {
-      SAMOutput::PrintAlignment(alignment, fullRead, outFile, alignmentContext, params.clipping);
+      SAMOutput::PrintAlignment(alignment, fullRead, outFile, alignmentContext, params.samQVList, params.clipping);
     }
     else if (params.printFormat == CompareXML) {
       CompareXMLPrintAlignment(alignment,
@@ -4290,6 +4292,8 @@ int main(int argc, char* argv[]) {
   clp.RegisterIntOption("affineOpen", &params.affineOpen, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterIntOption("affineExtend", &params.affineExtend, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterFlagOption("scaleMapQVByNClusters", &params.scaleMapQVByNumSignificantClusters, "", false);
+  clp.RegisterFlagOption("printSAMQV", &params.printSAMQV, "", false);
+  clp.RegisterStringListOption("samQV", &params.samQV, "");
   clp.ParseCommandLine(argc, argv, params.readsFileNames);
   clp.CommandLineToString(argc, argv, commandLine);
 

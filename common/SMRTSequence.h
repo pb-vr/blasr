@@ -90,15 +90,14 @@ public:
     // This creates the entire subread, but masks out the portions
     // that do not correspond to this insert.
     //
-    SetSubreadBoundaries(subread, subreadStart, subreadEnd);
     subread.Copy(*this);
+    SetSubreadBoundaries(subread, subreadStart, subreadEnd);
     DNALength pos;
     for (pos = 0; pos < subreadStart; pos++) { subread.seq[pos] = 'N'; }
     for (pos = subreadEnd; pos < length; pos++) { subread.seq[pos] = 'N'; }
     // This is newly allocated memory, free it on exit.
     subread.deleteOnExit = true;
   }
-
 
   void MakeSubreadAsReference(SMRTSequence &subread, DNALength subreadStart = 0, int subreadEnd = -1) {
     //
@@ -113,7 +112,6 @@ public:
   void Copy(const SMRTSequence &rhs) {
     Copy(rhs, 0, rhs.length);
   }
-    
     
   void Copy(const SMRTSequence &rhs, int rhsPos, int rhsLength) {
     //
@@ -161,6 +159,10 @@ public:
         memcpy(pulseIndex, rhs.pulseIndex, sizeof(int) * length);
       }
     }
+    subreadStart = rhs.subreadStart;
+    subreadEnd   = rhs.subreadEnd;
+    lowQualityPrefix = rhs.lowQualityPrefix;
+    lowQualitySuffix = rhs.lowQualitySuffix;
     zmwData = rhs.zmwData;
   }
   
@@ -214,7 +216,7 @@ public:
   }
 
   bool StoreHoleNumber(int holeNumberP){ 
-    holeNumber = holeNumberP;
+    zmwData.holeNumber = holeNumber = holeNumberP;
     return true;
   }
   
