@@ -26,6 +26,7 @@
 using namespace std;
 #define LOWEST_LOG_VALUE  -700
 
+#define MAX_BAND_SIZE 250
 
 class GuideRow {
  public:
@@ -170,7 +171,7 @@ int AlignmentToGuide(Alignment &alignment, Guide &guide, int bandSize)  {
 															(guide[guideIndex-1].t - 
 															 guide[guideIndex-1].tPre));
 				guide[guideIndex].tPre  = min(bandSize, fullLengthTPre);
-				guide[guideIndex].tPost = bandSize;
+				guide[guideIndex].tPost = min(MAX_BAND_SIZE, bandSize);
 /*        if (guide[guideIndex].tPre > 500 or guide[guideIndex].tPost > 500) {
           cout << guideIndex << " " << guide[guideIndex].tPre << " " << guide[guideIndex].tPost << endl;
         }
@@ -212,9 +213,9 @@ int AlignmentToGuide(Alignment &alignment, Guide &guide, int bandSize)  {
 			for (diagPos = 0; diagPos < diagonalLength; diagPos++, tPos++, qPos++) {
 				guide[guideIndex].t     = tPos;
 				guide[guideIndex].q     = qPos;
-				guide[guideIndex].tPre  = (guide[guideIndex].t - 
-                                   (guide[guideIndex-1].t - guide[guideIndex-1].tPre)); 
-				guide[guideIndex].tPost = bandSize + abs(drift);
+				guide[guideIndex].tPre  = min(MAX_BAND_SIZE, (guide[guideIndex].t - 
+                                   (guide[guideIndex-1].t - guide[guideIndex-1].tPre)));
+				guide[guideIndex].tPost = min(MAX_BAND_SIZE, bandSize + abs(drift));
 /*        if (guide[guideIndex].tPre > 500 or guide[guideIndex].tPost > 500) {
           cout << guideIndex << " " << guide[guideIndex].tPre << " " << guide[guideIndex].tPost << endl;
         } */
@@ -241,10 +242,10 @@ int AlignmentToGuide(Alignment &alignment, Guide &guide, int bandSize)  {
 				// move q down.
 				qPos++;
 				// keep tPos fixed, the guide is straight down here.
-				guide[guideIndex].tPre = guide[guideIndex].t - 
-					(guide[guideIndex-1].t - guide[guideIndex-1].tPre); //bandSize + abs(drift);
+				guide[guideIndex].tPre = min(MAX_BAND_SIZE, guide[guideIndex].t - 
+					(guide[guideIndex-1].t - guide[guideIndex-1].tPre)); //bandSize + abs(drift);
 
-				guide[guideIndex].tPost = bandSize + abs(drift);
+				guide[guideIndex].tPost = min(MAX_BAND_SIZE, bandSize + abs(drift));
 				guideIndex++;
 			}
 		}
