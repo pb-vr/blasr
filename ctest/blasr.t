@@ -13,6 +13,8 @@ Define tmporary files
   $ TMP1=$OUTDIR/$$.tmp.out
   $ TMP2=$OUTDIR/$$.tmp.stdout
 
+#Changelist 135288
+
 Test blasr on ecoli.
 Test blasr with -sam
 
@@ -36,9 +38,7 @@ Test blasr with -sam
   [INFO]* (glob)
 
   $ sed -n '5,$ p' $OUTDIR/ecoli_subset.sam | sort | cut -f 1-11 > $TMP1
-  $ sed -n '5,$ p' $STDDIR/ecoli_subset_2014_05_21.sam | sort | cut -f 1-11 > $TMP2
-  $ echo $TMP1
-  $ echo $TMP2
+  $ sed -n '5,$ p' $STDDIR/ecoli_subset_2014_05_28.sam | sort | cut -f 1-11 > $TMP2
   $ diff $TMP1 $TMP2
   $ rm $TMP1 $TMP2
 
@@ -121,15 +121,14 @@ Test affineAlign
   $ $EXEC $DATDIR/affineAlign.fofn $DATDIR/substr_with_ins.fasta -m 0 -out $OUTDIR/affineAlign.m0  -affineAlign  -readIndex 493 -insertion 100 -deletion 100
   [INFO]* (glob)
   [INFO]* (glob)
-  $ diff $OUTDIR/affineAlign.m0 $STDDIR/affineAlign_2014_05_04.m0
+  $ diff $OUTDIR/affineAlign.m0 $STDDIR/affineAlign_2014_05_28.m0
 
   $ rm -rf $OUTDIR/ecoli_affine.m0
   $ $EXEC $DATDIR/ecoli_affine.fasta $DATDIR/ecoli_reference.fasta -m 0 -out $OUTDIR/ecoli_affine.m0 -affineAlign -insertion 100 -deletion 100
   [INFO]* (glob)
   [INFO]* (glob)
-  $ diff $OUTDIR/ecoli_affine.m0 $STDDIR/ecoli_affine_2014_04_18.m0
+  $ diff $OUTDIR/ecoli_affine.m0 $STDDIR/ecoli_affine_2014_05_28.m0
 # Note that MapQV for -affineAlign has been fixed in 2014 04 18, bug 24363 
-
 
 Test -holeNumbers
   $ rm -f $OUTDIR/holeNumbers.m4
@@ -180,10 +179,14 @@ Test -concordant
   [INFO]* (glob)
   $ sed -n 6,110864p $OUTDIR/concordant_subset.sam > $OUTDIR/tmp1 
   $ sort $OUTDIR/tmp1 > $OUTDIR/tmp11
-  $ sed -n 6,110864p $STDDIR/concordant_subset_2014_05_28.sam > $OUTDIR/tmp2
+  $ sed -n 6,110864p $STDDIR/concordant_subset_2014_05_28_2.sam > $OUTDIR/tmp2
   $ sort $OUTDIR/tmp2 > $OUTDIR/tmp22
   $ diff $OUTDIR/tmp11 $OUTDIR/tmp22
   $ rm -rf $OUTDIR/tmp1 $OUTDIR/tmp2 $OUTDIR/tmp11 $OUTDIR/tmp22
+#concordant_subset_2014_05_28.sam  --> changelist 135254, use MAX_BAND_SIZE to contrain GuidedAlign
+#concordant_subset_2014_05_28_2.sam  --> changelist ??, update FindMaxInterval
+
+
  
 Test -concordant, case 2
   $ rm -f $OUTDIR/concordant2.samtom4 $OUTDIR/concordant2.sam $OUTDIR/not_concordant2.m4
@@ -206,7 +209,7 @@ Test using *.ccs.h5 as input
   $ $EXEC $DATDIR/ccsasinput.fofn $DATDIR/ccsasinput.fasta -m 4 -out $OUTDIR/ccsasinput.m4
   [INFO]* (glob)
   [INFO]* (glob)
-  $ diff $OUTDIR/ccsasinput.m4 $STDDIR/ccsasinput_2014_05_04.m4
+  $ diff $OUTDIR/ccsasinput.m4 $STDDIR/ccsasinput_2014_05_28.m4
 
 Test -useccsall with Large genome.
   $ BASFILE=/mnt/data3/vol53/2450530/0014/Analysis_Results/m130507_052228_42161_c100519212550000001823079909281305_s1_p0.3.bax.h5
@@ -217,7 +220,7 @@ Test -useccsall with Large genome.
   $ $EXEC $BASFILE $REFFA -out $OUTFILE -m 4 -sa $REFSA -holeNumbers 109020
   [INFO]* (glob)
   [INFO]* (glob)
-  $ diff $STDDIR/intflow_2014_05_04.m4 $OUTFILE
+  $ diff $STDDIR/intflow_2014_05_28.m4 $OUTFILE
 
 
 Test input.fofn containing a new bas.h5 file. Note that the new bas.h5 file does not 
