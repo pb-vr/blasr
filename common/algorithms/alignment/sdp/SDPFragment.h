@@ -11,6 +11,7 @@ class Fragment {
 	int index;
 	int chainPrev;
 	int cost;
+    int above;
 	unsigned int chainLength;
 
 	unsigned int GetX() const {
@@ -26,23 +27,52 @@ class Fragment {
 		weight = pweight;
         length = index = 0;
 		chainPrev = cost = chainLength = 0;
+        cost = 0;
+        above = -1;
 	}
-	//
-	// Provide default constructor that will
-	// give bad results if members are not properly initialized
-  // later on.
-	//
+
+    int SetAbove(int a) {
+        above = a;
+        return true;
+    }
+
+    bool GetAbove(int & a) {
+        if (above >= 0) {
+            a = above;
+            return true;
+        } else {
+            a = -1;
+            return false;
+        }
+    }
+
+    //
+    // Provide default constructor that will
+    // give bad results if members are not properly initialized
+    // later on.
+    //
 	Fragment() {
 		x = -1;
 		y = -1;
         weight = length = index = 0;
 		chainPrev = cost = chainLength = 0;
+        above = -1;
 	}
-	int LessThan(const Fragment &f) const {
+
+	int LessThanXY(const Fragment &f) const {
 		if (x < f.x)
 			return 1;
 		else if (x == f.x) 
 			return y < f.y;
+		else 
+			return 0;
+	}
+
+	int LessThanYX(const Fragment &f) const {
+		if (y < f.y)
+			return 1;
+		else if (y == f.y) 
+			return x < f.x;
 		else 
 			return 0;
 	}
@@ -70,6 +100,7 @@ class Fragment {
         length      = rhs.length;
 		chainLength = rhs.chainLength;
 		chainPrev   = rhs.chainPrev;
+        above       = rhs.above;
 		return *this;
 	}
 		

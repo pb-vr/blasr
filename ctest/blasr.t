@@ -38,7 +38,7 @@ Test blasr with -sam
   [INFO]* (glob)
 
   $ sed -n '5,$ p' $OUTDIR/ecoli_subset.sam | sort | cut -f 1-11 > $TMP1
-  $ sed -n '5,$ p' $STDDIR/ecoli_subset_2014_05_28.sam | sort | cut -f 1-11 > $TMP2
+  $ sed -n '5,$ p' $STDDIR/ecoli_subset_2014_05_29.sam | sort | cut -f 1-11 > $TMP2
   $ diff $TMP1 $TMP2
   $ rm $TMP1 $TMP2
 
@@ -54,7 +54,7 @@ Test blasr with -m 0 ~ 5
   $ $EXEC $DATDIR/read.fasta  $DATDIR/ref.fasta -m 1 -out $OUTDIR/read.m1
   [INFO]* (glob)
   [INFO]* (glob)
-  $ diff $OUTDIR/read.m1 $STDDIR/read_2014_05_04.m1
+  $ diff $OUTDIR/read.m1 $STDDIR/read_2014_05_29.m1
 
   $ rm -rf $OUTDIR/read.m2
   $ $EXEC $DATDIR/read.fasta  $DATDIR/ref.fasta -m 2 -out $OUTDIR/read.m2
@@ -121,7 +121,7 @@ Test affineAlign
   $ $EXEC $DATDIR/affineAlign.fofn $DATDIR/substr_with_ins.fasta -m 0 -out $OUTDIR/affineAlign.m0  -affineAlign  -readIndex 493 -insertion 100 -deletion 100
   [INFO]* (glob)
   [INFO]* (glob)
-  $ diff $OUTDIR/affineAlign.m0 $STDDIR/affineAlign_2014_05_28.m0
+  $ diff $OUTDIR/affineAlign.m0 $STDDIR/affineAlign_2014_05_29.m0
 
   $ rm -rf $OUTDIR/ecoli_affine.m0
   $ $EXEC $DATDIR/ecoli_affine.fasta $DATDIR/ecoli_reference.fasta -m 0 -out $OUTDIR/ecoli_affine.m0 -affineAlign -insertion 100 -deletion 100
@@ -136,7 +136,7 @@ Test -holeNumbers
   [INFO]* (glob)
   [INFO]* (glob)
   $ sort $OUTDIR/holeNumbers.m4 > $TMP1
-  $ sort $STDDIR/holeNumbers_2014_05_04.m4 > $TMP2
+  $ sort $STDDIR/holeNumbers_2014_05_29.m4 > $TMP2
   $ diff $TMP1 $TMP2
   $ rm $TMP1 $TMP2
 
@@ -156,7 +156,7 @@ Test -useccsall with bestn = 1
   [INFO]* (glob)
   [INFO]* (glob)
   $ sed -n '9,$ p' $OUTDIR/useccsall.sam > $TMP1
-  $ sed -n '9,$ p' $STDDIR/useccsall_2014_05_04.sam > $TMP2
+  $ sed -n '9,$ p' $STDDIR/useccsall_2014_05_29.sam > $TMP2
   $ diff $TMP1 $TMP2
   $ rm $TMP1 $TMP2
 
@@ -179,7 +179,7 @@ Test -concordant
   [INFO]* (glob)
   $ sed -n 6,110864p $OUTDIR/concordant_subset.sam > $OUTDIR/tmp1 
   $ sort $OUTDIR/tmp1 > $OUTDIR/tmp11
-  $ sed -n 6,110864p $STDDIR/concordant_subset_2014_05_28_2.sam > $OUTDIR/tmp2
+  $ sed -n 6,110864p $STDDIR/concordant_subset_2014_05_29.sam > $OUTDIR/tmp2
   $ sort $OUTDIR/tmp2 > $OUTDIR/tmp22
   $ diff $OUTDIR/tmp11 $OUTDIR/tmp22
   $ rm -rf $OUTDIR/tmp1 $OUTDIR/tmp2 $OUTDIR/tmp11 $OUTDIR/tmp22
@@ -209,7 +209,7 @@ Test using *.ccs.h5 as input
   $ $EXEC $DATDIR/ccsasinput.fofn $DATDIR/ccsasinput.fasta -m 4 -out $OUTDIR/ccsasinput.m4
   [INFO]* (glob)
   [INFO]* (glob)
-  $ diff $OUTDIR/ccsasinput.m4 $STDDIR/ccsasinput_2014_05_28.m4
+  $ diff $OUTDIR/ccsasinput.m4 $STDDIR/ccsasinput_2014_05_29.m4
 
 Test -useccsall with Large genome.
   $ BASFILE=/mnt/data3/vol53/2450530/0014/Analysis_Results/m130507_052228_42161_c100519212550000001823079909281305_s1_p0.3.bax.h5
@@ -220,7 +220,7 @@ Test -useccsall with Large genome.
   $ $EXEC $BASFILE $REFFA -out $OUTFILE -m 4 -sa $REFSA -holeNumbers 109020
   [INFO]* (glob)
   [INFO]* (glob)
-  $ diff $STDDIR/intflow_2014_05_28.m4 $OUTFILE
+  $ diff $STDDIR/intflow_2014_05_29.m4 $OUTFILE
 
 
 Test input.fofn containing a new bas.h5 file. Note that the new bas.h5 file does not 
