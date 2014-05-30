@@ -173,6 +173,11 @@ public:
     int   limsAlign;
     string holeNumberRangesStr;
     Ranges holeNumberRanges;
+    int minAlignLength;
+    bool printSAMQV;
+    vector<string> samQV;
+    SupplementalQVList samQVList;
+
     void Init() {
         readIndex = -1;
         maxReadIndex = -1;
@@ -329,6 +334,10 @@ public:
         scaleMapQVByNumSignificantClusters = false;
         limsAlign = 0;
         holeNumberRangesStr = "";
+        minAlignLength = 0;
+        printSAMQV = false;
+        samQV.clear();
+        samQVList.clear();
     }
 
     MappingParameters() {
@@ -460,6 +469,9 @@ public:
         else if (clippingString == "none") {
             clipping = SAMOutput::none;
         }
+        else if (clippingString == "subread") {
+            clipping = SAMOutput::subread;
+        }
         else if (clippingString != "") {
             cout << "ERROR, clipping should either be soft, hard, or none." << endl;
             exit(1);
@@ -475,6 +487,15 @@ public:
                 cout << "ERROR, could not parse hole number ranges: " 
                     << holeNumberRangesStr << "." << endl;
                 exit(1);
+            }
+        }
+
+        if (printSAMQV) {
+            if (samQV.size() == 0) {
+                samQVList.SetDefaultQV();
+            }
+            else {
+                samQVList.UseQV(samQV);
             }
         }
     }
