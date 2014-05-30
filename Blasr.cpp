@@ -301,7 +301,7 @@ string GetMajorVersion() {
 }
 
 void GetVersion(string &version) {
-  string perforceVersionString("$Change 135254 $");
+  string perforceVersionString("$Change 135391 $");
   version = GetMajorVersion();
   if (perforceVersionString.size() > 12) {
     version.insert(version.size(), ".");
