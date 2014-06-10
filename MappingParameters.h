@@ -177,6 +177,7 @@ public:
     bool printSAMQV;
     vector<string> samQV;
     SupplementalQVList samQVList;
+    bool fastMaxInterval;
 
     void Init() {
         readIndex = -1;
@@ -338,6 +339,7 @@ public:
         printSAMQV = false;
         samQV.clear();
         samQVList.clear();
+        fastMaxInterval = false;
     }
 
     MappingParameters() {

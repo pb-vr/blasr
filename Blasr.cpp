@@ -301,7 +301,7 @@ string GetMajorVersion() {
 }
 
 void GetVersion(string &version) {
-  string perforceVersionString("$Change 135401 $");
+  string perforceVersionString("$Change 135710 $");
   version = GetMajorVersion();
   if (perforceVersionString.size() > 12) {
     version.insert(version.size(), ".");
@@ -551,6 +551,9 @@ void SetHelp(string &str) {
              << "               Map all subreads of a zmw (hole) to where the longest full pass subread of the zmw " << endl
              << "               aligned to. This requires to use the region table and hq regions." << endl
              << "               This option only works when reads are in base or pulse h5 format." << endl
+             << "   -fastMaxInterval(false)" << endl
+             << "               Fast search maximum increasing intervals as alignment candidates. The search " << endl
+             << "               is not as exhaustive as the default, but is much faster." << endl
              << endl
              << "  Options for Refining Hits." << endl
 //             << "   -indelRate i (0.30)" << endl
@@ -2150,6 +2153,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
     intervalSearchParameters.globalChainType = params.globalChainType;
     intervalSearchParameters.advanceHalf = params.advanceHalf;
     intervalSearchParameters.warp        = params.warp;
+    intervalSearchParameters.fastMaxInterval = params.fastMaxInterval;
 
     //
     // If specified, only align a band from the anchors.
@@ -4294,6 +4298,8 @@ int main(int argc, char* argv[]) {
   clp.RegisterFlagOption("scaleMapQVByNClusters", &params.scaleMapQVByNumSignificantClusters, "", false);
   clp.RegisterFlagOption("printSAMQV", &params.printSAMQV, "", false);
   clp.RegisterStringListOption("samQV", &params.samQV, "");
+  clp.RegisterFlagOption("fastMaxInterval", &params.fastMaxInterval, "", false);
+
   clp.ParseCommandLine(argc, argv, params.readsFileNames);
   clp.CommandLineToString(argc, argv, commandLine);
 
