@@ -50,6 +50,10 @@ public:
     float aboveCategoryPValue;
     bool  warp;
     bool  fastMaxInterval;
+    bool  aggressiveIntervalCut;
+    int   verbosity;
+    float ddPValueThreshold;
+
     IntervalSearchParameters() {
         advanceHalf         = false;
         globalChainType     = 0;
@@ -57,6 +61,9 @@ public:
         aboveCategoryPValue = 0;
         warp                = true;
         fastMaxInterval     = false;
+        aggressiveIntervalCut = false;
+        verbosity           = 0;
+        ddPValueThreshold   = -500;
     }
 };
 
@@ -471,21 +478,79 @@ int FindMaxIncreasingInterval(
         VarianceAccumulator<float> &accumNumAnchorBases,
         const char *titlePtr=NULL) {
 
+    int maxLISSize = 0;
     if (params.fastMaxInterval) {
-        return FastFindMaxIncreasingInterval(readDir, pos, intervalLength,
-                                             nBest, ContigStartPos, 
-                                             MatchPValueFunction, MatchWeightFunction,
-                                             intervalQueue, reference, query, 
-                                             params, chainEndpointBuffer, clusterList,
-                                             accumPValue, accumWeight);
+        maxLISSize = FastFindMaxIncreasingInterval(
+                readDir, pos, intervalLength,
+                nBest, ContigStartPos, 
+                MatchPValueFunction, MatchWeightFunction,
+                intervalQueue, reference, query, 
+                params, chainEndpointBuffer, clusterList,
+                accumPValue, accumWeight);
     } else {
-        return ExhaustiveFindMaxIncreasingInterval(readDir, pos, intervalLength, 
-                                                   nBest, ContigStartPos,
-                                                   MatchPValueFunction, MatchWeightFunction,
-                                                   intervalQueue, reference, query,
-                                                   params, chainEndpointBuffer, clusterList,
-                                                   accumPValue, accumWeight);
+        maxLISSize = ExhaustiveFindMaxIncreasingInterval(
+                readDir, pos, intervalLength, 
+                nBest, ContigStartPos,
+                MatchPValueFunction, MatchWeightFunction,
+                intervalQueue, reference, query,
+                params, chainEndpointBuffer, clusterList,
+                accumPValue, accumWeight);
     }
+
+    if (params.aggressiveIntervalCut and intervalQueue.size() >= 3) {
+        // aggressiveIntervalCut mode: 
+        // only pick up the most promising intervals if we can classify
+        // intervals into 'promising' and 'non-promising' clusters.
+        WeightedIntervalSet::iterator it = intervalQueue.begin();
+        int sz = intervalQueue.size();
+        vector<float> pValues, ddPValues;
+        pValues.resize(sz);
+        ddPValues.resize(sz);
+        float sumPValue = 0;
+        int i = 0;
+        for(; it != intervalQueue.end(); i++,it++) {
+            sumPValue += (*it).pValue;
+            pValues[i] = (*it).pValue;
+        }
+        //We will attemp to divide intervals into two clusters, promising 
+        //and non-promising.
+        float prevSumPValue = pValues[0];
+        // ddPValue[i], where i in [1...n-2] is the difference of 
+        //    (1) (mean pvalue of [0...i-1] minus pvalue[i])
+        // and 
+        //    (2) (pvalue[i] minus mean pvalue of [i+1...n-1])
+        // pValues are all negative, the lower the better.
+        // if ddPValue is negative, interval i is closer to cluster [i+1...n-1],
+        // otherwise, interval i is closer to cluster [0..i-1].
+        it = intervalQueue.begin();
+        it ++; //both it and i should point to the second interval in intervalQueue.
+        for(i = 1; i < sz - 1; i++,it++) {
+            ddPValues[i] = (prevSumPValue / i) +
+                           (sumPValue - prevSumPValue - pValues[i]) / (sz - i - 1) -
+                           2 * pValues[i];
+            if (ddPValues[i] <= params.ddPValueThreshold) {
+                // PValue of interval i is much closer to cluster [i+1...n-1] than
+                // to cluster [0...i-1]. Mean pValue of cluster [0..i-1] 
+                // minus mean pvalue of cluster [i+1...n-1] < 2 * -500
+                break;
+            }
+            prevSumPValue += pValues[i];
+        }
+        if (it != intervalQueue.end()) {
+            // Erase intervals in the non-promising cluster.
+            intervalQueue.erase(it, intervalQueue.end());
+            // Recompute accumPValue, accmWeight, clusterList;
+            accumPValue.Reset();
+            accumWeight.Reset();
+            clusterList.Clear();
+            for(it = intervalQueue.begin(); it != intervalQueue.end(); it++) {
+                accumPValue.Append((*it).pValue);
+                accumWeight.Append((*it).size);
+                clusterList.Store((*it).totalAnchorSize, (*it).start, (*it).end, (*it).nAnchors);
+            }
+        }
+    }
+    return maxLISSize;
 }
 
 template<typename T_MatchList,
@@ -629,6 +694,10 @@ int FastFindMaxIncreasingInterval(
             intervalQueue.insert(weightedInterval);
             if (weightedInterval.isOverlapping == false) {
                 clusterList.Store((float)noOvpLisNBases, lis[0].t, lis[lis.size()-1].t, noOvpLisSize);
+            }
+            if (params.verbosity > 1) {
+                cout << "Weighted Interval to insert:"<< endl << weightedInterval << endl;
+                cout << "Interval Queue:"<< endl << intervalQueue << endl;
             }
         }
     }
@@ -795,6 +864,10 @@ int ExhaustiveFindMaxIncreasingInterval(
             intervalQueue.insert(weightedInterval);
             if (weightedInterval.isOverlapping == false) {
                 clusterList.Store((float)noOvpLisNBases, lis[0].t, lis[lis.size()-1].t, noOvpLisSize);
+            }
+            if (params.verbosity > 1) {
+                cout << "Weighted Interval to insert:"<< endl << weightedInterval << endl;
+                cout << "Interval Queue:"<< endl << intervalQueue << endl;
             }
         }
 

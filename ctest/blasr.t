@@ -13,7 +13,7 @@ Define tmporary files
   $ TMP1=$OUTDIR/$$.tmp.out
   $ TMP2=$OUTDIR/$$.tmp.stdout
 
-#string perforceVersionString("$Change: 135710 $");
+#string perforceVersionString("$Change: 135736 $");
 
 Test blasr on ecoli.
 Test blasr with -sam
@@ -244,5 +244,16 @@ Test -fastMaxInterval.
   [INFO] * [blasr] ended. (glob)
   $ echo $?
   0
+
+Test -aggressiveIntervalCut.
+  $ rm -f $TMP1
+  $ BASFILE=/mnt/data3/vol53/2450598/0001/Analysis_Results/m130812_185809_42141_c100533960310000001823079711101380_s1_p0.bas.h5
+  $ REFFA=/mnt/secondary/Smrtpipe/repository/Ecoli_BL21_O26/sequence/Ecoli_BL21_O26.fasta
+  $ $EXEC $BASFILE $REFFA -holeNumbers 1-100 -out $TMP1 -aggressiveIntervalCut
+  [INFO] * [blasr] started. (glob)
+  [INFO] * [blasr] ended. (glob)
+  $ echo $?
+  0
+
 
 

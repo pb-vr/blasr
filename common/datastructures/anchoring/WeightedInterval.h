@@ -11,92 +11,98 @@ using namespace std;
 
 class WeightedInterval {
 public:
-	DNALength size; // not necessarily end - start + 1
-	DNALength start;
-	DNALength end;
-	DNALength qStart, qEnd;
-	int readIndex;
-	float pValue;
-	vector<int> positions;
-	vector<ChainedMatchPos> matches;
-  float pValueVariance, pValueNStdDev;
-  float sizeVariance, sizeNStdDev;
-  int nAnchors;
-  int totalAnchorSize;
-  bool isOverlapping;
-  int GetStrandIndex() const {
-    return readIndex;
-  }
+    DNALength size; // not necessarily end - start + 1
+    DNALength start;
+    DNALength end;
+    DNALength qStart, qEnd;
+    int readIndex;
+    float pValue;
+    vector<int> positions;
+    vector<ChainedMatchPos> matches;
+    float pValueVariance, pValueNStdDev;
+    float sizeVariance, sizeNStdDev;
+    int nAnchors;
+    int totalAnchorSize;
+    bool isOverlapping;
+    int GetStrandIndex() const {
+        return readIndex;
+    }
 
-  void SetPValueVariance(float v) {
-    pValueVariance = v;
-  }
+    void SetPValueVariance(float v) {
+        pValueVariance = v;
+    }
 
-  void SetPValueNStdDev(float v) {
-    pValueNStdDev = v;
-  }
+    void SetPValueNStdDev(float v) {
+        pValueNStdDev = v;
+    }
 
-  void SetSizeVariance(float v) {
-    sizeVariance = v;
-  }
+    void SetSizeVariance(float v) {
+        sizeVariance = v;
+    }
 
-  void SetSizeNStdDev(float v) {
-    sizeNStdDev = v;
-  }
+    void SetSizeNStdDev(float v) {
+        sizeNStdDev = v;
+    }
+    friend ostream & operator << (ostream & out, WeightedInterval & wi) {
+        out << wi.size << " " << wi.start << " " << wi.end
+            << " " << wi.qStart << " " << wi.qEnd << " " << wi.readIndex
+            << " " << wi.pValue ;
+        return out;
+    }
 
-	int operator<(const WeightedInterval &intv) const {
-		if (size == intv.size) {
-			return start > intv.start;
-		}
-		else {
-			return size < intv.size;
-		}
-	}
-	int operator==(const WeightedInterval &intv) const {
-		return size == intv.size;
-	}
-	WeightedInterval(){}
-	void Init(int _size, int _start, int _end, int _readIndex, float _pValue) {
-		size      = _size; 
-		start     = _start; 
-		end       = _end; 
-		readIndex = _readIndex;
-		pValue    = _pValue;
-		qStart = 0;
-		qEnd   = 0;
-    nAnchors = 0;
-    totalAnchorSize = 0;
-    pValueVariance =
-      pValueNStdDev = 
-      sizeVariance = 
-      sizeNStdDev = 0;
-	}
+    int operator<(const WeightedInterval &intv) const {
+        if (size == intv.size) {
+            return start > intv.start;
+        }
+        else {
+            return size < intv.size;
+        }
+    }
+    int operator==(const WeightedInterval &intv) const {
+        return size == intv.size;
+    }
+    WeightedInterval(){}
+    void Init(int _size, int _start, int _end, int _readIndex, float _pValue) {
+        size      = _size; 
+        start     = _start; 
+        end       = _end; 
+        readIndex = _readIndex;
+        pValue    = _pValue;
+        qStart = 0;
+        qEnd   = 0;
+        nAnchors = 0;
+        totalAnchorSize = 0;
+        pValueVariance =
+            pValueNStdDev = 
+            sizeVariance = 
+            sizeNStdDev = 0;
+    }
 
-	WeightedInterval(int _size, int _start, int _end, int _readIndex, float _pValue =0.0) {
-		Init(_size, _start, _end, _readIndex, _pValue);
-	}
-	
-	WeightedInterval(int _size, int _start, int _end, int _readIndex, float _pValue, int _qStart, int _qEnd){
-		Init(_size, _start, _end, _readIndex, _pValue);
-		qStart    = _qStart;
-		qEnd      = _qEnd;
-	}
+    WeightedInterval(int _size, int _start, int _end, int _readIndex, float _pValue =0.0) {
+        Init(_size, _start, _end, _readIndex, _pValue);
+    }
 
-	WeightedInterval(int _size, unsigned int _nAnchors, unsigned int _totalAnchorSize, int _start, int _end, int _readIndex, float _pValue, int _qStart, int _qEnd, vector<ChainedMatchPos> &_matches) {
-		Init(_size, _start, _end, _readIndex, _pValue);
-		qStart    = _qStart;
-		qEnd      = _qEnd;
-		matches   = _matches;
-    nAnchors  = _nAnchors;
-    totalAnchorSize = _totalAnchorSize;
-	}
+    WeightedInterval(int _size, int _start, int _end, int _readIndex, float _pValue, int _qStart, int _qEnd){
+        Init(_size, _start, _end, _readIndex, _pValue);
+        qStart    = _qStart;
+        qEnd      = _qEnd;
+    }
 
-	float PValue() const {
-		return pValue;
-	}
-	int Size() const {
-		return size;
-	}
+    WeightedInterval(int _size, unsigned int _nAnchors, unsigned int _totalAnchorSize, int _start, int _end, int _readIndex, float _pValue, int _qStart, int _qEnd, vector<ChainedMatchPos> &_matches) {
+        Init(_size, _start, _end, _readIndex, _pValue);
+        qStart    = _qStart;
+        qEnd      = _qEnd;
+        matches   = _matches;
+        nAnchors  = _nAnchors;
+        totalAnchorSize = _totalAnchorSize;
+    }
+
+    float PValue() const {
+        return pValue;
+    }
+    int Size() const {
+        return size;
+    }
 };
 
 class CompareWeightedIntervalByPValue {
@@ -115,15 +121,23 @@ typedef vector<WeightedInterval> WeightedIntervalVector;
 typedef multiset<WeightedInterval, CompareWeightedIntervalByPValue> T_WeightedIntervalMultiSet;
 
 class WeightedIntervalSet : public T_WeightedIntervalMultiSet {
- public:
-  int  maxSize;
+public:
+    int  maxSize;
 
-  WeightedIntervalSet() {
-    maxSize = 0;
-  }
+    WeightedIntervalSet() {
+        maxSize = 0;
+    }
 
-  WeightedIntervalSet(int maxSizeP) : maxSize(maxSizeP) {} 
- 
+    WeightedIntervalSet(int maxSizeP) : maxSize(maxSizeP) {} 
+
+    friend std::ostream & operator << (ostream & out, WeightedIntervalSet & wis) {
+        WeightedIntervalSet::iterator it;
+        for (it = wis.begin(); it != wis.end(); it++) {
+            out << *((WeightedInterval*)&(*it)) << endl;
+        }
+        return out;
+    }
+
 	bool insert(WeightedInterval &intv) {
 
     intv.isOverlapping = false;

@@ -33,6 +33,10 @@ class VarianceAccumulator {
   T minVal;
   
   VarianceAccumulator<T>() {
+      Reset();
+  }
+
+  void Reset() {
     sumSqVal = 0;
     sumVal   = 0;
     nSamples = 0;
