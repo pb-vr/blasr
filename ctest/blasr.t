@@ -13,7 +13,7 @@ Define tmporary files
   $ TMP1=$OUTDIR/$$.tmp.out
   $ TMP2=$OUTDIR/$$.tmp.stdout
 
-#Changelist 135288
+#string perforceVersionString("$Change: 135710 $");
 
 Test blasr on ecoli.
 Test blasr with -sam
