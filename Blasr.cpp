@@ -301,7 +301,7 @@ string GetMajorVersion() {
 }
 
 void GetVersion(string &version) {
-  string perforceVersionString("$Change 135710 $");
+  string perforceVersionString("$Change 135753 $");
   version = GetMajorVersion();
   if (perforceVersionString.size() > 12) {
     version.insert(version.size(), ".");
@@ -554,6 +554,10 @@ void SetHelp(string &str) {
              << "   -fastMaxInterval(false)" << endl
              << "               Fast search maximum increasing intervals as alignment candidates. The search " << endl
              << "               is not as exhaustive as the default, but is much faster." << endl
+             << "   -aggressiveIntervalCut(false)" << endl
+             << "               Agreesively filter out non-promising alignment candidates, if there " << endl
+             << "               exists at least one promising candidate. If this option is turned on, " << endl
+             << "               Blasr is likely to ignore short alignments of ALU elements." << endl
              << endl
              << "  Options for Refining Hits." << endl
 //             << "   -indelRate i (0.30)" << endl
@@ -2154,6 +2158,8 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
     intervalSearchParameters.advanceHalf = params.advanceHalf;
     intervalSearchParameters.warp        = params.warp;
     intervalSearchParameters.fastMaxInterval = params.fastMaxInterval;
+    intervalSearchParameters.aggressiveIntervalCut = params.aggressiveIntervalCut;
+    intervalSearchParameters.verbosity = params.verbosity;
 
     //
     // If specified, only align a band from the anchors.
@@ -4299,6 +4305,7 @@ int main(int argc, char* argv[]) {
   clp.RegisterFlagOption("printSAMQV", &params.printSAMQV, "", false);
   clp.RegisterStringListOption("samQV", &params.samQV, "");
   clp.RegisterFlagOption("fastMaxInterval", &params.fastMaxInterval, "", false);
+  clp.RegisterFlagOption("aggressiveIntervalCut", &params.aggressiveIntervalCut, "", false);
 
   clp.ParseCommandLine(argc, argv, params.readsFileNames);
   clp.CommandLineToString(argc, argv, commandLine);

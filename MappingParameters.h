@@ -178,6 +178,7 @@ public:
     vector<string> samQV;
     SupplementalQVList samQVList;
     bool fastMaxInterval;
+    bool aggressiveIntervalCut;
 
     void Init() {
         readIndex = -1;
@@ -340,6 +341,7 @@ public:
         samQV.clear();
         samQVList.clear();
         fastMaxInterval = false;
+        aggressiveIntervalCut = false;
     }
 
     MappingParameters() {
