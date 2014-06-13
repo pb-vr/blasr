@@ -24,6 +24,12 @@ CPP = $(CXX)
 ifeq ($(shell $(CC) -dumpversion | awk -F '.' '$$1*100+$$2>404{print "yes"}'),yes)
     CPPOPTS += -fpermissive
 endif
-ifneq ($(shell uname -s),Darwin)
-    STATIC   = -static
-endif
+
+STATIC = 
+# Set default value of STATIC to null. 
+# In some operating systems, certain static libs (such as libz) may not be 
+# support and blasr may fail to compile because of this.
+# In order to compile blasr staticlly, please overwrite STATIC.
+#ifneq ($(shell uname -s),Darwin)
+#    STATIC   = -static
+#endif

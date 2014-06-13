@@ -34,25 +34,25 @@ BUILT_EXES := $(foreach subdir, $(EXE_LIST), $(subdir)/build/$(subdir))
 #--- Building
 BUILD_TARGETS := $(addsuffix -build, $(EXE_LIST))
 %-build: 
-	@[[ -e $*/Makefile ]] && $(MAKE) -C $* -f Makefile UP=../ || true
+	@[[ -e $*/Makefile ]] && $(MAKE) -C $* -f Makefile UP=../
 build: $(BUILD_TARGETS) 
 
 #--- Installing --- TODO put in something for shared libraries
 INSTALL_TARGETS := $(addsuffix -install, $(EXE_LIST))
 %-install:
-	@[[ -e $*/Makefile ]] && $(MAKE) -C $* -f Makefile install INSTALL_DIR=$(INSTALL_BIN_DIR) || true
+	@[[ -e $*/Makefile ]] && $(MAKE) -C $* -f Makefile install INSTALL_DIR=$(INSTALL_BIN_DIR)
 install: $(INSTALL_TARGETS)
 
 cramtests:
 	cram --shell=/bin/bash ctest/*.t
 
 gtest:
-	@[[ -e utest/Makefile ]] && $(MAKE) -C utest -f Makefile gtest || true
+	@[[ -e utest/Makefile ]] && $(MAKE) -C utest -f Makefile gtest
 
 #--- Cleaning
 CLEAN_TARGETS := $(addsuffix -clean, $(EXE_LIST))
 %-clean:
-	@[[ -e $*/Makefile ]] && $(MAKE) -C $* -f Makefile clean || true
+	@[[ -e $*/Makefile ]] && $(MAKE) -C $* -f Makefile clean
 clean: $(CLEAN_TARGETS)
-	@[[ -e utest/Makefile ]] && $(MAKE) -C utest -f Makefile clean || true
+	@[[ -e utest/Makefile ]] && $(MAKE) -C utest -f Makefile clean
 
