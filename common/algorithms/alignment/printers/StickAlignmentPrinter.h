@@ -4,7 +4,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include "../Alignment.h"
+#include "datastructures/alignment/Alignment.h"
 #include "../AlignmentUtils.h"
 
 template<typename T_Alignment, typename T_QuerySequence, typename T_TargetSequence>
