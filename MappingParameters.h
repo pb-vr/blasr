@@ -343,7 +343,7 @@ public:
         samQVList.clear();
         fastMaxInterval = false;
         aggressiveIntervalCut = false;
-        fastSDP = true;
+        fastSDP = false;
     }
 
     MappingParameters() {
