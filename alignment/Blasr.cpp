@@ -553,8 +553,8 @@ void SetHelp(string &str) {
              << "               Agreesively filter out non-promising alignment candidates, if there " << endl
              << "               exists at least one promising candidate. If this option is turned on, " << endl
              << "               Blasr is likely to ignore short alignments of ALU elements." << endl
-             << "   -noFastSDP(false)" << endl
-             << "               Don't use graph paper to speed up sparse dynamic programming." << endl
+             << "   -fastSDP(false)" << endl
+             << "               Use a fast heuristic algorithm to speed up sparse dynamic programming." << endl
              << endl
              << "  Options for Refining Hits." << endl
 //             << "   -indelRate i (0.30)" << endl
@@ -4312,7 +4312,7 @@ int main(int argc, char* argv[]) {
   clp.RegisterStringListOption("samQV", &params.samQV, "");
   clp.RegisterFlagOption("fastMaxInterval", &params.fastMaxInterval, "", false);
   clp.RegisterFlagOption("aggressiveIntervalCut", &params.aggressiveIntervalCut, "", false);
-  clp.RegisterFlagOption("noFastSDP", &params.fastSDP, "", false);
+  clp.RegisterFlagOption("fastSDP", &params.fastSDP, "", false);
 
   clp.ParseCommandLine(argc, argv, params.readsFileNames);
   clp.CommandLineToString(argc, argv, commandLine);
