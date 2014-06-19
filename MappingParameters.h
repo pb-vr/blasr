@@ -179,6 +179,7 @@ public:
     SupplementalQVList samQVList;
     bool fastMaxInterval;
     bool aggressiveIntervalCut;
+    bool fastSDP;
 
     void Init() {
         readIndex = -1;
@@ -342,6 +343,7 @@ public:
         samQVList.clear();
         fastMaxInterval = false;
         aggressiveIntervalCut = false;
+        fastSDP = true;
     }
 
     MappingParameters() {
