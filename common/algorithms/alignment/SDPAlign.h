@@ -28,6 +28,7 @@ int SDPAlign(T_QuerySequence &query, T_TargetSequence &target,
         bool detailedAlignment=true,
         bool extendFrontByLocalAlignment=true,
         DNALength noRecurseUnder=10000,
+        bool fastSDP=true,
         unsigned int minFragmentsToUseGraphPaper=100000) {
     //
     // Since SDP Align uses a large list of buffers, but none are
@@ -51,7 +52,7 @@ int SDPAlign(T_QuerySequence &query, T_TargetSequence &target,
             detailedAlignment,
             extendFrontByLocalAlignment,
             noRecurseUnder,
-            minFragmentsToUseGraphPaper);
+            fastSDP, minFragmentsToUseGraphPaper);
 }
 
 template<typename T_QuerySequence, typename T_TargetSequence, typename T_ScoreFn, typename T_BufferCache>
@@ -64,6 +65,7 @@ int SDPAlign(T_QuerySequence &query, T_TargetSequence &target,
         bool detailedAlignment=true,
         bool extendFrontByLocalAlignment=true, 
         DNALength noRecurseUnder=10000,
+        bool fastSDP=true,
         unsigned int minFragmentsToUseGraphPaper=100000) {
 
     return SDPAlign(query, target, scoreFn, wordSize, 
@@ -78,7 +80,7 @@ int SDPAlign(T_QuerySequence &query, T_TargetSequence &target,
             buffers.sdpCachedMaxFragmentChain,
             alignType, detailedAlignment, 
             extendFrontByLocalAlignment, noRecurseUnder,
-            minFragmentsToUseGraphPaper);
+            fastSDP, minFragmentsToUseGraphPaper);
 }
 
 template<typename T_QuerySequence, typename T_TargetSequence, typename T_ScoreFn, typename T_TupleList>
@@ -99,6 +101,7 @@ int SDPAlign(T_QuerySequence &query, T_TargetSequence &target,
         bool detailedAlignment=true,
         bool extendFrontByLocalAlignment=true, 
         DNALength noRecurseUnder=10000,
+        bool fastSDP=true,
         unsigned int minFragmentsToUseGraphPaper=100000) {
     // minFragmentsToUseGraphPaper: minimum number of fragments to 
     // use Graph Paper for speed up.
@@ -228,7 +231,7 @@ int SDPAlign(T_QuerySequence &query, T_TargetSequence &target,
     FlatMatrix2D<Arrow> graphPathMat;
     FlatMatrix2D<int> graphBins;
     int nOnOpt = fragmentSet.size();
-    if (fragmentSet.size() > minFragmentsToUseGraphPaper) {
+    if (fragmentSet.size() > minFragmentsToUseGraphPaper and fastSDP) {
         int nCol = 50;
         vector<bool> onOptPath(fragmentSet.size(), false);
         nOnOpt = GraphPaper<Fragment>(fragmentSet, nCol, nCol,
