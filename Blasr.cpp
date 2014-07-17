@@ -3324,6 +3324,7 @@ void AlignSubreadToAlignmentTarget(ReadAlignments & allReadAlignments,
       exploded.qAlignedSeqLength = subreadInterval.end - subreadInterval.start;
       exploded.mapQV = alignment->mapQV;
       exploded.tName = alignment->tName;
+      exploded.qPos -= subreadInterval.start;
 
       stringstream namestrm;
       namestrm << "/" << subreadInterval.start
@@ -3905,10 +3906,8 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
 
             mapData->metrics.numReads++;
             SMRTSequence subread;
-            subread.ReferenceSubstring(smrtRead, passStartBase, passNumBases);
-            subread.CopyTitle(smrtRead.title);
-            // The unrolled alignment should be relative to the entire read.
-            allReadAlignments.SetSequence(intvIndex, smrtRead);
+            MakeSubreadOfInterval(subread, smrtRead, subreadIntervals[intvIndex], params);
+            allReadAlignments.SetSequence(intvIndex, subread);
 
             for (int alnIndex = 0; alnIndex < selectedAlignmentPtrs.size(); alnIndex++) {
               T_AlignmentCandidate * alignment = selectedAlignmentPtrs[alnIndex];
