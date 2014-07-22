@@ -3324,7 +3324,11 @@ void AlignSubreadToAlignmentTarget(ReadAlignments & allReadAlignments,
       exploded.qAlignedSeqLength = subreadInterval.end - subreadInterval.start;
       exploded.mapQV = alignment->mapQV;
       exploded.tName = alignment->tName;
-      exploded.qPos -= subreadInterval.start;
+      // When the concordant flag is set, adjust the qPos so that the SAM
+      // output is correct. 
+      if(params.concordant && !params.useAllSubreadsInCcs) {
+          exploded.qPos -= subreadInterval.start;
+      }
 
       stringstream namestrm;
       namestrm << "/" << subreadInterval.start
