@@ -3324,11 +3324,6 @@ void AlignSubreadToAlignmentTarget(ReadAlignments & allReadAlignments,
       exploded.qAlignedSeqLength = subreadInterval.end - subreadInterval.start;
       exploded.mapQV = alignment->mapQV;
       exploded.tName = alignment->tName;
-      // When the concordant flag is set, adjust the qPos so that the SAM
-      // output is correct. 
-      if(params.concordant && !params.useAllSubreadsInCcs) {
-          exploded.qPos -= subreadInterval.start;
-      }
 
       stringstream namestrm;
       namestrm << "/" << subreadInterval.start
@@ -3910,8 +3905,17 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
 
             mapData->metrics.numReads++;
             SMRTSequence subread;
-            MakeSubreadOfInterval(subread, smrtRead, subreadIntervals[intvIndex], params);
-            allReadAlignments.SetSequence(intvIndex, subread);
+            subread.ReferenceSubstring(smrtRead, passStartBase, passNumBases);
+            subread.CopyTitle(smrtRead.title);
+            // The unrolled alignment should be relative to the entire read.
+            if (params.clipping == SAMOutput::subread) {
+                SMRTSequence maskedSubread;
+                MakeSubreadOfInterval(maskedSubread, smrtRead,
+                                      subreadIntervals[intvIndex], params);
+                allReadAlignments.SetSequence(intvIndex, maskedSubread);
+            } else {
+                allReadAlignments.SetSequence(intvIndex, smrtRead);
+            }
 
             for (int alnIndex = 0; alnIndex < selectedAlignmentPtrs.size(); alnIndex++) {
               T_AlignmentCandidate * alignment = selectedAlignmentPtrs[alnIndex];
