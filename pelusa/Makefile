@@ -4,14 +4,15 @@
 SHELL = /bin/bash
 GCC = g++ -O3
 # GCC = g++
+G_TOPDIR = ../../..
 SRC_DIR = src
 BUILD_DIR = build
 TARGET = pelusa
 
 CCOPT = -g
-LIBS = -lboost_program_options -lpthread -L ../../../ThirdParty/boost/boost_1_47_0/stage/lib/
+LIBS = -lboost_program_options -lpthread -L $(G_TOPDIR)/smrtanalysis/prebuilt.out/boost/boost_1_47_0/stage/lib/
 # DEFINES = -DDB_SHORT -DREAD_36 -DMAXGAP=3 -DMAXHITS=10000
-INCLUDES = -I ../../../ThirdParty/boost/boost_1_47_0/
+INCLUDES = -I $(G_TOPDIR)/smrtanalysis/prebuilt.out/boost/boost_1_47_0/
 
 OBJS = $(patsubst %.cpp,%.o, $(wildcard $(SRC_DIR)/*.cpp))
 
