@@ -132,5 +132,5 @@ install:
 	/usr/bin/install -d $(INSTALL_DIR)
 	/usr/bin/install -m 555 bin/$* $(INSTALL_DIR)/
 
-clean:
+clean::
 	-rm -f bin/*

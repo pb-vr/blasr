@@ -21,7 +21,7 @@ make.dep:
 				$(PBCPP_DIR)/MoveODependenciesToBin.pl make.dep make.dep2
 				mv make.dep2 make.dep							 
 
-clean:	
+clean::
 				-rm -f bin/*
 				-rm -f make.dep
 				exit 0

@@ -59,5 +59,5 @@ install:
 %-install:
 	/usr/bin/install -m 555 bin/$* $(INSTALL_DIR)/
 
-clean:
-	`-rm bin/*
+clean::
+	-rm bin/*

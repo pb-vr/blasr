@@ -44,7 +44,7 @@ install:
 	/usr/bin/install -m 555 $(BUILD_DIR)/$(TARGET) $(INSTALL_DIR)/
 	
 
-clean:
+clean::
 	rm -rf $(BUILD_DIR)
 	rm -f $(OBJS)
 	make -C src/libsoap clean
