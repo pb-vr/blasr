@@ -530,7 +530,7 @@ void SetHelp(string &str) {
              << "               constructing pairwise alignments for de novo assembly."<<endl
              << "   -maxLCPLength l (inf)" << endl
              << "               The same as -maxMatch." << endl
-             << "   -maxAnchorsPerPosition m (inf) " << endl
+             << "   -maxAnchorsPerPosition m (10000) " << endl
              << "               Do not add anchors from a position if it matches to more than 'm' locations in the target." << endl
 //             << "   -advanceHalf (false) " << endl
 //             << "               A trick for speeding up alignments at the cost of sensitivity.  If " << endl
