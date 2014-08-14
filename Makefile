@@ -34,7 +34,7 @@ profile : OPTIMIZE = -Os -pg
 
 g: OPTIMIZE = -O3
 g: G_OPTIMIZE = -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -fno-omit-frame-pointer 
-g: G_LIBS = -Wl --eh-frame-hdr -fno-builtin-malloc -L/home/UNIXHOME/yli/lib -ltcmalloc -lunwind -lprofiler $(LIBS)
+g: G_LIBS = -Wl --eh-frame-hdr -fno-builtin-malloc -L$(HOME)/lib -ltcmalloc -lunwind -lprofiler $(LIBS)
 
 
 exe=blasr
