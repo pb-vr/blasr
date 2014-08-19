@@ -4767,12 +4767,28 @@ int main(int argc, char* argv[]) {
     for (readsFileIndex = 0; readsFileIndex < params.readsFileNames.size()-1; readsFileIndex++ ) {    
       reader->SetReadFileName(params.readsFileNames[readsFileIndex]);
       reader->Initialize();
-      string movieName, movieNameMD5;
+      string movieName, moviePlusFileName, movieNameMD5;
       reader->GetMovieName(movieName);
-      MakeMD5(movieName, movieNameMD5, 10);
+      moviePlusFileName = movieName + params.readsFileNames[readsFileIndex];
+      MakeMD5(moviePlusFileName, movieNameMD5, 10);
       string chipId;
       ParseChipIdFromMovieName(movieName, chipId);
-      *outFilePtr << "@RG\t" << "ID:"<<movieNameMD5<<"\t" << "PU:"<< movieName << "\tSM:"<<chipId << endl;
+      *outFilePtr << "@RG\t" << "ID:" << movieNameMD5 << "\tPU:"<< movieName << "\tSM:"<<chipId;
+      *outFilePtr << "\tDS:READTYPE:";
+      if (params.useCcsOnly && !params.unrollCcs) {
+          *outFilePtr << "CCS";
+      } else if (params.mapSubreadsSeparately &&
+                 !params.useCcs &&
+                 !params.useAllSubreadsInCcs &&
+                 reader->GetFileType() != HDFCCSONLY &&
+                 (reader->GetFileType() == HDFBase ||
+                  reader->GetFileType() == HDFPulse ||
+                  reader->GetFileType() == HDFCCS)) {
+          *outFilePtr << "SUBREAD";
+      } else {
+          *outFilePtr << "UNKNOWN";
+      }
+      *outFilePtr << endl;
       reader->Close();
     }
     string commandLineString;
