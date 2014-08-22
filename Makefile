@@ -48,6 +48,9 @@ Blasr.o: Blasr.cpp
 
 .INTERMEDIATE: $(OBJS)
 
+cramtests:
+	cram --shell=/bin/bash ctest/*.t
+
 clean: 
 	rm -f $(exe)
 	rm -f $(OBJS) $(DEPS)
