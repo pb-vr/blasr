@@ -4875,7 +4875,7 @@ int main(int argc, char* argv[]) {
         reader->GetFileType() != HDFBase and
         reader->GetFileType() != HDFPulse and
         params.concordant) {
-        cout << "WARNING! Option concordant is only enabled when "
+        cerr << "WARNING! Option concordant is only enabled when "
              << "input reads are in PacBio base h5 or pulse h5 format." << endl;
         params.concordant = false;
     }
