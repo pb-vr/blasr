@@ -360,13 +360,13 @@ public:
         }
 
         if (nCandidates < nBest) {
-            cout << "Warning: resetting nCandidates to nBest " << nBest << endl;
+            cerr << "Warning: resetting nCandidates to nBest " << nBest << endl;
             nCandidates = nBest;
         }
 
 
         if (placeRandomly and nBest == 1) {
-            cout << "Warning: When attempting to select equivalently scoring reads at random " << endl
+            cerr << "Warning: When attempting to select equivalently scoring reads at random " << endl
                 << "the bestn parameter should be greater than one." << endl;
         }
 
@@ -380,7 +380,7 @@ public:
         }
 
         if (sdpFilterType > 1) {
-            cout << "Warning: using new filter method for SDP alignments.  The parameter is " << endl
+            cerr << "Warning: using new filter method for SDP alignments.  The parameter is " << endl
                 << "either 0 or 1, but " << sdpFilterType << " was specified." << endl;
             sdpFilterType = 1;
         }
@@ -440,7 +440,7 @@ public:
             detailedSDPAlignment = true;
         }
         if (anchorParameters.maxLCPLength != 0 and anchorParameters.maxLCPLength < anchorParameters.minMatchLength) {
-            cout << "ERROR: maxLCPLength is less than minLCPLength, which will result in no hits." << endl;
+            cerr << "ERROR: maxLCPLength is less than minLCPLength, which will result in no hits." << endl;
         }
         if (subsample < 1 and stride > 1) {
             cout << "ERROR, subsample and stride must be used independently." << endl;
