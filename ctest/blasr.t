@@ -12,6 +12,9 @@ Define tmporary files
   $ TMP1=$OUTDIR/$$.tmp.out
   $ TMP2=$OUTDIR/$$.tmp.stdout
 
+Make OUTDIR
+  $ mkdir -p $OUTDIR
+
 #string perforceVersionString("$Change: 139404 $");
 
 Test blasr on ecoli.
@@ -156,10 +159,11 @@ Test -useccsall with bestn = 1
   [INFO]* (glob)
   [INFO]* (glob)
   $ sed -n '9,$ p' $OUTDIR/useccsall.sam > $TMP1
-  $ sed -n '9,$ p' $STDDIR/useccsall_2014_08_21.sam > $TMP2
+  $ sed -n '9,$ p' $STDDIR/useccsall_2014_08_28.sam > $TMP2
   $ diff $TMP1 $TMP2
   $ rm $TMP1 $TMP2
 # useccsall_2014_08_21.sam --> change 138516: added YS, YE, ZM tags
+# useccsall_2014_08_28.sam --> change 139176: Update SAM MD5 
 
 Test -concordant
 #  $ rm -rf $OUTDIR/concordant.sam
@@ -180,12 +184,13 @@ Test -concordant
   [INFO]* (glob)
   $ sed -n 6,110864p $OUTDIR/concordant_subset.sam > $OUTDIR/tmp1 
   $ sort $OUTDIR/tmp1 > $OUTDIR/tmp11
-  $ sed -n 6,110864p $STDDIR/concordant_subset_2014_08_21.sam > $OUTDIR/tmp2
+  $ sed -n 6,110864p $STDDIR/concordant_subset_2014_08_28.sam > $OUTDIR/tmp2
   $ sort $OUTDIR/tmp2 > $OUTDIR/tmp22
   $ diff $OUTDIR/tmp11 $OUTDIR/tmp22
   $ rm -rf $OUTDIR/tmp1 $OUTDIR/tmp2 $OUTDIR/tmp11 $OUTDIR/tmp22
 #concordant_subset_2014_05_28.sam  --> changelist 135254, use MAX_BAND_SIZE to contrain GuidedAlign
 #concordant_subset_2014_08_21.sam  --> changelist 138516, added YS, YE, ZM tags. 
+#concordant_subset_2014_08_28.sam  --> changelist 139176, update SAM MD5 
 
 Test -concordant, case 2
   $ rm -f $OUTDIR/concordant2.samtom4 $OUTDIR/concordant2.sam $OUTDIR/not_concordant2.m4
