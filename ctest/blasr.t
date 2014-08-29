@@ -192,20 +192,34 @@ Test -concordant
 #concordant_subset_2014_08_21.sam  --> changelist 138516, added YS, YE, ZM tags. 
 #concordant_subset_2014_08_28.sam  --> changelist 139176, update SAM MD5 
 
+#Test -concordant, case 2
+#Avoid to use samtom4 in blasr cram tests, since blasr has been seprated 
+# from other executables, and it is good to make blasr cram test not depend
+# on other tools, but only focus on blasr specific issues.
+#  $ rm -f $OUTDIR/concordant2.samtom4 $OUTDIR/concordant2.sam $OUTDIR/not_concordant2.m4
+#  $ FOFN=$DATDIR/concordant.fofn
+#  $ REF=$DATDIR/lambda_ref.fasta
+#  $ $EXEC $FOFN $REF -concordant -sam -out $OUTDIR/concordant2.sam -holeNumbers 4405
+#  [INFO]* (glob)
+#  [INFO]* (glob)
+#  $ $EXEC $FOFN $REF -m 4 -out $OUTDIR/not_concordant2.m4 -holeNumbers 4405
+#  [INFO]* (glob)
+#  [INFO]* (glob)
+#  $ samtom4 $OUTDIR/concordant2.sam $REF $OUTDIR/concordant2.samtom4 
+#  $ diff $OUTDIR/not_concordant2.m4 $OUTDIR/concordant2.samtom4
+
 Test -concordant, case 2
-  $ rm -f $OUTDIR/concordant2.samtom4 $OUTDIR/concordant2.sam $OUTDIR/not_concordant2.m4
+  $ rm -f $OUTDIR/concordant2.m4 $OUTDIR/not_concordant2.m4
   $ FOFN=$DATDIR/concordant.fofn
   $ REF=$DATDIR/lambda_ref.fasta
-  $ $EXEC $FOFN $REF -concordant -sam -out $OUTDIR/concordant2.sam -holeNumbers 4405
+  $ $EXEC $FOFN $REF -concordant -out $OUTDIR/concordant2.m4 -holeNumbers 4405
   [INFO]* (glob)
   [INFO]* (glob)
   $ $EXEC $FOFN $REF -m 4 -out $OUTDIR/not_concordant2.m4 -holeNumbers 4405
   [INFO]* (glob)
   [INFO]* (glob)
-#  $ $TESTDIR/../pbihdfutils/bin/samtom4 $OUTDIR/concordant2.sam $REF $OUTDIR/concordant2.samtom4 
-  $ samtom4 $OUTDIR/concordant2.sam $REF $OUTDIR/concordant2.samtom4 
-  $ diff $OUTDIR/not_concordant2.m4 $OUTDIR/concordant2.samtom4
-
+  $ diff $OUTDIR/concordant2.m4 $STDDIR/concordant2.m4 
+  $ diff $OUTDIR/not_concordant2.m4 $STDDIR/not_concordant2.m4
 
 Test using *.ccs.h5 as input
 # The results should be exactly the same as 
