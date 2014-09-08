@@ -28,7 +28,7 @@ LIBS := -lblasr -lpbdata -lpbihdf -lhdf5_cpp -lhdf5 -lz -lpthread -lrt -ldl
 
 all : OPTIMIZE = -O3
 
-debug : OPTIMIZE = -g -ggdb
+debug : OPTIMIZE = -g -ggdb -fno-inline
 
 profile : OPTIMIZE = -Os -pg 
 
