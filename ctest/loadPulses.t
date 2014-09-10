@@ -184,7 +184,7 @@ Set up the executable: loadPulses.
   $ CMP_IN=$DATDIR/ccs_lp.cmp.h5
   $ CMP_OUT=$OUTDIR/ccs_lp.cmp.h5
 
-  # The original pls.h5 files disappeared, to use another dataset instead.
+# The original pls.h5 files disappeared, to use another dataset instead.
   $ rm -f CMP_OUT
   $ cp $CMP_IN $CMP_OUT
   $ $EXEC $FOFN_IN $CMP_OUT -bymetric -metrics QualityValue

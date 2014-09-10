@@ -174,19 +174,20 @@ Test -concordant
 #  $ rm -rf $OUTDIR/tmp1 $OUTDIR/tmp2 $OUTDIR/tmp11 $OUTDIR/tmp22
 # This test takes a long time, use a subset instad. 
 
+  
   $ rm -rf $OUTDIR/concordant_subset.sam
   $ $EXEC $DATDIR/ecoli_lp.fofn $DATDIR/ecoli_reference.fasta -concordant -sam -out $OUTDIR/concordant_subset.sam -nproc 12 -holeNumbers 1-10000 -sa $DATDIR/ecoli_reference.sa
   [INFO]* (glob)
   [INFO]* (glob)
   $ sed -n 6,110864p $OUTDIR/concordant_subset.sam > $OUTDIR/tmp1 
   $ sort $OUTDIR/tmp1 > $OUTDIR/tmp11
-  $ sed -n 6,110864p $STDDIR/concordant_subset_2014_06_10.sam > $OUTDIR/tmp2
-  $ sort $OUTDIR/tmp2 > $OUTDIR/tmp22
+  $ sed -n 6,110864p $STDDIR/concordant_subset_2014_08_21.sam > $OUTDIR/tmp2
+  $ cut -f 1-15,19- $OUTDIR/tmp2 | sort > $OUTDIR/tmp22
   $ diff $OUTDIR/tmp11 $OUTDIR/tmp22
   $ rm -rf $OUTDIR/tmp1 $OUTDIR/tmp2 $OUTDIR/tmp11 $OUTDIR/tmp22
 #concordant_subset_2014_05_28.sam  --> changelist 135254, use MAX_BAND_SIZE to contrain GuidedAlign
 #concordant_subset_2014_05_28_2.sam  --> changelist ??, update FindMaxInterval
-
+#concordant_subset_2014_08_21.sam  --> changelist 138516, added YS, YE, ZM tags. 
 
  
 Test -concordant, case 2
@@ -260,8 +261,8 @@ bug_25328, unrolled resequencing test
   $ REF=$DATDIR/All4mers_circular_72x_l50256.fasta
   $ OUTFA=$OUTDIR/bug_25328.m4
   $ $EXEC $INFA $REF -bestn 1 -nCandidates 1 -forwardOnly -maxMatch 14 -m 4 -out $OUTFA
-#  [INFO]* (glob)
-#  [INFO]* (glob)
+  [INFO] * [blasr] started. (glob)
+  [INFO] * [blasr] ended. (glob)
 
   $ awk '$7-$6 >= 15000' $OUTFA |wc -l
   1

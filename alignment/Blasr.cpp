@@ -179,11 +179,7 @@ public:
     }
 
     for (i = 0, nAlignedSeq = subreads.size(); i< nAlignedSeq; i++) {
-      subreads[i].FreeIfControlled();
-      if (subreads[i].title != NULL) {
-        delete[] subreads[i].title;
-        subreads[i].title = NULL;
-      }
+      subreads[i].Free();
     }
     subreadAlignments.clear();
     read.Free();
@@ -1179,6 +1175,10 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
         anchorsOnly.qPos = alignment->qPos;
         ComputeAlignmentStats(*alignment, alignment->qAlignedSeq.seq, alignment->tAlignedSeq.seq,
                               distScoreFn);
+        tAlignedSeq.Free();
+        qAlignedSeq.Free();
+        tSubSeq.Free();
+        qSubSeq.Free();
       }
       else {
         alignScore = SDPAlign(alignment->qAlignedSeq, alignment->tAlignedSeq, distScoreFn, 
@@ -1323,7 +1323,6 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
           assert(alignment->qAlignedSeq.length <= read.length);
           alignment->AppendAlignment(extendedAlignmentForward);
         }
-        genomeSuffix.Free();
 
         DNALength firstAlignedQPos = alignment->qPos + alignment->qAlignedSeqPos;
         DNALength firstAlignedTPos = alignment->tPos + alignment->tAlignedSeqPos;
@@ -1401,11 +1400,13 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
             alignment->qAlignedSeqLength = alignment->qAlignedSeq.length = 0;
             alignment->tAlignedSeqLength = alignment->tAlignedSeq.length = 0;
           }
-        }
-        else {
-          genomePrefix.Free();
-        }
+        } // end of if (reverseScore < 0)
+        readSuffix.Free();
+        readPrefix.Free();
+        genomePrefix.Free();
+        genomeSuffix.Free();
       }
+      tSubseq.Free();
     }
 
     if (params.verbosity > 0) {
@@ -1765,6 +1766,7 @@ void RefineAlignment(vector<T_Sequence*> &bothQueryStrands,
     alignmentCandidate.tPos   = refinedAlignment.tPos;
     alignmentCandidate.qPos   = refinedAlignment.qPos + bothQueryStrands[0]->subreadStart;
     alignmentCandidate.score  = refinedAlignment.score;
+    subread.Free();
   }
   else if (params.useGuidedAlign) {
     T_AlignmentCandidate refinedAlignment;
@@ -1848,6 +1850,7 @@ void RefineAlignment(vector<T_Sequence*> &bothQueryStrands,
       // Next copy the information that describes what interval was
       // aligned.  Since the reference sequences of the alignment
       // candidate have been modified, they are reassigned.
+      alignmentCandidate.tAlignedSeq.Free();
       alignmentCandidate.tAlignedSeq.TakeOwnership(tSeq);
       alignmentCandidate.ReassignQSequence(qSeq);
       alignmentCandidate.tAlignedSeqPos    += alignmentCandidate.tPos; 
@@ -3873,9 +3876,9 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
                                                                alignmentPtrs[a]->qAlignedSeqLength);
             }
           }
-          subreadSequence.Free();
-          subreadSequenceRC.Free();
         }
+        subreadSequence.Free();
+        subreadSequenceRC.Free();
       } // End of looping over subread intervals within [startIndex, endIndex).
 
       if (params.verbosity >= 3) 
@@ -3922,6 +3925,7 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
                                             intvIndex,
                                             params, mappingBuffers, threadOut);
             } // End of aligning this subread to each selected alignment.
+            subread.Free();
           } // End of aligning each subread to where the longest subread aligned to. 
           for(int alignmentIndex = 0; alignmentIndex < selectedAlignmentPtrs.size(); 
               alignmentIndex++) {
@@ -4061,6 +4065,7 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
                                           subreadIndex,
                                           params, mappingBuffers, threadOut);
           } // End of aligning this subread to where the de novo ccs has aligned to.
+          subread.Free();
         } // End of alignining all subreads to where the de novo ccs has aligned to.
       } // End of if readIsCCS and !params.useCcsOnly 
 
@@ -4084,6 +4089,12 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
       mappingBuffers.Reset();
     }
   } // End of while (true).
+  smrtRead.Free();
+  smrtReadRC.Free();
+  unrolledReadRC.Free();
+  read.Free();
+  ccsRead.Free();
+
   if (params.nProc > 1) {
 #ifdef __APPLE__
     sem_wait(semaphores.reader);
@@ -4525,9 +4536,9 @@ int main(int argc, char* argv[]) {
   genome.seq = fastaGenome.seq;
   genome.length = fastaGenome.length;
   genome.title = fastaGenome.title;
+  genome.deleteOnExit = false;
   genome.titleLength = fastaGenome.titleLength;
   genome.ToUpper();
-
 
   DNASuffixArray sarray;
   TupleCountTable<T_GenomeSequence, DNATuple> ct;
