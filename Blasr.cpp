@@ -556,6 +556,8 @@ void SetHelp(string &str) {
              << "               Blasr is likely to ignore short alignments of ALU elements." << endl
              << "   -fastSDP(false)" << endl
              << "               Use a fast heuristic algorithm to speed up sparse dynamic programming." << endl
+//             << "   -concordantTemplate(longestsubread)" << endl
+//             << "               Use the longest subread or the typical subread as template for concordant mapping." << endl
              << endl
              << "  Options for Refining Hits." << endl
 //             << "   -indelRate i (0.30)" << endl
@@ -3741,15 +3743,28 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
             smrtRead.lowQualityPrefix, // hq region start pos.
             smrtRead.length - smrtRead.lowQualitySuffix, // hq end pos.
             params.minSubreadLength); // minimum read length.
+
+      int bestSubreadIndex = longestSubreadIndex;
+      if (params.concordantTemplate == "longestsubread") {
+          // Use the (left-most) longest full-pass subread as 
+          // template for concordant mapping
+          int longestFullSubreadIndex = GetLongestFullSubreadIndex(
+              subreadIntervals, adapterIntervals);
+          if (longestFullSubreadIndex >= 0) {
+              bestSubreadIndex = longestFullSubreadIndex;
+          }
+      } else if (params.concordantTemplate == "typicalsubread") {
+          // Use the 'typical' full-pass subread as template for
+          // concordant mapping.
+          int typicalFullSubreadIndex = GetTypicalFullSubreadIndex(
+              subreadIntervals, adapterIntervals);
+          if (typicalFullSubreadIndex >= 0) {
+              bestSubreadIndex = typicalFullSubreadIndex;
+          }
+      } else {
+          assert(false);
+      }
       
-      // Get index of the (left-most) longest full-pass subread which has
-      // both adapters.
-      int longestFullSubreadIndex = GetLongestFullSubreadIndex(
-          subreadIntervals, adapterIntervals);
-
-      int bestSubreadIndex = (longestFullSubreadIndex >= 0)?
-          longestFullSubreadIndex:longestSubreadIndex;
-
       // Flop all directions if direction of the longest subread is 1.
       if (bestSubreadIndex >= 0 and 
           bestSubreadIndex < int(subreadDirections.size()) and
@@ -4329,6 +4344,7 @@ int main(int argc, char* argv[]) {
   clp.RegisterFlagOption("fastMaxInterval", &params.fastMaxInterval, "", false);
   clp.RegisterFlagOption("aggressiveIntervalCut", &params.aggressiveIntervalCut, "", false);
   clp.RegisterFlagOption("fastSDP", &params.fastSDP, "", false);
+  clp.RegisterStringOption("concordantTemplate", &params.concordantTemplate, "typicalsubread");
 
   clp.ParseCommandLine(argc, argv, params.readsFileNames);
   clp.CommandLineToString(argc, argv, commandLine);
