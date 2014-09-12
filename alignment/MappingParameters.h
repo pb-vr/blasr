@@ -181,6 +181,7 @@ public:
     bool fastMaxInterval;
     bool aggressiveIntervalCut;
     bool fastSDP;
+    string concordantTemplate;
 
   void Init() {
       readIndex = -1;
@@ -345,6 +346,7 @@ public:
       fastMaxInterval = false;
       aggressiveIntervalCut = false;
       fastSDP = false;
+      concordantTemplate = "typicalsubread";
 	}
 
 	MappingParameters() {
@@ -355,36 +357,39 @@ public:
 		//
 		// Fix all logical incompatibilities with parameters.
 		//
-		
-    if (nowarp) {
-      warp = false;
-    }
 
-		if (nCandidates < nBest) {
+        if (nowarp) {
+            warp = false;
+        }
+
+        if (nCandidates < nBest) {
             cout << "Warning: resetting nCandidates to nBest " << nBest << endl;
-      nCandidates = nBest;
-		}
+            nCandidates = nBest;
+        }
 
+        if (placeRandomly and nBest == 1) {
+            cout << "Warning: When attempting to select equivalently scoring reads at random " << endl
+                << "the bestn parameter should be greater than one." << endl;
+        }
 
-    if (placeRandomly and nBest == 1) {
-      cout << "Warning: When attempting to select equivalently scoring reads at random " << endl
-           << "the bestn parameter should be greater than one." << endl;
-    }
+        if (concordant) {
+            if (useCcs) {
+                concordant = false;
+            } else {
+                useRegionTable   = true;
+                useHQRegionTable = true;
+            }
+            if (concordantTemplate != "longestsubread" and concordantTemplate != "typicalsubread") {
+                cout << "ERROR, unsupported concordantTemplate: " << concordantTemplate << endl;
+                exit(1);
+            }
+        }
 
-    if (concordant) {
-      if (useCcs) {
-        concordant = false;
-      } else {
-        useRegionTable   = true;
-        useHQRegionTable = true;
-      }
-    }
-
-		if (sdpFilterType > 1) {
-			cout << "Warning: using new filter method for SDP alignments.  The parameter is " << endl
-					 << "either 0 or 1, but " << sdpFilterType << " was specified." << endl;
-			sdpFilterType = 1;
-		}
+        if (sdpFilterType > 1) {
+            cout << "Warning: using new filter method for SDP alignments.  The parameter is " << endl
+                << "either 0 or 1, but " << sdpFilterType << " was specified." << endl;
+            sdpFilterType = 1;
+        }
 		if (sdpFilterType == 0) {
 			detailedSDPAlignment = true;
       nouseDetailedSDPAlignment = false;
