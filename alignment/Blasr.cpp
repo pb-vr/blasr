@@ -1409,7 +1409,7 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
       tSubseq.Free();
     }
 
-    if (params.verbosity > 0) {
+   if (params.verbosity > 0) {
       cout << "interval align score: " << alignScore << endl;
       StickPrintAlignment(*alignment,
                           (DNASequence&) alignment->qAlignedSeq,
@@ -3200,6 +3200,7 @@ void FlankTAlignedSeq(T_AlignmentCandidate * alignment,
   alignment->tAlignedSeqLength = newTAlignedSeqLen;
   if (alignment->tStrand == 0) {
     alignment->tAlignedSeq.ReferenceSubstring(genome, newGenomePos, newTAlignedSeqLen);
+    alignment->tIsSubstring = true;
   } else {
     // Copy and then reverse complement.
     genome.MakeRC(alignment->tAlignedSeq, 
@@ -3743,14 +3744,27 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
             smrtRead.lowQualityPrefix, // hq region start pos.
             smrtRead.length - smrtRead.lowQualitySuffix, // hq end pos.
             params.minSubreadLength); // minimum read length.
-      
-      // Get index of the (left-most) longest full-pass subread which has
-      // both adapters.
-      int longestFullSubreadIndex = GetLongestFullSubreadIndex(
-          subreadIntervals, adapterIntervals);
 
-      int bestSubreadIndex = (longestFullSubreadIndex >= 0)?
-          longestFullSubreadIndex:longestSubreadIndex;
+      int bestSubreadIndex = longestSubreadIndex;
+      if (params.concordantTemplate == "longestsubread") {
+          // Get index of the (left-most) longest full-pass subread as 
+          // template for concordant mapping
+          int longestFullSubreadIndex = GetLongestFullSubreadIndex(
+              subreadIntervals, adapterIntervals);
+          if (longestFullSubreadIndex >= 0) {
+              bestSubreadIndex = longestFullSubreadIndex;
+          }
+      } else if (params.concordantTemplate == "typicalsubread") {
+          // Return index of the 'typical' full-pass subread as template for
+          // concordant mapping.
+          int typicalFullSubreadIndex = GetTypicalFullSubreadIndex(
+              subreadIntervals, adapterIntervals);
+          if (typicalFullSubreadIndex >= 0) {
+              bestSubreadIndex = typicalFullSubreadIndex;
+          }
+      } else {
+          assert(false);
+      }
 
       // Flop all directions if direction of the longest subread is 1.
       if (bestSubreadIndex >= 0 and 
@@ -3780,7 +3794,6 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
         MakeSubreadOfInterval(subreadSequence, smrtRead, 
                               subreadIntervals[intvIndex], params);
         MakeSubreadRC(subreadSequenceRC, subreadSequence, smrtRead);
-
 
         //
         // Store the sequence that is being mapped in case no hits are
@@ -4094,7 +4107,6 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
   unrolledReadRC.Free();
   read.Free();
   ccsRead.Free();
-
   if (params.nProc > 1) {
 #ifdef __APPLE__
     sem_wait(semaphores.reader);
@@ -4324,6 +4336,9 @@ int main(int argc, char* argv[]) {
   clp.RegisterFlagOption("fastMaxInterval", &params.fastMaxInterval, "", false);
   clp.RegisterFlagOption("aggressiveIntervalCut", &params.aggressiveIntervalCut, "", false);
   clp.RegisterFlagOption("fastSDP", &params.fastSDP, "", false);
+
+  // Either use the longest or typical fullpass subread of a zmw as template for concordant mapping
+  clp.RegisterStringOption("concordantTemplate", &params.concordantTemplate, "typicalsubread"); 
 
   clp.ParseCommandLine(argc, argv, params.readsFileNames);
   clp.CommandLineToString(argc, argv, commandLine);
