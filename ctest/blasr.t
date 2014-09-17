@@ -180,13 +180,14 @@ Test -concordant
   [INFO]* (glob)
   $ sed -n 6,110864p $OUTDIR/concordant_subset.sam > $OUTDIR/tmp1 
   $ cut -f 1-11,13- $OUTDIR/tmp1 |sort > $OUTDIR/tmp11
-  $ sed -n 6,110864p $STDDIR/concordant_subset_2014_09_12.sam > $OUTDIR/tmp2
+  $ sed -n 6,110864p $STDDIR/concordant_subset_2014_09_17.sam > $OUTDIR/tmp2
   $ cut -f 1-11,13-15,19- $OUTDIR/tmp2 | sort > $OUTDIR/tmp22
   $ diff $OUTDIR/tmp11 $OUTDIR/tmp22
 #concordant_subset_2014_05_28.sam  --> changelist 135254, use MAX_BAND_SIZE to contrain GuidedAlign
 #concordant_subset_2014_05_28_2.sam  --> changelist ??, update FindMaxInterval
 #concordant_subset_2014_08_21.sam  --> changelist 138516, added YS, YE, ZM tags. 
 #concordant_subset_2014_09_12.sam  --> changelist 140410, changed the default value of '-concordantTemplate' from 'longestsubread' to 'typicalsubread'
+#concordant_subset_2014_09_17.sam  --> changelist 140573, changed SDPFragment LessThan to make sure blasr compiled with gcc 4.4 and 4.8 can produce identical results. 
 
  
 Test -concordant, case 2
