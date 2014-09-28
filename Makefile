@@ -1,6 +1,21 @@
-PBINCROOT ?= ../../lib/cpp
-HDFINC ?= ../../../assembly/seymour/dist/common/include
-HDFLIB ?= ../../../assembly/seymour/dist/common/lib
+SHELL=/bin/bash -e -E
+
+.PHONY=all
+
+GIT_BLASR_LIBPATH = ../lib
+PB_BLASR_LIBPATH = ../../lib/cpp
+
+# Determine where is PBINCROOT, either from github or PacBio SMRTAnalysis package.
+PBINCROOT ?= $(shell cd $(GIT_BLASR_LIBPATH) 2>/dev/null && pwd || echo -n notfound)
+ifeq ($(PBINCROOT), notfound)
+	PBINCROOT = $(shell cd $(PB_BLASR_LIBPATH) 2>/dev/null && pwd || echo -n notfound)
+	ifeq ($(PBINCROOT), notfound)
+		$(error please check your blasr lib exists.)
+	endif
+endif
+
+HDFINC ?= ../../../../assembly/seymour/dist/common/include
+HDFLIB ?= ../../../../assembly/seymour/dist/common/lib
 
 INCDIRS = -I$(PBINCROOT)/alignment \
 		  -I$(PBINCROOT)/pbdata \
