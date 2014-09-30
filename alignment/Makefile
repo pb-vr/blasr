@@ -18,7 +18,7 @@ include ../common.mk
 # Define the targets before including the rules since the rules contains a target itself.
 #
 
-EXECS = wordCounter printReadWordCount sdpMatcher swMatcher kbandMatcher sawriter saquery samodify printTupleCountTable cmpPrintTupleCountTable malign removeAdapters tabulateAlignment samatcher saprinter buildQualityValueProfile guidedalign extendAlign sals pbmask
+EXECS = blasr wordCounter printReadWordCount sdpMatcher swMatcher kbandMatcher sawriter saquery samodify printTupleCountTable cmpPrintTupleCountTable malign removeAdapters tabulateAlignment samatcher saprinter buildQualityValueProfile guidedalign extendAlign sals pbmask
 
 # DISABLE for now
 #cmpMatcher
