@@ -598,6 +598,8 @@ void SetHelp(string &str) {
              << "               Skip reads that have a full length less than l. Subreads may be shorter." << endl 
              << "   -minSubreadLength l(0)" << endl
              << "               Do not align subreads of length less than l." << endl
+             << "   -minRawSubreadScore m(0)" << endl
+             << "               Do not align subreads whose quality score in region table is less than m (quality scores should be in range [0, 1000])." << endl
              << "   -maxScore m (0)" << endl
              << "               Maximum score to output (high is bad, negative good)." << endl << endl
              << " Options for parallel alignment." << endl
@@ -3742,7 +3744,8 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
             subreadDirections, // a vector of subread directions.
             smrtRead.lowQualityPrefix, // hq region start pos.
             smrtRead.length - smrtRead.lowQualitySuffix, // hq end pos.
-            params.minSubreadLength); // minimum read length.
+            params.minSubreadLength, // minimum read length.
+            params.minRawSubreadScore); // minimum raw subread score in [0, 1000]
 
       int bestSubreadIndex = longestSubreadIndex;
       if (params.concordantTemplate == "longestsubread") {
@@ -4289,6 +4292,7 @@ int main(int argc, char* argv[]) {
   clp.RegisterIntOption("minAlignLength", &params.minAlignLength, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterIntOption("maxReadLength", &params.maxReadLength, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterIntOption("minSubreadLength", &params.minSubreadLength, "", CommandLineParser::NonNegativeInteger);
+  clp.RegisterIntOption("minRawSubreadScore", &params.minRawSubreadScore, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterIntOption("minAvgQual", &params.minAvgQual, "", CommandLineParser::Integer);
   clp.RegisterFlagOption("advanceHalf", &params.advanceHalf, "");
   clp.RegisterIntOption("advanceExactMatches", &params.anchorParameters.advanceExactMatches, "", CommandLineParser::NonNegativeInteger);
