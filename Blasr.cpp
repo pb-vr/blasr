@@ -3617,6 +3617,7 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
       LookupHQRegion(smrtRead.zmwData.holeNumber, *mapData->regionTablePtr, hqStart, hqEnd, score);
       smrtRead.lowQualityPrefix = hqStart;
       smrtRead.lowQualitySuffix = smrtRead.length - hqEnd;
+      smrtRead.highQualityRegionScore = score;
     }
     else {
       smrtRead.lowQualityPrefix = 0;
@@ -3665,9 +3666,10 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
     // useable/good sequence. 
     //
     if (smrtRead.length < UInt(params.minReadLength) or readHasGoodRegion == false or 
-                          (params.maxReadLength != 0 and 
-                           smrtRead.length > UInt(params.maxReadLength))) {
-      if (readIsCCS) {
+        smrtRead.highQualityRegionScore < params.minRawSubreadScore or 
+        (params.maxReadLength != 0 and 
+         smrtRead.length > UInt(params.maxReadLength))) {
+        if (readIsCCS) {
         ccsRead.Free();
       }
       smrtRead.Free();
@@ -3744,8 +3746,7 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
             subreadDirections, // a vector of subread directions.
             smrtRead.lowQualityPrefix, // hq region start pos.
             smrtRead.length - smrtRead.lowQualitySuffix, // hq end pos.
-            params.minSubreadLength, // minimum read length.
-            params.minRawSubreadScore); // minimum raw subread score in [0, 1000]
+            params.minSubreadLength); // minimum read length.
 
       int bestSubreadIndex = longestSubreadIndex;
       if (params.concordantTemplate == "longestsubread") {
