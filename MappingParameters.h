@@ -102,6 +102,7 @@ public:
     int  minReadLength;
     int  maxReadLength;
     int  minSubreadLength;
+    int  minRawSubreadScore;
     int  minAvgQual;
     bool overlap;
     bool advanceHalf;
@@ -265,6 +266,7 @@ public:
         minReadLength = 50;
         maxReadLength = 0; // means no max read length
         minSubreadLength = 0;
+        minRawSubreadScore = -1; // raw subread score in region table should be in range [0, 1000].
         minAvgQual = 0;
         overlap = false;
         advanceHalf = false;
@@ -509,6 +511,15 @@ public:
             else {
                 samQVList.UseQV(samQV);
             }
+        }
+
+        if (minRawSubreadScore > 1000) {
+            cout << "ERROR, minimum raw subread score should be less than 1000." << endl;
+            exit(1);
+        }
+        if (minRawSubreadScore != -1 and byAdapter) {
+            cout << "ERROR, minRawSubreadScore and byAdapter should not be used together." << endl;
+            exit(1);
         }
     }
 
