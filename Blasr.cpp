@@ -312,6 +312,48 @@ void MakeSAMHDString(string &hdString) {
   hdString = out.str();
 }
 
+/*
+ * Create the string for the SAM header that contains information about the
+ * quality values available for a read group and the way those QVs are encoded
+ * as optional fields.
+ *
+ * Input:
+ *  SupplementalQVList samQVs   :   Object that handles which QVs to print in
+ *                                  the SAM file. This is created using the
+ *                                  printSAMQV option in MappingParameters.h
+ *  string qvString             :   The string we're going to create. Note that
+ *                                  if it's not empty, it will start with a \t
+ */
+void MakeSAMQVString(const SupplementalQVList &samQVs, string &qvString) {
+  stringstream out;
+
+  /* If there aren't any QVs, just leave the string empty and we're done. */
+  if(!samQVs.useqv) {
+    qvString = "";
+    return;
+  }
+
+  out << "\tPG:"; /* Probably want something other than PG here. */
+  int i = 0;
+  bool first_qv = true;
+  for(i = 0; i < samQVs.nTags; i++) {
+    if(samQVs.useqv & (1 << i)) {
+
+      string qv_name = (string)samQVs.qvNames[i];            
+      string qv_tag = (string)samQVs.qvTags[i];
+
+      /* Avoid ending with an extraneous ; */
+      if(!first_qv) {
+        out << ";";
+      }
+      first_qv = false;
+
+      out << qv_tag << "=" << qv_name;
+    }
+  }
+  qvString = out.str();
+}
+
 void MakeSAMPGString(string &commandLineString, string &pgString) {
   stringstream out;
   string version;
@@ -4819,6 +4861,9 @@ int main(int argc, char* argv[]) {
       } else {
           *outFilePtr << "UNKNOWN";
       }
+      string qvString;
+      MakeSAMQVString(params.samQVList, qvString);
+      *outFilePtr << qvString;
       *outFilePtr << endl;
       reader->Close();
     }
