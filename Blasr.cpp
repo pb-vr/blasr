@@ -333,7 +333,7 @@ void MakeSAMQVString(const SupplementalQVList &samQVs, string &qvString) {
     return;
   }
 
-  out << "\tPG:"; /* Probably want something other than PG here. */
+  out << ";"; /* We've already writing READTYPE=SOMETHING to the DS tag at this point. */
   int i = 0;
   bool first_qv = true;
   for(i = 0; i < samQVs.nTags; i++) {
@@ -348,7 +348,7 @@ void MakeSAMQVString(const SupplementalQVList &samQVs, string &qvString) {
       }
       first_qv = false;
 
-      out << qv_tag << "=" << qv_name;
+      out << qv_name << "=" << qv_tag;
     }
   }
   qvString = out.str();
@@ -4847,7 +4847,7 @@ int main(int argc, char* argv[]) {
       string chipId;
       ParseChipIdFromMovieName(movieName, chipId);
       *outFilePtr << "@RG\t" << "ID:" << movieNameMD5 << "\tPU:"<< movieName << "\tSM:"<<chipId;
-      *outFilePtr << "\tDS:READTYPE:";
+      *outFilePtr << "\tDS:READTYPE=";
       if (params.useCcsOnly && !params.unrollCcs) {
           *outFilePtr << "CCS";
       } else if (params.mapSubreadsSeparately &&
