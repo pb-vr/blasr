@@ -3807,6 +3807,14 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
           if (typicalFullSubreadIndex >= 0) {
               bestSubreadIndex = typicalFullSubreadIndex;
           }
+      } else if (params.concordantTemplate == "mediansubread") {
+          // Use the 'median-length' full-pass subread as template for
+          // concordant mapping.
+          int medianFullSubreadIndex = GetMedianLengthFullSubreadIndex(
+              subreadIntervals, adapterIntervals);
+          if (medianFullSubreadIndex >= 0) {
+              bestSubreadIndex = medianFullSubreadIndex;
+          }
       } else {
           assert(false);
       }

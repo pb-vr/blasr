@@ -347,7 +347,7 @@ public:
         fastMaxInterval = false;
         aggressiveIntervalCut = false;
         fastSDP = false;
-        concordantTemplate = "typicalsubread"; // or longestsubread
+        concordantTemplate = "mediansubread"; // typicalsubread or longestsubread
     }
 
     MappingParameters() {
@@ -381,7 +381,7 @@ public:
                 useRegionTable   = true;
                 useHQRegionTable = true;
             }
-            if (concordantTemplate != "longestsubread" and concordantTemplate != "typicalsubread") {
+            if (concordantTemplate != "longestsubread" and concordantTemplate != "typicalsubread" and concordantTemplate != "mediansubread") {
                 cout << "ERROR, unsupported concordantTemplate: " << concordantTemplate << endl;
                 exit(1);
             }
