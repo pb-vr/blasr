@@ -589,6 +589,12 @@ void SetHelp(string &str) {
              << "               Map all subreads of a zmw (hole) to where the longest full pass subread of the zmw " << endl
              << "               aligned to. This requires to use the region table and hq regions." << endl
              << "               This option only works when reads are in base or pulse h5 format." << endl
+             << "   -concordantTemplate(mediansubread)" << endl
+             << "               Select a full pass subread of a zmw as template for concordant mapping." << endl
+             << "               longestsubread - use the longest full pass subread" << endl
+             << "               mediansubread  - use the median length full pass subread" << endl
+             << "               typicalsubread - use the second longest full pass subread if length of" << endl
+             << "                                the longest full pass subread is an outlier" << endl
              << "   -fastMaxInterval(false)" << endl
              << "               Fast search maximum increasing intervals as alignment candidates. The search " << endl
              << "               is not as exhaustive as the default, but is much faster." << endl
@@ -598,8 +604,6 @@ void SetHelp(string &str) {
              << "               Blasr is likely to ignore short alignments of ALU elements." << endl
              << "   -fastSDP(false)" << endl
              << "               Use a fast heuristic algorithm to speed up sparse dynamic programming." << endl
-//             << "   -concordantTemplate(longestsubread)" << endl
-//             << "               Use the longest subread or the typical subread as template for concordant mapping." << endl
              << endl
              << "  Options for Refining Hits." << endl
 //             << "   -indelRate i (0.30)" << endl
