@@ -306,3 +306,10 @@ bug_25766, added an option -minRawSubreadScore
   $ sort $TMP1 > $TMP2
   $ diff $TMP2 $STDDIR/bug_25766.m4
 
+bug 25741 If input bas.h5 does not contain mergeQV, blasr with -printSAMQV, -nproc>1 should not write garbage 'mq' values to output.
+  $ $EXEC $DATDIR/bas_wo_mergeQV.fofn $DATDIR/lambda_ref.fasta -printSAMQV -sam -clipping subread -out $OUTDIR/out_printSAMQV.sam -nproc 12 
+  [INFO]* (glob)
+  [INFO]* (glob)
+  $ grep 'mq' $OUTDIR/out_printSAMQV.sam |wc -l
+  1
+
