@@ -4002,6 +4002,16 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
                                             subreadIntervals[intvIndex],
                                             intvIndex,
                                             params, mappingBuffers, threadOut);
+              if (params.concordantAlignBothDirections) {
+                AlignSubreadToAlignmentTarget(allReadAlignments, 
+                                              subread, 
+                                              smrtRead, 
+                                              alignment,
+                                              ((passDirection==0)?1:0),
+                                              subreadIntervals[intvIndex], 
+                                              intvIndex,
+                                              params, mappingBuffers, threadOut);
+              }
             } // End of aligning this subread to each selected alignment.
             subread.Free();
           } // End of aligning each subread to where the longest subread aligned to. 
@@ -4363,6 +4373,14 @@ int main(int argc, char* argv[]) {
   clp.RegisterFlagOption("useTemp", (bool*) &params.tempDirectory, "");
   clp.RegisterFlagOption("noSplitSubreads", &params.mapSubreadsSeparately, "");
   clp.RegisterFlagOption("concordant", &params.concordant, "");
+  // When -concordant is turned on, blasr first selects a subread (e.g., the median length full-pass subread) 
+  // of a zmw as template, maps the template subread to a reference, then infers directions of all other subreads
+  // of the same zmw based on direction of the template, and finally maps all other subreads to the same
+  // genomic coordinates as the template. When -concordantAlignBothDirections is turned on, blasr will align
+  // all other subreads both forwardly and backwardly, without infering their directions. This is a hidden
+  // diagnostic option only useful for analyzing movies which have lots of un-identified or missed adapters such
+  // that directions of subreads can not be inferred accurately.
+  clp.RegisterFlagOption("concordantAlignBothDirections", &params.concordantAlignBothDirections, "");
   clp.RegisterIntOption("flankSize", &params.flankSize, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterIntOption("subreadMapType", &params.subreadMapType, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterStringOption("titleTable", &params.titleTableName, "");
