@@ -182,6 +182,7 @@ public:
     bool aggressiveIntervalCut;
     bool fastSDP;
     string concordantTemplate; 
+    bool concordantAlignBothDirections;
 
     void Init() {
         readIndex = -1;
@@ -348,6 +349,7 @@ public:
         aggressiveIntervalCut = false;
         fastSDP = false;
         concordantTemplate = "mediansubread"; // typicalsubread or longestsubread
+        concordantAlignBothDirections = false;
     }
 
     MappingParameters() {
