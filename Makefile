@@ -1,6 +1,8 @@
-SHELL=/bin/bash -e -E
+SHELL=bash
 
-.PHONY=all
+.PHONY: all pblib gtest cramtests check clean cleanall
+
+OS := $(shell uname)
 
 GIT_BLASR_LIBPATH = ../lib
 PB_BLASR_LIBPATH = ../../lib/cpp
@@ -8,66 +10,81 @@ PB_BLASR_LIBPATH = ../../lib/cpp
 # Determine where is PBINCROOT, either from github or PacBio SMRTAnalysis package.
 PBINCROOT ?= $(shell cd $(GIT_BLASR_LIBPATH) 2>/dev/null && pwd || echo -n notfound)
 ifeq ($(PBINCROOT), notfound)
-	PBINCROOT = $(shell cd $(PB_BLASR_LIBPATH) 2>/dev/null && pwd || echo -n notfound)
+	PBINCROOT := $(shell cd $(PB_BLASR_LIBPATH) 2>/dev/null && pwd || echo -n notfound)
 	ifeq ($(PBINCROOT), notfound)
 		$(error please check your blasr lib exists.)
 	endif
 endif
 
-HDFINC ?= ../../../../assembly/seymour/dist/common/include
-HDFLIB ?= ../../../../assembly/seymour/dist/common/lib
+PREBUILT ?= ../../../prebuilt.out
+THIRD_PARTY_PREFIX := ..
+
+include $(PBINCROOT)/common.mk
 
 INCDIRS = -I$(PBINCROOT)/alignment \
-		  -I$(PBINCROOT)/pbdata \
-		  -I$(PBINCROOT)/hdf \
-		  -I$(HDFINC) 
+          -I$(PBINCROOT)/pbdata \
+          -I$(PBINCROOT)/hdf \
+          -I$(HDF5_ROOT)/src \
+          -I$(HDF5_ROOT)/c++/src 
 
 LIBDIRS = -L$(PBINCROOT)/alignment \
-		  -L$(PBINCROOT)/pbdata \
-		  -L$(PBINCROOT)/hdf \
-		  -L$(HDFINC) \
-		  -L$(HDFLIB)
+          -L$(PBINCROOT)/pbdata \
+          -L$(PBINCROOT)/hdf \
+          -L$(HDF5_ROOT)/src/.libs \
+          -L$(HDF5_ROOT)/c++/src/.libs 
 
-CXXFLAGS := -std=c++0x -Wall -Wuninitialized -Wno-div-by-zero \
-			-pedantic -c -fmessage-length=0 -MMD -MP -w -fpermissive
+CXXOPTS := -std=c++0x -pedantic \
+           -Wall -Wuninitialized -Wno-div-by-zero \
+           -MMD -MP -w -fpermissive
 
 SRCS := $(wildcard *.cpp)
-OBJS := $(SRCS:.cpp=.o)
 DEPS := $(SRCS:.cpp=.d)
-LIBS := -lblasr -lpbdata -lpbihdf -lhdf5_cpp -lhdf5 -lz -lpthread -lrt -ldl
+LIBS := -lblasr -lpbdata -lpbihdf -lhdf5_cpp -lhdf5 -lz -lpthread -ldl
+EXE  := blasr
+
+ifneq ($(OS), Darwin)
+	LIBS += -lrt
+	STATIC := -static
+else
+	STATIC :=
+endif
+
 # -lhdf5, -lhdf5_cpp, -lz required for HDF5
 # -lpthread for multi-threading
 # -lrt for clock_gettime
 # -ldl for dlopen dlclose 
 
 
-all : OPTIMIZE = -O3
+all : CXXFLAGS = -O3
 
-debug : OPTIMIZE = -g -ggdb -fno-inline
+debug : CXXFLAGS = -g -ggdb -fno-inline
 
-profile : OPTIMIZE = -Os -pg 
+profile : CXXFLAGS = -Os -pg 
 
-g: OPTIMIZE = -O3
-g: G_OPTIMIZE = -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -fno-omit-frame-pointer 
-g: G_LIBS = -Wl --eh-frame-hdr -fno-builtin-malloc -L$(HOME)/lib -ltcmalloc -lunwind -lprofiler $(LIBS)
+g: CXXFLAGS += -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -fno-omit-frame-pointer 
+g: LIBS += -Wl --eh-frame-hdr -fno-builtin-malloc -L$(HOME)/lib -ltcmalloc -lunwind -lprofiler $(LIBS)
 
+all debug profile g: $(EXE) 
 
-exe=blasr
-all debug profile g: $(exe) 
+$(EXE): $(SRCS) pblib
+	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $(SRCS) $(LIBDIRS) $(LIBS)
 
-$(exe): Blasr.o
-	$(CXX) $(LIBDIRS) $(OPTIMIZE) $(G_OPTIMIZE) -static -o $@ $^ $(LIBS) $(G_LIBS)
+pblib: $(PBINCROOT)/Makefile
+	make -C $(PBINCROOT)
 
-Blasr.o: Blasr.cpp
-	$(CXX) $(CXXFLAGS) $(OPTIMIZE) $(G_OPTIMIZE) $(INCDIRS) -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.o) $(@:%.o=%.d)" -o $@ $<
+cramtests: $(EXE)
+	cram -v --shell=/bin/bash ctest/*.t
 
-.INTERMEDIATE: $(OBJS)
+gtest: $(EXE)
+	make -C $(PBINCROOT) gtest
 
-cramtests:
-	cram --shell=/bin/bash ctest/*.t
+check: gtest cramtests
 
 clean: 
-	rm -f $(exe)
-	rm -f $(OBJS) $(DEPS)
+	@rm -f $(EXE)
+	@rm -f $(DEPS)
+
+cleanall: clean $(PBINCROOT)/Makefile
+	make -C $(PBINCROOT) cleanall
 
 -include $(DEPS)
