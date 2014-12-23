@@ -55,11 +55,11 @@ endif
 # -ldl for dlopen dlclose 
 
 
-all : CXXFLAGS = -O3
+all : CXXFLAGS ?= -O3
 
-debug : CXXFLAGS = -g -ggdb -fno-inline
+debug : CXXFLAGS ?= -g -ggdb -fno-inline
 
-profile : CXXFLAGS = -Os -pg 
+profile : CXXFLAGS ?= -Os -pg 
 
 g: CXXFLAGS += -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -fno-omit-frame-pointer 
 g: LIBS += -Wl --eh-frame-hdr -fno-builtin-malloc -L$(HOME)/lib -ltcmalloc -lunwind -lprofiler $(LIBS)
