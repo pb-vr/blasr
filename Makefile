@@ -25,13 +25,18 @@ INCDIRS = -I$(PBINCROOT)/alignment \
           -I$(PBINCROOT)/pbdata \
           -I$(PBINCROOT)/hdf \
           -I$(HDF5_ROOT)/src \
-          -I$(HDF5_ROOT)/c++/src 
+          -I$(HDF5_ROOT)/c++/src
 
 LIBDIRS = -L$(PBINCROOT)/alignment \
           -L$(PBINCROOT)/pbdata \
           -L$(PBINCROOT)/hdf \
           -L$(HDF5_ROOT)/src/.libs \
-          -L$(HDF5_ROOT)/c++/src/.libs 
+          -L$(HDF5_ROOT)/c++/src/.libs
+
+ifneq ($(ZLIB_ROOT), notfound)
+	INCDIRS += -I$(ZLIB_ROOT)/include
+	LIBDIRS += -L$(ZLIB_ROOT)/lib
+endif
 
 CXXOPTS := -std=c++0x -pedantic \
            -Wall -Wuninitialized -Wno-div-by-zero \
