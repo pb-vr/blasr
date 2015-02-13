@@ -88,6 +88,7 @@ check: gtest cramtests
 clean: 
 	@rm -f $(EXE)
 	@rm -f $(DEPS)
+	@rm -f blasr.d
 
 cleanall: clean $(PBINCROOT)/Makefile
 	make -C $(PBINCROOT) cleanall
