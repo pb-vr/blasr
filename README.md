@@ -1,3 +1,12 @@
+##NEWS: Try the refactored blasr code base##
+
+###We have refactored the blasr code base and will replace this blasr repo with the refactored one soon.###
+
+Please try it now if you are interested, and report any issue to yli@pacificbiosciences.com.
+
++    > git clone git@github.com:ylipacbio/refactored_blasr_II.git --recursive
+
+
 ##Installation##
 
 ###1. Requirements###
