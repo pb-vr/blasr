@@ -20,7 +20,7 @@ Test -concordant
   [INFO]* (glob)
   $ sed -n 6,110864p $OUTDIR/concordant_subset.sam > $OUTDIR/tmp1 
   $ sort $OUTDIR/tmp1 > $OUTDIR/tmp11
-  $ sed -n 6,110864p $STDDIR/concordant_subset_2014_10_16.sam > $OUTDIR/tmp2
+  $ sed -n 6,110864p $STDDIR/concordant_subset_2015_03_01.sam > $OUTDIR/tmp2
   $ sort $OUTDIR/tmp2 > $OUTDIR/tmp22
   $ diff $OUTDIR/tmp11 $OUTDIR/tmp22
   $ rm -rf $OUTDIR/tmp1 $OUTDIR/tmp2 $OUTDIR/tmp11 $OUTDIR/tmp22
@@ -30,6 +30,7 @@ Test -concordant
 #concordant_subset_2014_09_12.sam  --> changelist 140410, changed the default value of '-concordantTemplate' from 'longestsubread' to 'typicalsubread'
 #concordant_subset_2014_09_17.sam  --> changelist 140573, changed SDPFragment LessThan to make sure blasr compiled with gcc 4.4 and 4.8 can produce identical results. 
 #concordant_subset_2014_10_16.sam  --> changelist 141378, changed the default value of '-concordantTemplate' from 'typicalsubread' to 'mediansubread'
+#concordant_subset_2015_03_01.sam  --> changelist 146599, reads from the same movie should have unique readGroupId
 
 #Test -concordant, case 2
 #Avoid to use samtom4 in blasr cram tests, since blasr has been seprated 
