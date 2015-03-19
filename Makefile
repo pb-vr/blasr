@@ -24,14 +24,12 @@ include $(PBINCROOT)/common.mk
 INCDIRS = -I$(PBINCROOT)/alignment \
           -I$(PBINCROOT)/pbdata \
           -I$(PBINCROOT)/hdf \
-          -I$(HDF5_ROOT)/src \
-          -I$(HDF5_ROOT)/c++/src
+          -I$(HDF5_ROOT)/include
 
 LIBDIRS = -L$(PBINCROOT)/alignment \
           -L$(PBINCROOT)/pbdata \
           -L$(PBINCROOT)/hdf \
-          -L$(HDF5_ROOT)/src/.libs \
-          -L$(HDF5_ROOT)/c++/src/.libs
+          -L$(HDF5_ROOT)/lib
 
 ifneq ($(ZLIB_ROOT), notfound)
 	INCDIRS += -I$(ZLIB_ROOT)/include
@@ -44,7 +42,11 @@ CXXOPTS := -std=c++0x -pedantic \
 
 SRCS := $(wildcard *.cpp)
 DEPS := $(SRCS:.cpp=.d)
-LIBS := -lblasr -lpbdata -lpbihdf -lhdf5_cpp -lhdf5 -lz -lpthread -ldl
+ifneq ($(wildcard "$(HDF5_ROOT)/lib/libhdf5_cpp.a"),"")
+    LIBS := -lblasr -lpbdata -lpbihdf $(HDF5_ROOT)/lib/libhdf5_cpp.a $(HDF5_ROOT)/lib/libhdf5.a -lz -lpthread -ldl
+else
+    LIBS := -lblasr -lpbdata -lpbihdf -lhdf5_cpp -lhdf5 -lz -lpthread -ldl
+endif
 EXE  := blasr
 
 ifneq ($(OS), Darwin)
