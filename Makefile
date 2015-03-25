@@ -53,6 +53,7 @@ ifneq ($(OS), Darwin)
 	LIBS += -lrt
 	STATIC := -static
 else
+	LIBS += -lsz
 	STATIC :=
 endif
 
@@ -79,8 +80,14 @@ $(EXE): $(SRCS) pblib
 pblib: $(PBINCROOT)/Makefile
 	make -C $(PBINCROOT)
 
+CTESTS := $(wildcard ctest/*.t)
+SLOW_CTESTS := ctest/bug25328.t ctest/useccsallLargeGenome.t
+
 cramtests: $(EXE)
-	cram -v --shell=/bin/bash ctest/*.t
+	cram -v --shell=/bin/bash $(CTESTS)
+
+cramfast: $(EXE)
+	cram -v --shell=/bin/bash $(filter-out $(SLOW_CTESTS),$(CTESTS))
 
 gtest: $(EXE)
 	make -C $(PBINCROOT) gtest
