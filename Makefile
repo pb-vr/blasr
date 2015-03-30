@@ -24,12 +24,17 @@ include $(PBINCROOT)/common.mk
 INCDIRS = -I$(PBINCROOT)/alignment \
           -I$(PBINCROOT)/pbdata \
           -I$(PBINCROOT)/hdf \
-          -I$(HDF5_ROOT)/include
+          -I$(HDF5_ROOT)/include \
+          -I$(shell cd ../../staging/PostPrimary/pbbam/include && pwd || echo -n notfound) \
+          -I$(shell cd ../../staging/PostPrimary/pbbam/third-party/htslib && pwd || echo -n notfound) \
+          -I$(PREBUILT)/boost/boost_1_55_0
 
 LIBDIRS = -L$(PBINCROOT)/alignment \
           -L$(PBINCROOT)/pbdata \
           -L$(PBINCROOT)/hdf \
-          -L$(HDF5_ROOT)/lib
+          -L$(HDF5_ROOT)/lib \
+          -L$(shell cd ../../staging/PostPrimary/pbbam/lib && pwd || echo -n notfound) \
+          -L$(shell cd ../../staging/PostPrimary/pbbam/third-party/htslib && pwd || echo -n notfound)
 
 ifneq ($(ZLIB_ROOT), notfound)
 	INCDIRS += -I$(ZLIB_ROOT)/include
@@ -43,9 +48,9 @@ CXXOPTS := -std=c++0x -pedantic \
 SRCS := $(wildcard *.cpp)
 DEPS := $(SRCS:.cpp=.d)
 ifneq ($(wildcard "$(HDF5_ROOT)/lib/libhdf5_cpp.a"),"")
-    LIBS := -lblasr -lpbdata -lpbihdf $(HDF5_ROOT)/lib/libhdf5_cpp.a $(HDF5_ROOT)/lib/libhdf5.a -lz -lpthread -ldl
+    LIBS := -lblasr -lpbdata -lpbihdf -lpbbam -lhts $(HDF5_ROOT)/lib/libhdf5_cpp.a $(HDF5_ROOT)/lib/libhdf5.a -lz -lpthread -ldl
 else
-    LIBS := -lblasr -lpbdata -lpbihdf -lhdf5_cpp -lhdf5 -lz -lpthread -ldl
+    LIBS := -lblasr -lpbdata -lpbihdf -lpbbam -lhts -lhdf5_cpp -lhdf5 -lz -lpthread -ldl
 endif
 EXE  := blasr
 
