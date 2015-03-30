@@ -25,16 +25,16 @@ INCDIRS = -I$(PBINCROOT)/alignment \
           -I$(PBINCROOT)/pbdata \
           -I$(PBINCROOT)/hdf \
           -I$(HDF5_ROOT)/include \
-          -I$(shell cd ../../staging/PostPrimary/pbbam/include && pwd || echo -n notfound) \
-          -I$(shell cd ../../staging/PostPrimary/pbbam/third-party/htslib && pwd || echo -n notfound) \
+          -I$(PBBAM)/include \
+          -I$(PBBAM)/third-party/htslib \
           -I$(PREBUILT)/boost/boost_1_55_0
 
 LIBDIRS = -L$(PBINCROOT)/alignment \
           -L$(PBINCROOT)/pbdata \
           -L$(PBINCROOT)/hdf \
           -L$(HDF5_ROOT)/lib \
-          -L$(shell cd ../../staging/PostPrimary/pbbam/lib && pwd || echo -n notfound) \
-          -L$(shell cd ../../staging/PostPrimary/pbbam/third-party/htslib && pwd || echo -n notfound)
+          -L$(PBBAM)/lib \
+          -L$(PBBAM)/third-party/htslib
 
 ifneq ($(ZLIB_ROOT), notfound)
 	INCDIRS += -I$(ZLIB_ROOT)/include
