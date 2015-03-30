@@ -258,7 +258,7 @@ public:
     }
 
   ~ReadAlignments() {
-    read.FreeIfControlled();
+    read.Free();
   }
 };
 
