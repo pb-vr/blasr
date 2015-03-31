@@ -14,3 +14,6 @@ TMP2=$OUTDIR/$$.tmp.stdout
 
 # Make OUTDIR
 mkdir -p $OUTDIR
+
+#FIXME: make samtools independent of absolute build path.
+SAMTOOLS=/mnt/secondary/Smrtpipe/builds/Internal_Mainline_Nightly_LastSuccessfulBuild/analysis/bin/samtools
