@@ -2,12 +2,15 @@
 #define MAPPING_PARAMETERS_H_
 #include <vector>
 
+#include "reads/ReadType.hpp"
+#include "utils/FileOfFileNames.hpp"
+#include "utils/RangeUtils.hpp"
 #include "tuples/TupleMetrics.hpp"
 #include "datastructures/anchoring/AnchorParameters.hpp"
 #include "qvs/QualityValue.hpp"
 #include "format/SAMPrinter.hpp"
 #include "algorithms/alignment/AlignmentFormats.hpp"
-#include "utils/RangeUtils.hpp"
+#include "files/BaseSequenceIO.hpp"
 
 class MappingParameters {
 public:
@@ -37,13 +40,20 @@ public:
     SAMOutput::Clipping clipping;
     string clippingString;
     QVScale qvScaleType;
-    vector<string> readsFileNames;
+    vector<string> readsFileNames; // = queryFileNames, genomeFileName
+    vector<string> queryFileNames;
+    string genomeFileName; 
+    // Query file type: FASTA/FASTQ/HDF*/PBBAM,
+    // Note that mixed query file types is not allowed.
+    FileType queryFileType; 
+    // Query read type, SUBREAD, CCS or UNKNOWN
+    // Note that mixed read types is not allowed.
+    ReadType::ReadTypeEnum queryReadType; 
     vector<string> regionTableFileNames;
     vector<string> ccsFofnFileNames;
     string tupleListName;
     string posTableName;
     string outFileName;
-    string genomeFileName;
     string suffixArrayFileName;
     string bwtFileName;
     string indexFileName;
@@ -210,9 +220,12 @@ public:
         maxScore = -200;
         argi = 1;
         nProc = 1;
-        assert(readsFileNames.empty());
-        tupleListName = "";
+        readsFileNames.clear();
+        queryFileNames.clear();
         genomeFileName = "";
+        queryReadType = ReadType::UNKNOWN;
+        queryFileType = FileType::None;
+        tupleListName = "";
         posTableName = "";
         suffixArrayFileName= "";
         bwtFileName = "";
@@ -356,11 +369,43 @@ public:
         Init();
     }
 
-    void MakeSane(){ 
+    void MakeSane() { 
+        // Expand FOFN
+        FileOfFileNames::ExpandFileNameList(readsFileNames);
+
+        // Must have at least a query and a genome 
+        if (readsFileNames.size() <= 1) {
+            cout << "Error, you must provide at least one reads file and a genome file." <<endl;
+            exit(1);
+        }
+
+        // Separate query reads files and a genome read file
+        // The last reads file is the genome
+        queryFileNames = readsFileNames;
+        queryFileNames.pop_back();
+        genomeFileName = readsFileNames.back();
+  
+        // Check query file type.
+        BaseSequenceIO::DetermineFileTypeByExtension(queryFileNames[0], queryFileType);
+        for (size_t i = 1; i < queryFileNames.size(); i++) {
+            FileType fileType;
+            BaseSequenceIO::DetermineFileTypeByExtension(queryFileNames[i], fileType);
+            if (fileType != queryFileType) {
+                cout << "ERROR, mixed query file types is not allowed." << endl;
+                exit(1);
+            }
+        }
+
+        // -useQuality can not be used in combination with a fasta input
+        if (!ignoreQualities) {
+            if (queryFileType == Fasta)
+                cout<<"ERROR, you can not use -useQuality option when any of the input reads files are in multi-fasta format."<<endl; 
+            exit(1);
+        }
+
         //
         // Fix all logical incompatibilities with parameters.
         //
-
         if (nowarp) {
             warp = false;
         }
@@ -523,6 +568,22 @@ public:
             cout << "ERROR, minRawSubreadScore and byAdapter should not be used together." << endl;
             exit(1);
         }
+        // Determine query read type
+        queryReadType = DetermineQueryReadType();
+        // Pass verbosity
+        anchorParameters.verbosity = verbosity; 
+    }
+
+    ReadType::ReadTypeEnum DetermineQueryReadType() {
+        if (useCcsOnly && !unrollCcs)  return ReadType::CCS;
+        if (mapSubreadsSeparately && !useCcs &&
+            !useAllSubreadsInCcs && queryFileType != HDFCCSONLY &&
+            (queryFileType == HDFBase ||
+             queryFileType == HDFPulse ||
+             queryFileType == HDFCCS)) {
+            return ReadType::SUBREAD;
+        }
+        return ReadType::UNKNOWN;
     }
 
     void SetEmulateNucmer() {
