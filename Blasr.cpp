@@ -80,6 +80,7 @@
 #include "format/VulgarPrinter.hpp"
 #include "format/IntervalPrinter.hpp"
 #include "format/SummaryPrinter.hpp"
+#include "format/SAMHeaderPrinter.hpp"
 
 #define MAX_PHRED_SCORE 254
 #define MAPQV_END_ALIGN_WIGGLE 5
@@ -259,7 +260,7 @@ public:
     }
 
   ~ReadAlignments() {
-    read.Free();
+      read.Free();
   }
 };
 
@@ -306,76 +307,6 @@ void GetVersion(string &version) {
   }
 }
 
-void MakeSAMHDString(string &hdString) {
-  stringstream out;
-  out << "@HD\t" << "VN:" << GetMajorVersion();
-  hdString = out.str();
-}
-
-/*
- * Create the string for the SAM header that contains information about the
- * quality values available for a read group and the way those QVs are encoded
- * as optional fields.
- *
- * Input:
- *  SupplementalQVList samQVs   :   Object that handles which QVs to print in
- *                                  the SAM file. This is created using the
- *                                  printSAMQV option in MappingParameters.h
- *  string qvString             :   The string we're going to create. Note that
- *                                  if it's not empty, it will start with a \t
- */
-void MakeSAMQVString(const SupplementalQVList &samQVs, string &qvString) {
-  stringstream out;
-
-  /* If there aren't any QVs, just leave the string empty and we're done. */
-  if(!samQVs.useqv) {
-    qvString = "";
-    return;
-  }
-
-  out << ";"; /* We've already writing READTYPE=SOMETHING to the DS tag at this point. */
-  int i = 0;
-  bool first_qv = true;
-  for(i = 0; i < samQVs.nTags; i++) {
-    if(samQVs.useqv & (1 << i)) {
-
-      string qv_name = (string)samQVs.qvNames[i];            
-      string qv_tag = (string)samQVs.qvTags[i];
-
-      /* Avoid ending with an extraneous ; */
-      if(!first_qv) {
-        out << ";";
-      }
-      first_qv = false;
-
-      out << qv_name << "=" << qv_tag;
-    }
-  }
-  qvString = out.str();
-}
-
-void MakeSAMPGString(string &commandLineString, string &pgString) {
-  stringstream out;
-  string version;
-  GetVersion(version);
-  out << "@PG\t" << "ID:BLASR\tVN:"<< version<<"\tCL:"<<commandLineString;
-  pgString = out.str();
-}
-
-
-void ParseChipIdFromMovieName(string &movieName, string &chipId) {
-  vector<string> movieNameFields;
-  Tokenize(movieName, "_", movieNameFields);
-  if (movieNameFields.size() == 1) {
-    chipId = movieNameFields[0];
-  }
-  else if (movieNameFields.size() > 4) {
-    chipId = movieNameFields[3];
-  }
-  else {
-    chipId = "NO_CHIP_ID";
-  }
-}
 
 //
 // Define a list of buffers that are meant to grow to high-water
@@ -4168,7 +4099,7 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
     PrintAllReadAlignments(allReadAlignments, alignmentContext,
                            *mapData->outFilePtr, 
                            *mapData->unalignedFilePtr,
-                           params);
+                           params); 
         
     allReadAlignments.Clear();
     smrtReadRC.Free();
@@ -4828,58 +4759,21 @@ int main(int argc, char* argv[]) {
   if (params.useCcs) {
     reader->UseCCS();
   }
+
+  string commandLineString; // Restore command.
+  clp.CommandLineToString(argc, argv, commandLineString);
   
-
   if (params.printSAM) {
-    string hdString, sqString, rgString, pgString;
-    MakeSAMHDString(hdString);
-    *outFilePtr << hdString << endl;
-    seqdb.MakeSAMSQString(sqString);
-    *outFilePtr << sqString; // this already outputs endl
-
-    set<string> movieNameSet;
-    for (readsFileIndex = 0; readsFileIndex < params.readsFileNames.size()-1; readsFileIndex++ ) {
-        reader->SetReadFileName(params.readsFileNames[readsFileIndex]);
-        reader->Initialize();
-        string movieName;
-        reader->GetMovieName(movieName);
-        if (movieNameSet.find(movieName) != movieNameSet.end()) {
-            reader->Close();
-            continue;
-        } else {
-            movieNameSet.insert(movieNameSet.begin(), movieName);
-        }
-
-        string chipId;
-        ParseChipIdFromMovieName(movieName, chipId);
-        *outFilePtr << "@RG\t" << "ID:" 
-                    << reader->readGroupId << "\tPL:PACBIO" 
-                    << "\tPU:"<< movieName << "\tSM:"<<chipId
-                    << "\tDS:READTYPE=";
-        if (params.useCcsOnly && !params.unrollCcs) {
-            *outFilePtr << "CCS";
-        } else if (params.mapSubreadsSeparately &&
-                !params.useCcs &&
-                !params.useAllSubreadsInCcs &&
-                reader->GetFileType() != HDFCCSONLY &&
-                (reader->GetFileType() == HDFBase ||
-                 reader->GetFileType() == HDFPulse ||
-                 reader->GetFileType() == HDFCCS)) {
-            *outFilePtr << "SUBREAD";
-        } else {
-            *outFilePtr << "UNKNOWN";
-        }
-
-      string qvString;
-      MakeSAMQVString(params.samQVList, qvString);
-      *outFilePtr << qvString;
-      *outFilePtr << endl;
-      reader->Close();
-    }
-    string commandLineString;
-    clp.CommandLineToString(argc, argv, commandLineString);
-    MakeSAMPGString(commandLineString, pgString);
-    *outFilePtr << pgString << endl;
+      string so = "UNKNOWN"; // sorting order;
+      string version; GetVersion(version); //blasr version;
+      SAMHeaderPrinter shp(so, seqdb, 
+              params.queryFileNames, params.queryReadType, 
+              params.samQVList, "BLASR", version, 
+              commandLineString); 
+      string headerString = shp.ToString();// SAM/BAM header
+      if (params.printSAM) {
+          *outFilePtr << headerString;
+      } 
   }
 
   for (readsFileIndex = 0; readsFileIndex < params.queryFileNames.size(); readsFileIndex++ ){ 
@@ -5066,7 +4960,7 @@ int main(int argc, char* argv[]) {
   }
   if (params.outFileName != "") {
           outFileStrm.close();
-      }
+  }
   cerr << "[INFO] " << GetTimestamp() << " [blasr] ended." << endl;
   return 0;
 }
