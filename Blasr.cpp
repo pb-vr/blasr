@@ -3380,6 +3380,7 @@ void AlignSubreadToAlignmentTarget(ReadAlignments & allReadAlignments,
       exploded.qAlignedSeqLength = subreadInterval.end - subreadInterval.start;
       exploded.mapQV = alignment->mapQV;
       exploded.tName = alignment->tName;
+      exploded.tIndex = alignment->tIndex;
 
       stringstream namestrm;
       namestrm << "/" << subreadInterval.start
