@@ -1,5 +1,9 @@
 #ifndef MAPPING_PARAMETERS_H_
 #define MAPPING_PARAMETERS_H_
+
+#define REQUIRE_PBBAM_ERROR() \
+assert("blasr must be compiled with lib pbbam to perform IO on bam." == 0);
+
 #include <vector>
 
 #include "reads/ReadType.hpp"
@@ -83,6 +87,7 @@ public:
     int sortRefinedAlignments;
     int verbosity;
     bool printSAM;
+    bool printBAM;
     bool storeMapQV;
     bool useRandomSeed;
     int  randomSeed;
@@ -264,6 +269,7 @@ public:
         anchorParameters.branchQualityThreshold = 0;
         readsFileIndex = 0;
         printSAM = false;
+        printBAM = false;
         useRandomSeed = false;
         randomSeed = 0;
         placeRandomly = false;
@@ -538,6 +544,30 @@ public:
             exit(1);
         }
 
+        if (printBAM) {
+#ifndef USE_PBBAM
+            REQUIRE_PBBAM_ERROR();
+#else
+            printFormat = BAM;
+            forPicard = true;
+            printSAM = false;
+            samQVList.SetDefaultQV();
+            printSAMQV = true;
+            if (clipping != SAMOutput::soft) {
+                // Only support two clipping methods: soft or subread.
+                clipping = SAMOutput::subread;
+            }
+            if (outFileName == "") {
+                cout << "ERROR, BAM output file must be specified." << endl;
+                exit(1);
+            }
+            if (outputByThread) {
+                cout << "ERROR, could not output alignments by threads in BAM format." << endl;
+                exit(1);
+            }
+#endif
+        }
+
         if (limsAlign != 0) {
             mapSubreadsSeparately = false;
             forwardOnly = true;
@@ -583,6 +613,10 @@ public:
              queryFileType == HDFCCS)) {
             return ReadType::SUBREAD;
         }
+        if (queryFileType == PBBAM) {
+            // bam may contain CCS or SUBREAD, determine it later.
+            return ReadType::UNKNOWN;
+        } 
         return ReadType::UNKNOWN;
     }
 
