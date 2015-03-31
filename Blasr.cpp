@@ -1,3 +1,4 @@
+#include <mcheck.h>
 #include <string>
 #include <iostream>
 #include <vector>
@@ -191,8 +192,8 @@ public:
   }
 
   void Resize(int nSeq) {
-    subreadAlignments.resize(nSeq);
-    subreads.resize(nSeq);
+      subreadAlignments.resize(nSeq);
+      subreads.resize(nSeq);
   }
 
   void CheckSeqIndex(int seqIndex) {
@@ -304,7 +305,6 @@ void GetVersion(string &version) {
     version.insert(version.size(), perforceVersionString, 9, perforceVersionString.size() - 11);
   }
 }
-
 
 void MakeSAMHDString(string &hdString) {
   stringstream out;
@@ -950,6 +950,11 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
       alignment->tName       = genome.GetName();
       intervalContigStartPos = 0;
       intervalContigEndPos   = genome.length;
+      //
+      // When there are multiple sequences in the database, store the
+      // index of this sequence.  This lets one compare the contigs
+      // that reads are mapped to, for instance.
+      //
     }
     alignment->qName = read.title;
     //
@@ -1333,7 +1338,7 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
             genomeSuffix.Copy(genome, lastAlignedTPos, genomeSuffixLength);
           }
           else {
-            ((DNASequence)genome).CopyAsRC(genomeSuffix, lastAlignedTPos, genomeSuffixLength);
+            static_cast<DNASequence*>(&genome)->CopyAsRC(genomeSuffix, lastAlignedTPos, genomeSuffixLength);
           }
         }
         else {
@@ -3217,9 +3222,9 @@ void PrintAlignmentPtrs(vector <T_AlignmentCandidate*> & alignmentPtrs,
 // by flankSize bases. Update alignment->tAlignedSeqPos, 
 // alignment->tAlignedSeqLength and alignment->tAlignedSeq.
 void FlankTAlignedSeq(T_AlignmentCandidate * alignment,
-                       SequenceIndexDatabase<FASTQSequence> &seqdb,
-                       DNASequence & genome,
-                       int flankSize) {
+                      SequenceIndexDatabase<FASTQSequence> &seqdb,
+                      DNASequence & genome,
+                      int flankSize) {
   assert(alignment != NULL and alignment->tIsSubstring);
 
   UInt forwardTPos, newTAlignedSeqPos, newTAlignedSeqLen;
@@ -3523,7 +3528,7 @@ void PrintAllReadAlignments(ReadAlignments & allReadAlignments,
                         allReadAlignments.subreads[subreadIndex], // the source read
                         // for these alignments
                         params, outFilePtr,//*mapData->outFilePtr,
-                        alignmentContext);   
+                        alignmentContext);
     } else {
       //
       // Print the unaligned sequences.
@@ -4014,7 +4019,7 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
               }
             } // End of aligning this subread to each selected alignment.
             subread.Free();
-          } // End of aligning each subread to where the longest subread aligned to. 
+          } // End of aligning each subread to where the template subread aligned to. 
           for(int alignmentIndex = 0; alignmentIndex < selectedAlignmentPtrs.size(); 
               alignmentIndex++) {
             if (selectedAlignmentPtrs[alignmentIndex]) 
@@ -4271,8 +4276,6 @@ int main(int argc, char* argv[]) {
   int  trashbinInt;
   float trashbinFloat;
   bool trashbinBool;
-  //  clp.RegisterStringListOption("input_files", &params.readsFileNames, "Read files followed by genome.");
-  //  clp.RegisterPreviousFlagsAsHidden();
   bool printVerboseHelp = false;
   bool printLongHelp    = false;
   clp.RegisterStringOption("sa", &params.suffixArrayFileName, "");
@@ -4469,13 +4472,6 @@ int main(int argc, char* argv[]) {
     }
   }
   
-  FileOfFileNames::ExpandFileNameList(params.readsFileNames);
-
-  // The last reads file is the genome
-  if (params.readsFileNames.size() > 0) {
-    params.genomeFileName = params.readsFileNames[params.readsFileNames.size()-1];
-  }
-
   if (params.printDiscussion == true) {
     PrintDiscussion();
     exit(0);
@@ -4483,7 +4479,6 @@ int main(int argc, char* argv[]) {
 
   cerr << "[INFO] " << GetTimestamp() << " [blasr] started." << endl;
   params.MakeSane();
-  params.anchorParameters.verbosity = params.verbosity; 
 
   //
   // The random number generator is used for subsampling for debugging
@@ -4522,7 +4517,7 @@ int main(int argc, char* argv[]) {
   }
 
   if (params.regionTableFileNames.size() != 0 and 
-      params.regionTableFileNames.size() != params.readsFileNames.size() - 1) {
+      params.regionTableFileNames.size() != params.queryFileNames.size()) {
     cout << "Error, there are not the same number of region table files as input files." << endl;
     exit(1);
   }
@@ -4538,38 +4533,11 @@ int main(int argc, char* argv[]) {
     }
   }
   if (params.ccsFofnFileNames.size() != 0 and 
-      params.ccsFofnFileNames.size() != params.readsFileNames.size() - 1) {
+      params.ccsFofnFileNames.size() != params.queryFileNames.size()) {
     cout << "Error, there are not the same number of ccs files as input files." << endl;
     exit(1);
   }
-    
-  if (params.readsFileNames.size() < 2) {
-    cout << "Error, you must provide at least one reads file and a genome file." <<endl;
-    exit(1);
-  }
   
-  //  The input reads files must have file extensions.
-  for (int i = 0; i < params.readsFileNames.size()-1; i++) {
-    size_t dotPos = params.readsFileNames[i].find_last_of('.');
-    if (dotPos == string::npos) {
-      cout<<"ERROR, the input reads files must include file extensions."<<endl;
-      exit(1);
-    }
-  }
-
-  // -useQuality can not be used in combination with a fasta input
-  if (!params.ignoreQualities) {
-    for (int i = 0; i < params.readsFileNames.size()-1; i++) {
-      size_t dotPos = params.readsFileNames[i].find_last_of('.');
-      assert (dotPos != string::npos); //dotPos should have been checked above
-      string suffix = params.readsFileNames[i].substr(dotPos+1);
-      if (suffix == "fasta") {
-        cout<<"ERROR, you can not use -useQuality option when any of the input reads files are in multi-fasta format."<<endl; 
-        exit(1);
-      }
-    }
-  }
-
   parentPID = getpid();
 
   SequenceIndexDatabase<FASTASequence> seqdb;
@@ -4782,9 +4750,9 @@ int main(int argc, char* argv[]) {
   }
 
   if (params.outFileName != "") {
-    CrucialOpen(params.outFileName, outFileStrm, std::ios::out);
-    outFilePtr = &outFileStrm;
-  }
+        CrucialOpen(params.outFileName, outFileStrm, std::ios::out);
+        outFilePtr = &outFileStrm;
+  } 
 
   if (params.printHeader) {
       switch(params.printFormat) {
@@ -4849,7 +4817,7 @@ int main(int argc, char* argv[]) {
   //  In case the input is fasta, make all bases in upper case.
   reader->SetToUpper();
 
-
+  
   regionTableReader = new HDFRegionTableReader;
   RegionTable regionTable;
   //
@@ -4859,8 +4827,8 @@ int main(int argc, char* argv[]) {
   if (params.useCcs) {
     reader->UseCCS();
   }
-
   
+
   if (params.printSAM) {
     string hdString, sqString, rgString, pgString;
     MakeSAMHDString(hdString);
@@ -4913,14 +4881,13 @@ int main(int argc, char* argv[]) {
     *outFilePtr << pgString << endl;
   }
 
-  
-  for (readsFileIndex = 0; readsFileIndex < params.readsFileNames.size()-1; readsFileIndex++ ){ 
+  for (readsFileIndex = 0; readsFileIndex < params.queryFileNames.size(); readsFileIndex++ ){ 
     params.readsFileIndex = readsFileIndex;
     //
     // Configure the reader to use the correct read and region
     // file names.
     // 
-    reader->SetReadFileName(params.readsFileNames[params.readsFileIndex]);
+    reader->SetReadFileName(params.queryFileNames[params.readsFileIndex]);
 
     //
     // Initialize using already set file names.
@@ -4947,8 +4914,8 @@ int main(int argc, char* argv[]) {
       }
       else {
         if (reader->HasRegionTable()) {
-          if (regionTableReader->Initialize(params.readsFileNames[params.readsFileIndex]) == 0) {
-            cout << "ERROR! Could not read the region table " << params.readsFileNames[params.readsFileIndex] <<endl;
+          if (regionTableReader->Initialize(params.queryFileNames[params.readsFileIndex]) == 0) {
+            cout << "ERROR! Could not read the region table " << params.queryFileNames[params.readsFileIndex] <<endl;
             exit(1);
           }
           params.useRegionTable = true;
@@ -5031,7 +4998,7 @@ int main(int argc, char* argv[]) {
           //
           // Initialize thread-specific parameters.
           //
-            
+ 
           mapdb[procIndex].Initialize(&sarray, &genome, &seqdb, &ct, &index, params, reader, &regionTable, 
                                       outFilePtr, unalignedFilePtr, &anchorFileStrm, clusterOutPtr);
           mapdb[procIndex].bwtPtr      = &bwt;
@@ -5097,8 +5064,8 @@ int main(int argc, char* argv[]) {
     metrics.PrintFullList(fullMetricsFile);
   }
   if (params.outFileName != "") {
-    outFileStrm.close();
-  }
+          outFileStrm.close();
+      }
   cerr << "[INFO] " << GetTimestamp() << " [blasr] ended." << endl;
   return 0;
 }
