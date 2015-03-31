@@ -81,6 +81,7 @@
 #include "format/IntervalPrinter.hpp"
 #include "format/SummaryPrinter.hpp"
 #include "format/SAMHeaderPrinter.hpp"
+#include "format/BAMPrinter.hpp"
 
 #define MAX_PHRED_SCORE 254
 #define MAPQV_END_ALIGN_WIGGLE 5
@@ -91,6 +92,12 @@
 #include "gperftools/profiler.h"
 #endif
 
+#ifdef USE_PBBAM
+#include "pbbam/BamWriter.h"
+using namespace PacBio::BAM;
+#else
+#define BamWriter ostream 
+#endif
 using namespace std;
 
 MappingSemaphores semaphores;
@@ -100,6 +107,7 @@ MappingSemaphores semaphores;
  */
 
 ostream *outFilePtr = NULL;
+BamWriter * bamWriterPtr = NULL;
 //ofstream clOut, nsOut, mcOut;
 
 HDFRegionTableReader *regionTableReader = NULL;
@@ -295,7 +303,7 @@ public:
 };
 
 string GetMajorVersion() {
-  return "1.3.1";
+  return "2.0.0";
 }
 
 void GetVersion(string &version) {
@@ -437,6 +445,9 @@ void SetHelp(string &str) {
              << "   -bestn n (10)" <<endl
              << "               Report the top 'n' alignments." << endl
              << "   -sam        Write output in SAM format." << endl
+#ifdef USE_PBBAM
+             << "   -bam        Write output in PacBio BAM format." << endl
+#endif 
              << "   -clipping [none|hard|subread|soft] (none)" << endl
              << "               Use no/hard/subread/soft clipping for SAM output."<< endl
              << "   -out out (terminal)  " << endl
@@ -2904,7 +2915,7 @@ void StoreMapQVs(SMRTSequence &read,
 //
 // The full read is not the subread, and does not have masked off characters.
 //
-void PrintAlignment(T_AlignmentCandidate &alignment, SMRTSequence &fullRead, MappingParameters &params, AlignmentContext &alignmentContext, ostream &outFile) {
+void PrintAlignment(T_AlignmentCandidate &alignment, SMRTSequence &fullRead, MappingParameters &params, AlignmentContext &alignmentContext, ostream &outFile, BamWriter * bamWriterPtr) {
   if (alignment.score > params.maxScore) {
 		if (params.verbosity > 0) {
 			cout << "Not using " << alignment.qAlignedSeqPos << " " << alignment.tAlignedSeqPos << " because score: " << alignment.score << " is too low (" << params.maxScore  << ")" << endl;
@@ -2936,6 +2947,13 @@ void PrintAlignment(T_AlignmentCandidate &alignment, SMRTSequence &fullRead, Map
     }
     else if (params.printFormat == SAM) {
       SAMOutput::PrintAlignment(alignment, fullRead, outFile, alignmentContext, params.samQVList, params.clipping);
+    }
+    else if (params.printFormat == BAM) {
+#ifdef USE_PBBAM
+      BAMOutput::PrintAlignment(alignment, fullRead, *bamWriterPtr, alignmentContext, params.samQVList, params.clipping);
+#else
+      REQUIRE_PBBAM_ERROR();
+#endif
     }
     else if (params.printFormat == CompareXML) {
         XMLOutput::Print(alignment,
@@ -3018,7 +3036,8 @@ SelectAlignmentsToPrint(vector<T_AlignmentCandidate*> alignmentPtrs,
 void PrintAlignments(vector<T_AlignmentCandidate*> alignmentPtrs,
                      SMRTSequence &read,
                      MappingParameters &params, ostream &outFile, 
-                     AlignmentContext alignmentContext) {
+                     AlignmentContext alignmentContext,
+                     BamWriter * bamWriterPtr) {
   if (params.nProc > 1) {
 #ifdef __APPLE__
     sem_wait(semaphores.writer);
@@ -3055,7 +3074,7 @@ void PrintAlignments(vector<T_AlignmentCandidate*> alignmentPtrs,
       alignmentContext.isPrimary = true;
     }
 
-    if (params.printSAM) {
+    if (params.printSAM or params.printBAM) {
         DistanceMatrixScoreFunction<DNASequence, FASTASequence> editdistScoreFn(EditDistanceMatrix, 1, 1);
         T_AlignmentCandidate & alignment = *alignmentPtrs[i];
         alignmentContext.editDist = ComputeAlignmentScore(alignment,
@@ -3064,7 +3083,7 @@ void PrintAlignments(vector<T_AlignmentCandidate*> alignmentPtrs,
             editdistScoreFn);
     }
     
-    PrintAlignment(*alignmentPtrs[i], read, params, alignmentContext, outFile);
+    PrintAlignment(*alignmentPtrs[i], read, params, alignmentContext, outFile, bamWriterPtr);
   }
 
   if (params.nProc > 1) {
@@ -3422,7 +3441,8 @@ void PrintAllReadAlignments(ReadAlignments & allReadAlignments,
                             AlignmentContext & alignmentContext,
                             ostream & outFilePtr,
                             ostream & unalignedFilePtr,
-                            MappingParameters & params) {
+                            MappingParameters & params,
+                            BamWriter * bamWriterPtr) {
   int subreadIndex;
   int nAlignedSubreads = allReadAlignments.GetNAlignedSeq();
 
@@ -3460,7 +3480,8 @@ void PrintAllReadAlignments(ReadAlignments & allReadAlignments,
                         allReadAlignments.subreads[subreadIndex], // the source read
                         // for these alignments
                         params, outFilePtr,//*mapData->outFilePtr,
-                        alignmentContext);
+                        alignmentContext, 
+                        bamWriterPtr);
     } else {
       //
       // Print the unaligned sequences.
@@ -4099,7 +4120,8 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
     PrintAllReadAlignments(allReadAlignments, alignmentContext,
                            *mapData->outFilePtr, 
                            *mapData->unalignedFilePtr,
-                           params); 
+                           params, 
+                           bamWriterPtr);
         
     allReadAlignments.Clear();
     smrtReadRC.Free();
@@ -4268,6 +4290,9 @@ int main(int argc, char* argv[]) {
   clp.RegisterStringOption("bwt", &params.bwtFileName, "");
   clp.RegisterIntOption("m", &params.printFormat, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterFlagOption("sam", &params.printSAM, "");
+#ifdef USE_PBBAM
+  clp.RegisterFlagOption("bam", &params.printBAM, "");
+#endif
   clp.RegisterStringOption("clipping", &params.clippingString, "");
   clp.RegisterIntOption("sdpTupleSize", &params.sdpTupleSize, "", CommandLineParser::PositiveInteger);
   clp.RegisterIntOption("pvaltype", &params.pValueType, "", CommandLineParser::NonNegativeInteger);
@@ -4505,7 +4530,7 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  if (params.printSAM) {
+  if (params.printSAM or params.printBAM) {
     genomeReader.computeMD5 = true;
   }
   //
@@ -4682,8 +4707,10 @@ int main(int argc, char* argv[]) {
   }
 
   if (params.outFileName != "") {
+      if (not params.printBAM) {
         CrucialOpen(params.outFileName, outFileStrm, std::ios::out);
         outFilePtr = &outFileStrm;
+      } // otherwise, use bamWriter and initialize it later
   } 
 
   if (params.printHeader) {
@@ -4763,7 +4790,7 @@ int main(int argc, char* argv[]) {
   string commandLineString; // Restore command.
   clp.CommandLineToString(argc, argv, commandLineString);
   
-  if (params.printSAM) {
+  if (params.printSAM or params.printBAM) {
       string so = "UNKNOWN"; // sorting order;
       string version; GetVersion(version); //blasr version;
       SAMHeaderPrinter shp(so, seqdb, 
@@ -4773,6 +4800,14 @@ int main(int argc, char* argv[]) {
       string headerString = shp.ToString();// SAM/BAM header
       if (params.printSAM) {
           *outFilePtr << headerString;
+      } else if (params.printBAM) {
+#ifdef USE_PBBAM
+      shared_ptr<BamHeader> header = BamHeader::FromSam(headerString);
+      // Both file name and SAMHeader are required in order to create a BamWriter.
+      bamWriterPtr = new BamWriter(params.outFileName, header);
+#else
+      REQUIRE_PBBAM_ERROR();
+#endif
       } 
   }
 
@@ -4959,7 +4994,18 @@ int main(int argc, char* argv[]) {
     metrics.PrintFullList(fullMetricsFile);
   }
   if (params.outFileName != "") {
+      if (params.printBAM) {
+#ifdef USE_PBBAM
+          assert(bamWriterPtr);
+          bamWriterPtr->Close();
+          delete bamWriterPtr;
+          bamWriterPtr = NULL;
+#else
+          REQUIRE_PBBAM_ERROR();
+#endif
+      } else {
           outFileStrm.close();
+      }
   }
   cerr << "[INFO] " << GetTimestamp() << " [blasr] ended." << endl;
   return 0;
