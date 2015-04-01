@@ -1,4 +1,6 @@
-#include <mcheck.h>
+#ifdef __linux__
+#  include <mcheck.h>
+#endif
 #include <string>
 #include <iostream>
 #include <vector>
