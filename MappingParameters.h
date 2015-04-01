@@ -404,9 +404,10 @@ public:
 
         // -useQuality can not be used in combination with a fasta input
         if (!ignoreQualities) {
-            if (queryFileType == Fasta)
+            if (queryFileType == Fasta) {
                 cout<<"ERROR, you can not use -useQuality option when any of the input reads files are in multi-fasta format."<<endl; 
-            exit(1);
+                exit(1);
+            }
         }
 
         //
