@@ -24,7 +24,7 @@ include $(PBINCROOT)/common.mk
 INCDIRS = -I$(PBINCROOT)/alignment \
           -I$(PBINCROOT)/pbdata \
           -I$(PBINCROOT)/hdf \
-          -I$(HDF5_ROOT)/include \
+          -I$(HDF5_INC) \
           -I$(PBBAM)/include \
           -I$(PBBAM)/third-party/htslib \
           -I$(PREBUILT)/boost/boost_1_55_0
@@ -32,7 +32,7 @@ INCDIRS = -I$(PBINCROOT)/alignment \
 LIBDIRS = -L$(PBINCROOT)/alignment \
           -L$(PBINCROOT)/pbdata \
           -L$(PBINCROOT)/hdf \
-          -L$(HDF5_ROOT)/lib \
+          -L$(HDF5_LIB) \
           -L$(PBBAM)/lib \
           -L$(PBBAM)/third-party/htslib
 
@@ -47,8 +47,8 @@ CXXOPTS := -std=c++0x -pedantic \
 
 SRCS := $(wildcard *.cpp)
 DEPS := $(SRCS:.cpp=.d)
-ifneq ($(wildcard "$(HDF5_ROOT)/lib/libhdf5_cpp.a"),"")
-    LIBS := -lblasr -lpbdata -lpbihdf -lpbbam -lhts $(HDF5_ROOT)/lib/libhdf5_cpp.a $(HDF5_ROOT)/lib/libhdf5.a -lz -lpthread -ldl
+ifneq ($(wildcard "$(HDF5_LIB)/libhdf5_cpp.a"),"")
+    LIBS := -lblasr -lpbdata -lpbihdf -lpbbam -lhts $(HDF5_LIB)/libhdf5_cpp.a $(HDF5_LIB)/libhdf5.a -lz -lpthread -ldl
 else
     LIBS := -lblasr -lpbdata -lpbihdf -lpbbam -lhts -lhdf5_cpp -lhdf5 -lz -lpthread -ldl
 endif
