@@ -21,20 +21,34 @@ THIRD_PARTY_PREFIX := ..
 
 include $(PBINCROOT)/common.mk
 
-INCDIRS = -I$(PBINCROOT)/alignment \
-          -I$(PBINCROOT)/pbdata \
-          -I$(PBINCROOT)/hdf \
-          -I$(HDF5_INC) \
-          -I$(PBBAM)/include \
-          -I$(PBBAM)/third-party/htslib \
-          -I$(PREBUILT)/boost/boost_1_55_0
+LIBBLASR_INCLUDE  := $(PBINCROOT)/alignment
+LIBPBDATA_INCLUDE := $(PBINCROOT)/pbdata
+LIBPBIHDF_INCLUDE := $(PBINCROOT)/hdf
+PBBAM_INCLUDE     := $(PBBAM)/include
+HTSLIB_INCLUDE    := $(PBBAM)/third-party/htslib
+BOOST_INCLUDE     := $(PREBUILT)/boost/boost_1_55_0
 
-LIBDIRS = -L$(PBINCROOT)/alignment \
-          -L$(PBINCROOT)/pbdata \
-          -L$(PBINCROOT)/hdf \
+LIBBLASR_LIB  := $(PBINCROOT)/alignment
+LIBPBDATA_LIB := $(PBINCROOT)/pbdata
+LIBPBIHDF_LIB := $(PBINCROOT)/hdf
+PBBAM_LIB     := $(PBBAM)/lib
+HTSLIB_LIB    := $(PBBAM)/third-party/htslib
+
+
+INCDIRS = -I$(LIBBLASR_INCLUDE) \
+          -I$(LIBPBDATA_INCLUDE) \
+          -I$(LIBPBIHDF_INCLUDE) \
+          -I$(HDF5_INC) \
+          -I$(PBBAM_INCLUDE) \
+          -I$(HTSLIB_INCLUDE) \
+          -I$(BOOST_INCLUDE)
+
+LIBDIRS = -L$(LIBBLASR_LIB) \
+          -L$(LIBPBDATA_LIB) \
+          -L$(LIBPBIHDF_LIB) \
           -L$(HDF5_LIB) \
-          -L$(PBBAM)/lib \
-          -L$(PBBAM)/third-party/htslib
+          -L$(PBBAM_LIB) \
+          -L$(HTSLIB_LIB)
 
 ifneq ($(ZLIB_ROOT), notfound)
 	INCDIRS += -I$(ZLIB_ROOT)/include
@@ -79,7 +93,12 @@ g: LIBS += -Wl --eh-frame-hdr -fno-builtin-malloc -L$(HOME)/lib -ltcmalloc -lunw
 
 all debug profile g: $(EXE) 
 
-$(EXE): $(SRCS) pblib
+PBLIB :=
+ifeq ($(NO_SUBMAKES),)
+    PBLIB := pblib
+endif
+
+$(EXE): $(SRCS) $(PBLIB)
 	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $(SRCS) $(LIBDIRS) $(LIBS)
 
 pblib: $(PBINCROOT)/Makefile
