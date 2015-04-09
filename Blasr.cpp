@@ -4825,6 +4825,10 @@ int main(int argc, char* argv[]) {
     // Initialize using already set file names.
     //
     int initReturnValue = reader->Initialize();    
+    if (initReturnValue <= 0) {
+        cerr << "WARNING! Could not open file " << params.queryFileNames[params.readsFileIndex] << endl;
+        continue;
+    }
 
     // Check whether use ccs only.
     if (reader->GetFileType() == HDFCCSONLY) {
@@ -4906,7 +4910,7 @@ int main(int argc, char* argv[]) {
     }
 #endif
 
-    if (initReturnValue > 0) {
+      assert (initReturnValue > 0);
       if (params.nProc == 1) {
         mapdb[0].Initialize(&sarray, &genome, &seqdb, &ct, &index, params, reader, &regionTable, 
                             outFilePtr, unalignedFilePtr, &anchorFileStrm, clusterOutPtr);
@@ -4968,7 +4972,6 @@ int main(int argc, char* argv[]) {
             threads = NULL;
         }
       }
-    }
     reader->Close();
   }
   
