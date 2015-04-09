@@ -22,19 +22,6 @@ Test -concordant
 #concordant_subset_2015_03_28.sam  --> changelist 148101, 148080 updated read group id, 148100 updated TLEN
 #concordant_subset_2015_04_09.sam  --> changelist 148796, updated read group id
 
-Test -concordant, case 2
-  $ rm -f $OUTDIR/concordant2.m4 $OUTDIR/not_concordant2.m4
-  $ FOFN=$DATDIR/concordant.fofn
-  $ REF=$DATDIR/lambda_ref.fasta
-  $ $EXEC $FOFN $REF -concordant -out $OUTDIR/concordant2.m4 -holeNumbers 4405
-  [INFO]* (glob)
-  [INFO]* (glob)
-  $ $EXEC $FOFN $REF -m 4 -out $OUTDIR/not_concordant2.m4 -holeNumbers 4405
-  [INFO]* (glob)
-  [INFO]* (glob)
-  $ diff $OUTDIR/concordant2.m4 $STDDIR/concordant2.m4 
-  $ diff $OUTDIR/not_concordant2.m4 $STDDIR/not_concordant2.m4
-
 Test -concordant FMR1 case (the 'typical subread' is selected as template for concordant mapping)
   $ FOFN=$DATDIR/FMR1_concordant.fofn
   $ REF=$DATDIR/FMR1_130CGG.fasta
