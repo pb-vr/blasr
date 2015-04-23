@@ -34,7 +34,7 @@ cramtests: $(EXE)
 
 cramfast: $(EXE)
 	cram -v --shell=/bin/bash $(filter-out $(SLOW_CTESTS),$(CTESTS))
-	make -C $(UTILS) cramtests
+	make -C $(UTILS) cramfast
 
 gtest: $(EXE)
 	make -C $(PBINCROOT) gtest
