@@ -22,30 +22,30 @@ THIRD_PARTY_PREFIX := ..
 include $(PBINCROOT)/common.mk
 
 LIBBLASR_INCLUDE  := $(PBINCROOT)/alignment
-LIBPBDATA_INCLUDE := $(PBINCROOT)/pbdata
 LIBPBIHDF_INCLUDE := $(PBINCROOT)/hdf
+LIBPBDATA_INCLUDE := $(PBINCROOT)/pbdata
 PBBAM_INCLUDE     := $(PBBAM)/include
 HTSLIB_INCLUDE    := $(PBBAM)/third-party/htslib
 BOOST_INCLUDE     := $(PREBUILT)/boost/boost_1_55_0
 
 LIBBLASR_LIB  := $(PBINCROOT)/alignment
-LIBPBDATA_LIB := $(PBINCROOT)/pbdata
 LIBPBIHDF_LIB := $(PBINCROOT)/hdf
+LIBPBDATA_LIB := $(PBINCROOT)/pbdata
 PBBAM_LIB     := $(PBBAM)/lib
 HTSLIB_LIB    := $(PBBAM)/third-party/htslib
 
 
 INCDIRS = -I$(LIBBLASR_INCLUDE) \
-          -I$(LIBPBDATA_INCLUDE) \
           -I$(LIBPBIHDF_INCLUDE) \
+          -I$(LIBPBDATA_INCLUDE) \
           -I$(HDF5_INC) \
           -I$(PBBAM_INCLUDE) \
           -I$(HTSLIB_INCLUDE) \
           -I$(BOOST_INCLUDE)
 
 LIBDIRS = -L$(LIBBLASR_LIB) \
-          -L$(LIBPBDATA_LIB) \
           -L$(LIBPBIHDF_LIB) \
+          -L$(LIBPBDATA_LIB) \
           -L$(HDF5_LIB) \
           -L$(PBBAM_LIB) \
           -L$(HTSLIB_LIB)
@@ -61,11 +61,19 @@ CXXOPTS := -std=c++0x -pedantic \
 
 SRCS := $(wildcard *.cpp)
 DEPS := $(SRCS:.cpp=.d)
-ifneq ($(wildcard "$(HDF5_LIB)/libhdf5_cpp.a"),"")
-    LIBS := -lblasr -lpbdata -lpbihdf -lpbbam -lhts $(HDF5_LIB)/libhdf5_cpp.a $(HDF5_LIB)/libhdf5.a -lz -lpthread -ldl
+
+LIBS := -lblasr -lpbdata -lpbihdf -lpbbam 
+ifneq ($(wildcard "$(HTSLIB_LIB)/libhts.a"),"")
+	LIBS += $(HTSLIB_LIB)/libhts.a
 else
-    LIBS := -lblasr -lpbdata -lpbihdf -lpbbam -lhts -lhdf5_cpp -lhdf5 -lz -lpthread -ldl
+	LIBS += -lhts
 endif
+ifneq ($(wildcard "$(HDF5_LIB)/libhdf5_cpp.a"),"")
+    LIBS += $(HDF5_LIB)/libhdf5_cpp.a $(HDF5_LIB)/libhdf5.a -lz -lpthread -ldl
+else
+    LIBS += -lhdf5_cpp -lhdf5 -lz -lpthread -ldl
+endif
+
 EXE  := blasr
 
 ifneq ($(OS), Darwin)
@@ -77,10 +85,10 @@ else
 endif
 
 # -lhdf5, -lhdf5_cpp, -lz required for HDF5
+# -lpbbam -lhts for BAM
 # -lpthread for multi-threading
 # -lrt for clock_gettime
 # -ldl for dlopen dlclose 
-
 
 all : CXXFLAGS ?= -O3
 
