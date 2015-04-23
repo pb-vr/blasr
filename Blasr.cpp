@@ -4804,7 +4804,7 @@ int main(int argc, char* argv[]) {
           *outFilePtr << headerString;
       } else if (params.printBAM) {
 #ifdef USE_PBBAM
-      shared_ptr<BamHeader> header = BamHeader::FromSam(headerString);
+      BamHeader header = BamHeader(headerString);
       // Both file name and SAMHeader are required in order to create a BamWriter.
       bamWriterPtr = new BamWriter(params.outFileName, header);
 #else
@@ -5002,9 +5002,14 @@ int main(int argc, char* argv[]) {
       if (params.printBAM) {
 #ifdef USE_PBBAM
           assert(bamWriterPtr);
-          bamWriterPtr->Close();
-          delete bamWriterPtr;
-          bamWriterPtr = NULL;
+          try {
+              bamWriterPtr->TryFlush();
+              delete bamWriterPtr;
+              bamWriterPtr = NULL;
+          } catch (std::exception e) {
+              cout << "Error, could not flush bam records to bam file." << endl;
+              exit(1);
+          }
 #else
           REQUIRE_PBBAM_ERROR();
 #endif
