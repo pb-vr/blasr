@@ -54,6 +54,9 @@ SLOW_CTESTS := ctest/loadPulses.t ctest/pls2fasta.t
 cramtests: $(EXE)
 	cram -v --shell=/bin/bash $(CTESTS)
 
+cramfast: $(EXE)
+	cram -v --shell=/bin/bash $(filter-out $(SLOW_CTESTS), $(CTESTS))
+
 clean: 
 	@rm -f $(EXE)
 	@rm -f *.d *.o
