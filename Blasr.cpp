@@ -956,9 +956,9 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
 
     if (params.verbosity > 1) {
       cout << "aligning read " << endl;
-      ((DNASequence)alignment->qAlignedSeq).PrintSeq(cout);
+      static_cast<DNASequence*>(&(alignment->qAlignedSeq))->PrintSeq(cout);
       cout << endl << "aligning reference" << endl;
-      ((DNASequence)alignment->tAlignedSeq).PrintSeq(cout);
+      static_cast<DNASequence*>(&(alignment->tAlignedSeq))->PrintSeq(cout);
       cout << endl;
     }
 
@@ -1343,7 +1343,7 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
             genomePrefix.Copy(genome, firstAlignedTPos - genomePrefixLength, genomePrefixLength);
           }
           else {
-            ((DNASequence)genome).MakeRC(genomePrefix, firstAlignedTPos - genomePrefixLength, genomePrefixLength);
+            static_cast<DNASequence*>(&genome)->MakeRC(genomePrefix, firstAlignedTPos - genomePrefixLength, genomePrefixLength);
           }
         }
         reverseScore = 0;
@@ -1994,7 +1994,7 @@ void RefineAlignment(vector<T_Sequence*> &bothQueryStrands,
       cout << "refining target: " << endl;
       alignmentCandidate.tAlignedSeq.PrintSeq(cout);
       cout << "refining query: " << endl;
-      ((DNASequence*)&alignmentCandidate.qAlignedSeq)->PrintSeq(cout);
+      static_cast<DNASequence*>(&alignmentCandidate.qAlignedSeq)->PrintSeq(cout);
       cout << endl;
     }
     PairwiseLocalAlign(qSeq, tSeq, k, params, alignmentCandidate, mappingBuffers, Fit);
@@ -3293,10 +3293,10 @@ void AlignSubreadToAlignmentTarget(ReadAlignments & allReadAlignments,
               << " direction as the ccs-reference (or the "
               << "longestSubread-reference) alignment. " << endl
               << "subread: " << endl;
-    ((DNASequence) subread).PrintSeq(threadOut);
+    static_cast<DNASequence*>(&subread)->PrintSeq(threadOut);
     threadOut << endl;
     threadOut << "alignedRefSeq: " << endl;
-    ((DNASequence) alignedRefSequence).PrintSeq(threadOut);
+    static_cast<DNASequence*>(&alignedRefSequence)->PrintSeq(threadOut);
     StickPrintAlignment(exploded, (DNASequence&) subread,
                         (DNASequence&) alignedRefSequence,
                         threadOut, exploded.qAlignedSeqPos, 
