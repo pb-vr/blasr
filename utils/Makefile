@@ -22,28 +22,28 @@ EXE = loadPulses pls2fasta samtoh5 samtom4 samFilter toAfg sawriter sdpmatcher
 all debug profile g: $(EXE)
 
 loadPulses: LoadPulses.cpp $(PBLIB)
-	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ LoadPulses.cpp $(LIBDIRS) $(LIBS)
+	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
 
 pls2fasta: PulseToFasta.cpp $(PBLIB)
-	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ PulseToFasta.cpp $(LIBDIRS) $(LIBS)
+	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
 
 samtoh5: SamToCmpH5.cpp $(PBLIB)
-	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ SamToCmpH5.cpp $(LIBDIRS) $(LIBS)
+	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
 
 samtom4: SamToM4.cpp $(PBLIB)
-	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ SamToM4.cpp $(LIBDIRS) $(LIBS)
+	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
 
 samFilter: SamFilter.cpp $(PBLIB)
-	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ SamFilter.cpp $(LIBDIRS) $(LIBS)
+	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
 
 toAfg: ToAfg.cpp $(PBLIB)
-	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ ToAfg.cpp $(LIBDIRS) $(LIBS)
+	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
 
 sawriter: SAWriter.cpp $(PBLIB)
-	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ SAWriter.cpp $(LIBDIRS) $(LIBS)
+	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
 
 sdpmatcher: SDPMatcher.cpp $(PBLIB)
-	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ SDPMatcher.cpp $(LIBDIRS) $(LIBS)
+	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
 
 pblib: $(PBINCROOT)/Makefile
 	make -C $(PBINCROOT)
