@@ -17,3 +17,6 @@ mkdir -p $OUTDIR
 
 #FIXME: make samtools independent of absolute build path.
 SAMTOOLS=/mnt/secondary/Smrtpipe/builds/Internal_Mainline_Nightly_LastSuccessfulBuild/analysis/bin/samtools
+
+#Update date
+UPDATEDATE=20150425 # changelist, update CIGAR string, replace M with X=
