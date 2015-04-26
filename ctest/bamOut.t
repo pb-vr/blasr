@@ -19,7 +19,7 @@ Check whether sam and bam produces identical alignments
   $ diff $TMP1.bax_in $TMP2.bax_in
 
 Compare with stdout
-  $ sed -n '6,$p' $STDDIR/tiny_bax_in.bam.sam | cut -f 2-11 > $TMP2.bax_in
+  $ sed -n '6,$p' $STDDIR/$UPDATEDATE/tiny_bax_in.bam.sam | cut -f 2-11 > $TMP2.bax_in
   $ diff $TMP1.bax_in $TMP2.bax_in
 
 Input is fasta, compare with stdout
@@ -29,7 +29,7 @@ Input is fasta, compare with stdout
 
   $ $SAMTOOLS view -h $OUTDIR/tiny_fasta_in.bam -o $OUTDIR/tiny_fasta_in.bam.sam
   $ sed -n '6,$p' $OUTDIR/tiny_fasta_in.bam.sam > $TMP1.fasta_in
-  $ sed -n '6,$p' $STDDIR/tiny_fasta_in.bam.sam > $TMP2.fasta_in
+  $ sed -n '6,$p' $STDDIR/$UPDATEDATE/tiny_fasta_in.bam.sam > $TMP2.fasta_in
   $ diff $TMP1.fasta_in $TMP2.fasta_in
 
 Input is bam, clipping=soft and subread should produce identical results
