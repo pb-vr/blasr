@@ -19,4 +19,11 @@ mkdir -p $OUTDIR
 SAMTOOLS=/mnt/secondary/Smrtpipe/builds/Internal_Mainline_Nightly_LastSuccessfulBuild/analysis/bin/samtools
 
 #Update date
-UPDATEDATE=20150425 # changelist, update CIGAR string, replace M with X=
+UPDATEDATE=2015_04_27
+
+# 2014_08_21 --> change 138516: added YS, YE, ZM tags
+# 2014_08_28 --> change 139176: Update SAM MD5 
+# 2015_03_28 --> change 148101: 148080 update read group id, 148100 update TLEN. 
+# 2015_04_09 --> change 148796: update read group id
+# 2015_04_25 --> change 149721, update CIGAR string, replace M with X=
+# 2015_04_26 --> change 149749, add opiton -cigarUseSeqMatch (default: false). If -cigarUseSeqMatch is turned on, CIGAR strings use '=' and 'X' to represent sequence match and mismatch instead of 'M'.
