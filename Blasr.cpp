@@ -495,6 +495,8 @@ void SetHelp(string &str) {
              << "               read randomly at one of them." <<endl
              << "   -printSAMQV (false)" << endl
              << "               Print quality values to sam files." << endl
+             << "   -cigarUseSeqMatch (false)" << endl
+             << "               CIGAR string uses '=' and 'X' to represent sequence match and mismatch instead of 'M'." << endl
              << endl 
              << " Options for anchoring alignment regions. This will have the greatest effect on speed and sensitivity." << endl
              << "   -minMatch m (12) " << endl
@@ -2948,7 +2950,7 @@ void PrintAlignment(T_AlignmentCandidate &alignment, SMRTSequence &fullRead, Map
                           alignment.qAlignedSeqPos, alignment.tAlignedSeqPos);
     }
     else if (params.printFormat == SAM) {
-      SAMOutput::PrintAlignment(alignment, fullRead, outFile, alignmentContext, params.samQVList, params.clipping);
+      SAMOutput::PrintAlignment(alignment, fullRead, outFile, alignmentContext, params.samQVList, params.clipping, params.cigarUseSeqMatch);
     }
     else if (params.printFormat == BAM) {
 #ifdef USE_PBBAM
@@ -4379,6 +4381,7 @@ int main(int argc, char* argv[]) {
   clp.RegisterIntOption("affineExtend", &params.affineExtend, "", CommandLineParser::NonNegativeInteger);
   clp.RegisterFlagOption("scaleMapQVByNClusters", &params.scaleMapQVByNumSignificantClusters, "", false);
   clp.RegisterFlagOption("printSAMQV", &params.printSAMQV, "", false);
+  clp.RegisterFlagOption("cigarUseSeqMatch", &params.cigarUseSeqMatch, "");
   clp.RegisterStringListOption("samQV", &params.samQV, "");
   clp.RegisterFlagOption("fastMaxInterval", &params.fastMaxInterval, "", false);
   clp.RegisterFlagOption("aggressiveIntervalCut", &params.aggressiveIntervalCut, "", false);

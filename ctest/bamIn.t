@@ -35,7 +35,7 @@ Check whether sam out and bam out have identical read groups @RG
 
 Compare iq produced with stdout
   $ sed -n '6,$p' $OUTDIR/tiny_bam_in.bam.sam | awk '{gsub(/\t/,"\n");}1' | awk '/^iq:Z:/' > $TMP1.iq
-  $ sed -n '6,$p' $STDDIR/tiny_bam_in.bam.sam | awk '{gsub(/\t/,"\n");}1' | awk '/^iq:Z:/' > $TMP2.iq
+  $ sed -n '6,$p' $STDDIR/$UPDATEDATE/tiny_bam_in.bam.sam | awk '{gsub(/\t/,"\n");}1' | awk '/^iq:Z:/' > $TMP2.iq
   $ diff $TMP1.iq $TMP2.iq
 
 TODO:Check whether sam out and bam out have identical insertion qvs

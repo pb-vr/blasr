@@ -87,6 +87,7 @@ public:
     int sortRefinedAlignments;
     int verbosity;
     bool printSAM;
+    bool cigarUseSeqMatch;
     bool printBAM;
     bool storeMapQV;
     bool useRandomSeed;
@@ -362,6 +363,7 @@ public:
         holeNumberRangesStr = "";
         minAlignLength = 0;
         printSAMQV = false;
+        cigarUseSeqMatch = false;
         samQV.clear();
         samQVList.clear();
         fastMaxInterval = false;
