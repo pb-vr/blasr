@@ -17,7 +17,7 @@ profile : CXXFLAGS ?= $(PROFILECXXFLAG)
 g: CXXFLAGS += $(GCXXFLAG)
 g: LIBS = $(GLIBS)
 
-EXE = loadPulses pls2fasta samtoh5 samtom4 samFilter toAfg sawriter sdpmatcher
+EXE = loadPulses pls2fasta samtoh5 samtom4 samFilter toAfg sawriter sdpMatcher
 
 all debug profile g: $(EXE)
 
@@ -42,7 +42,7 @@ toAfg: ToAfg.cpp $(PBLIB)
 sawriter: SAWriter.cpp $(PBLIB)
 	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
 
-sdpmatcher: SDPMatcher.cpp $(PBLIB)
+sdpMatcher: SDPMatcher.cpp $(PBLIB)
 	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
 
 pblib: $(PBINCROOT)/Makefile

@@ -5,8 +5,8 @@ Set up directories
   $ OUTDIR=$CURDIR/out
   $ STDDIR=$REMOTEDIR/stdout
 
-Set up the executable: sdpmatcher.
-  $ EXEC=$TESTDIR/../sdpmatcher
+Set up the executable: sdpMatcher.
+  $ EXEC=$TESTDIR/../sdpMatcher
 
 Define tmporary files
   $ TMP1=$OUTDIR/$$.tmp.out
@@ -16,9 +16,9 @@ Make OUTDIR
   $ mkdir -p $OUTDIR
 
   $ FA=$DATDIR/ecoli_subset.fasta
-  $ $EXEC $FA $FA 10 -local  > $OUTDIR/sdpmatcher.out
+  $ $EXEC $FA $FA 10 -local  > $OUTDIR/sdpMatcher.out
   $ echo $?
   0
-  $ diff $OUTDIR/sdpmatcher.out $STDDIR/sdpmatcher.stdout
+  $ diff $OUTDIR/sdpMatcher.out $STDDIR/sdpMatcher.stdout
 
 
