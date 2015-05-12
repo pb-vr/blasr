@@ -18,7 +18,7 @@ g: CXXFLAGS += $(GCXXFLAG)
 g: LIBS = $(GLIBS)
 
 exe = sa2bwt bwt2sa alchemy excrep evolve bsdb simpleShredder swMatcher \
-  samodify sals printTupleCountTable cmpH5StoreQualityByContext
+  samodify sals printTupleCountTable cmpH5StoreQualityByContext ccsh5tobam
 
 all debug profile g: $(exe)
 
@@ -56,6 +56,9 @@ printTupleCountTable: PrintTupleCountTable.cpp $(PBLIB)
 	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
 
 cmpH5StoreQualityByContext: StoreQualityByContextFromCmpH5.cpp $(PBLIB)
+	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
+
+ccsh5tobam: CCSH5ToBam.cpp $(PBLIB)
 	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
 
 pblib: $(PBINCROOT)/Makefile
