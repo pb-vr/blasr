@@ -67,13 +67,11 @@ Set up the executable: samFilter.
   $ tail -n+6 $OUTFILE |cut -f 4 
   1
 
-
-#Test samFilter with -scoreFunction 
   $ OUTFILE=$OUTDIR/lambda_bax_filter_5.sam
   $ STDFILE=$STDDIR/lambda_bax_filter_5.sam
 
   $ rm -f $OUTFILE
-  $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE -scoreFunction alignerscore
+  $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE 
   $ tail -n+7 $OUTFILE > $TMP1 
   $ tail -n+7 $STDFILE > $TMP2 
   $ diff $TMP1 $TMP2 

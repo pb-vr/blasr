@@ -15,6 +15,7 @@ assert("blasr must be compiled with lib pbbam to perform IO on bam." == 0);
 #include "format/SAMPrinter.hpp"
 #include "algorithms/alignment/AlignmentFormats.hpp"
 #include "files/BaseSequenceIO.hpp"
+#include "datastructures/alignment/FilterCriteria.hpp"
 
 class MappingParameters {
 public:
@@ -35,7 +36,7 @@ public:
     int match;
     int showAlign;
     int refineAlign;
-    int useScoreCutoff;
+    bool useScoreCutoff;
     int maxScore;
     int argi;
     int nProc;
@@ -124,8 +125,8 @@ public:
     bool advanceHalf;
     int advanceExactMatches;
     float approximateMaxInsertionRate;
-    float minPctIdentity;
-    float maxPctIdentity;
+    float minPctSimilarity; // [0, 100]
+    float minPctAccuracy; // [0, 100]
     bool refineAlignments;
     int nCandidates;
     bool doGlobalAlignment;
@@ -148,7 +149,6 @@ public:
     string lcpBoundsFileName;
     string fullMetricsFileName;
     bool printSubreadTitle;
-    bool unrollCcs;
     bool useCcs;
     bool useAllSubreadsInCcs;
     bool useCcsOnly;
@@ -162,6 +162,7 @@ public:
     int  extendBandSize;
     bool useQVScore;
     int  scoreType;
+    bool printVerboseHelp;
     bool printDiscussion;
     float sdpBypassThreshold;
     bool computeAlignProbability;
@@ -190,7 +191,7 @@ public:
     int   limsAlign;
     string holeNumberRangesStr;
     Ranges holeNumberRanges;
-    int minAlignLength;
+    int minAlnLength;
     bool printSAMQV;
     vector<string> samQV;
     SupplementalQVList samQVList;
@@ -199,6 +200,9 @@ public:
     bool fastSDP;
     string concordantTemplate; 
     bool concordantAlignBothDirections;
+    FilterCriteria filterCriteria;
+    string hitPolicyStr;
+    HitPolicy hitPolicy;
 
     void Init() {
         readIndex = -1;
@@ -222,7 +226,7 @@ public:
         mismatch = 0;
         showAlign = 1;
         refineAlign = 1;
-        useScoreCutoff = 0;
+        useScoreCutoff = false;
         maxScore = -200;
         argi = 1;
         nProc = 1;
@@ -294,8 +298,8 @@ public:
         refineAlignments = true;
         anchorParameters.advanceExactMatches = advanceExactMatches = 0;
         approximateMaxInsertionRate = 1.30;
-        minPctIdentity = 0;
-        maxPctIdentity = 100.1;
+        minPctSimilarity = 0;
+        minPctAccuracy = 0;
         doGlobalAlignment = false;
         tempDirectory = "";
         useTitleTable = false;
@@ -321,7 +325,6 @@ public:
         detailedSDPAlignment = true;
         nouseDetailedSDPAlignment = false;
         subreadMapType = 0;
-        unrollCcs  = false;
         useCcs     = false;
         useCcsOnly = false;
         useAllSubreadsInCcs = false;
@@ -333,6 +336,7 @@ public:
         extendBandSize = 10;
         guidedAlignBandSize = 10;
         useQVScore = false;
+        printVerboseHelp = false;
         printDiscussion = false;
         sdpBypassThreshold = 1000000.0;
         scoreType = 0;
@@ -361,7 +365,7 @@ public:
         scaleMapQVByNumSignificantClusters = false;
         limsAlign = 0;
         holeNumberRangesStr = "";
-        minAlignLength = 0;
+        minAlnLength = 0;
         printSAMQV = false;
         cigarUseSeqMatch = false;
         samQV.clear();
@@ -371,9 +375,15 @@ public:
         fastSDP = false;
         concordantTemplate = "mediansubread"; // typicalsubread or longestsubread
         concordantAlignBothDirections = false;
+
+        hitPolicyStr = "all";
+        ResetFilterAndHit();
     }
 
-    MappingParameters() {
+    MappingParameters()
+        : filterCriteria(0, 0, 0, false, Score(0, ScoreSign::NEGATIVE))
+        , hitPolicy("all", ScoreSign::NEGATIVE)
+    {
         Init();
     }
 
@@ -424,8 +434,11 @@ public:
             nCandidates = nBest;
         }
 
-
-        if (placeRandomly and nBest == 1) {
+        if (placeRandomly and hitPolicyStr != "randombest") {
+            cerr << "Warning: placeRepeatsRandomly is deprecated, resetting hit policy to randombest." << endl;
+            hitPolicyStr = "randombest";
+        }
+        if ((hitPolicyStr == "random" or hitPolicyStr == "randombest") and nBest == 1) {
             cerr << "Warning: When attempting to select equivalently scoring reads at random " << endl
                 << "the bestn parameter should be greater than one." << endl;
         }
@@ -459,9 +472,6 @@ public:
             bandSize = 16;
         }
         anchorParameters.minMatchLength = minMatchLength;
-        if (maxScore != 0) {
-            useScoreCutoff = 1;
-        }
         if (suffixArrayFileName != "") {
             useSuffixArray = true;
         }
@@ -605,22 +615,35 @@ public:
         queryReadType = DetermineQueryReadType();
         // Pass verbosity
         anchorParameters.verbosity = verbosity; 
+
+        // Set filter criteria and hit policy
+        ResetFilterAndHit();
+    }
+    void ResetFilterAndHit(void) {
+        filterCriteria = FilterCriteria(minAlnLength, minPctSimilarity, 
+                                        minPctAccuracy, true, 
+                                        Score(static_cast<float>(maxScore), ScoreSign::NEGATIVE));
+        hitPolicy = HitPolicy(hitPolicyStr, ScoreSign::NEGATIVE);
     }
 
     ReadType::ReadTypeEnum DetermineQueryReadType() {
-        if (useCcsOnly && !unrollCcs)  return ReadType::CCS;
-        if (mapSubreadsSeparately && !useCcs &&
-            !useAllSubreadsInCcs && queryFileType != HDFCCSONLY &&
-            (queryFileType == HDFBase ||
-             queryFileType == HDFPulse ||
-             queryFileType == HDFCCS)) {
-            return ReadType::SUBREAD;
+        if (useCcsOnly or queryFileType == HDFCCSONLY) {
+            return ReadType::CCS;
         }
         if (queryFileType == PBBAM) {
-            // bam may contain CCS or SUBREAD, determine it later.
+            // Read type in BAM may be CCS, SUBREAD, HQREGION or POLYMERASE.
+            // Determine it later.
             return ReadType::UNKNOWN;
         } 
-        return ReadType::UNKNOWN;
+        if (mapSubreadsSeparately) {
+            return ReadType::SUBREAD;
+        } else {
+            if (useHQRegionTable) {
+                return ReadType::HQREGION;
+            } else {
+                return ReadType::POLYMERASE;
+            }
+        }
     }
 
     void SetEmulateNucmer() {
