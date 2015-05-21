@@ -14,6 +14,7 @@
 
 #include "MappingIPC.h"
 #include "MappingSemaphores.h"
+#include "RegisterBlasrOptions.h"
 
 #include "CCSSequence.hpp"
 #include "SMRTSequence.hpp"
@@ -274,47 +275,18 @@ public:
   }
 };
 
-
-class SortAlignmentPointersByScore {
-public:
-  int operator()(T_AlignmentCandidate *lhs, T_AlignmentCandidate* rhs) {
-    if (lhs->score == rhs->score) {
-      return lhs->tPos + lhs->tAlignedSeqPos < rhs->tPos + rhs->tAlignedSeqPos;
-    }
-    else {
-      return lhs->score < rhs->score;
-    }
-  }
-};
-
-class SortAlignmentPointersByMapQV {
-public:
-  int operator()(T_AlignmentCandidate *lhs, T_AlignmentCandidate* rhs) {
-    if (lhs->mapQV == rhs->mapQV) {
-      if (lhs->score == rhs->score) {
-        return lhs->tPos + lhs->tAlignedSeqPos < rhs->tPos + rhs->tAlignedSeqPos;
-      }
-      else {
-        return lhs->score < rhs->score;
-      }
-    }
-    else {
-      return lhs->mapQV > rhs->mapQV;
-    }
-  }
-};
-
 string GetMajorVersion() {
   return "2.0.0";
 }
 
-void GetVersion(string &version) {
+const string GetVersion(void) {
   string perforceVersionString("$Change$");
-  version = GetMajorVersion();
+  string version = GetMajorVersion();
   if (perforceVersionString.size() > 12) {
     version.insert(version.size(), ".");
     version.insert(version.size(), perforceVersionString, 9, perforceVersionString.size() - 11);
   }
+  return version;
 }
 
 
@@ -380,326 +352,6 @@ public:
   }
 };
 
-void SetHelp(string &str) {
-  stringstream helpStream;
-  helpStream << "   Options for blasr " << endl
-             << "   Basic usage: 'blasr reads.{fasta,bax.h5} genome.fasta [-options] " << endl
-             << " option\tDescription (default_value)." << endl << endl
-             << " Input Files." << endl
-             << "   reads.fasta is a multi-fasta file of reads.  While any fasta file is valid input, " <<endl
-             << "               it is preferable to use plx.h5 or bax.h5 files because they contain" << endl
-             << "               more rich quality value information." << endl << endl
-             << "   reads.bax.h5|reads.plx.h5 Is the native output format in Hierarchical Data Format of " <<endl
-             << "               SMRT reads. This is the preferred input to blasr because rich quality" << endl
-             << "               value (insertion,deletion, and substitution quality values) information is " << endl
-             << "               maintained.  The extra quality information improves variant detection and mapping"<<endl
-             << "               speed." << endl <<endl
-             << "   -sa suffixArrayFile"<< endl
-             << "               Use the suffix array 'sa' for detecting matches" << endl 
-             << "               between the reads and the reference.  The suffix" << endl 
-             << "               array has been prepared by the sawriter program." << endl << endl 
-             << "   -ctab tab "<<endl
-             << "               A table of tuple counts used to estimate match significance.  This is " << endl
-             << "               by the program 'printTupleCountTable'.  While it is quick to generate on " << endl
-             << "               the fly, if there are many invocations of blasr, it is useful to"<<endl
-             << "               precompute the ctab." <<endl << endl
-             << "   -regionTable table" << endl
-             << "               Read in a read-region table in HDF format for masking portions of reads." << endl
-             << "               This may be a single table if there is just one input file, " << endl
-             << "               or a fofn.  When a region table is specified, any region table inside " << endl
-             << "               the reads.plx.h5 or reads.bax.h5 files are ignored."<< endl
-//             << "   -ccsFofn ccsFofn" << endl
-//             << "               Read in a ciruclar consensus sequence (ccs) file in HDF format. " << endl
-//             << "               This may be a single ccs.h5 file if there is just one input file, " << endl
-//             << "               or a fofn. When a ccs file (or fofn) is specified, any ccs data inside the " << endl
-//             << "               read.bax.h5 file (or files) are ignored." << endl
-             << endl 
-             << " Options for modifying reads. There is ancilliary information about substrings of reads " << endl
-             << "               that is stored in a 'region table' for each read file.  Because " << endl
-             << "               HDF is used, the region table may be part of the .bax.h5 or .plx.h5 file," << endl
-             << "               or a separate file.  A contiguously read substring from the template " << endl
-             << "               is a subread, and any read may contain multiple subreads. The boundaries " << endl
-             << "               of the subreads may be inferred from the region table either directly or " <<endl
-             << "               by definition of adapter boundaries.  Typically region tables also" << endl
-             << "               contain information for the location of the high and low quality regions of"<<endl
-             << "               reads.  Reads produced by spurrious reads from empty ZMWs have a high"<<endl
-             << "               quality start coordinate equal to high quality end, making no usable read." <<endl
-             << "   -useccs   " << endl
-             << "               Align the circular consensus sequence (ccs), then report alignments" << endl
-             << "               of the ccs subreads to the window that the ccs was mapped to.  Only " << endl
-             << "               alignments of the subreads are reported." << endl  
-             << "   -useccsall"<<endl 
-             << "               Similar to -useccs, except all subreads are aligned, rather than just" << endl
-             << "               the subreads used to call the ccs.  This will include reads that only"<<endl
-             << "               cover part of the template." << endl
-             << "   -useccsdenovo" << endl
-             << "               Align the circular consensus, and report only the alignment of the ccs"<<endl
-             << "               sequence." << endl
-             << "   -noSplitSubreads (false)" <<endl
-             << "               Do not split subreads at adapters.  This is typically only " << endl
-             << "               useful when the genome in an unrolled version of a known template, and " << endl
-             << "               contains template-adapter-reverse_template sequence." << endl
-             << "   -ignoreRegions(false)" << endl
-             << "               Ignore any information in the region table." << endl
-             << "   -ignoreHQRegions (false)Ignore any hq regions in the region table." << endl
-             << endl
-             << " Alignment Output." << endl
-             << "   -bestn n (10)" <<endl
-             << "               Report the top 'n' alignments." << endl
-             << "   -sam        Write output in SAM format." << endl
-#ifdef USE_PBBAM
-             << "   -bam        Write output in PacBio BAM format." << endl
-#endif 
-             << "   -clipping [none|hard|subread|soft] (none)" << endl
-             << "               Use no/hard/subread/soft clipping for SAM output."<< endl
-             << "   -out out (terminal)  " << endl
-             << "               Write output to 'out'." << endl
-             << "   -unaligned file" << endl
-             << "               Output reads that are not aligned to 'file'" << endl
-             << "   -m t           " << endl
-             << "               If not printing SAM, modify the output of the alignment." << endl
-             << "                t=" << StickPrint <<   " Print blast like output with |'s connecting matched nucleotides." << endl 
-             << "                  " << SummaryPrint << " Print only a summary: score and pos." << endl 
-             << "                  " << CompareXML <<   " Print in Compare.xml format." << endl 
-             << "                  " << Vulgar <<       " Print in vulgar format (deprecated)." << endl
-             << "                  " << Interval <<     " Print a longer tabular version of the alignment." << endl 
-             << "                  " << CompareSequencesParsable  << " Print in a machine-parsable format that is read by compareSequences.py." << endl
-             << "   -noSortRefinedAlignments (false) " << endl
-             << "               Once candidate alignments are generated and scored via sparse dynamic "<< endl
-             << "               programming, they are rescored using local alignment that accounts " << endl
-             << "               for different error profiles." <<endl
-             << "               Resorting based on the local alignment may change the order the hits are returned." << endl
-             << "   -allowAdjacentIndels " << endl
-             << "               When specified, adjacent insertion or deletions are allowed. Otherwise, adjacent " << endl
-             << "               insertion and deletions are merged into one operation.  Using quality values " << endl
-             << "               to guide pairwise alignments may dictate that the higher probability alignment "<<endl
-             << "               contains adjacent insertions or deletions.  Current tools such as GATK do not permit" << endl
-             << "               this and so they are not reported by default." << endl
-             << "   -header" <<endl
-             << "               Print a header as the first line of the output file describing the contents of each column."<<endl
-             << "   -titleTable tab (NULL) " << endl
-             << "               Construct a table of reference sequence titles.  The reference sequences are " << endl
-             << "               enumerated by row, 0,1,...  The reference index is printed in alignment results" << endl
-             << "               rather than the full reference name.  This makes output concise, particularly when" <<endl
-             << "               very verbose titles exist in reference names."<<endl
-             << "   -minPctIdentity p (0)"<< endl
-             << "               Only report alignments if they are greater than p percent identity."<<endl
-             << "   -unaligned file" << endl
-             << "               Output reads that are not aligned to 'file'." << endl
-             << "   -holeNumbers LIST " << endl
-             << "               When specified, only align reads whose ZMW hole numbers are in LIST." << endl
-             << "               LIST is a comma-delimited string of ranges, such as '1,2,3,10-13'." << endl
-             << "               This option only works when reads are in base or pulse h5 format." << endl
-             << "   -placeRepeatsRandomly (false)" << endl
-             << "               When there are multiple positions to map a read with equal alignment scores, place the" << endl
-             << "               read randomly at one of them." <<endl
-             << "   -printSAMQV (false)" << endl
-             << "               Print quality values to sam files." << endl
-             << "   -cigarUseSeqMatch (false)" << endl
-             << "               CIGAR string uses '=' and 'X' to represent sequence match and mismatch instead of 'M'." << endl
-             << endl 
-             << " Options for anchoring alignment regions. This will have the greatest effect on speed and sensitivity." << endl
-             << "   -minMatch m (12) " << endl
-             << "               Minimum seed length.  Higher minMatch will speed up alignment, " << endl
-             << "               but decrease sensitivity." << endl
-//             << "   -maxExpand M (1)" << endl
-//             << "               Perform no more than M iterations of searches through the suffix " << endl
-//             << "               array for matches. At each iteration, all matches of length LCPi-M" << endl
-//             << "               are found, where LCPi is the length of the longest common prefix " << endl
-//             << "               between the string at i and anywhere in the genome."<<endl
-//             << "               The number of matches grows as M increases, and can become very large with M > 3." << endl
-             << "   -maxMatch l (inf)" << endl
-             << "               Stop mapping a read to the genome when the lcp length reaches l.  " << endl
-             << "               This is useful when the query is part of the reference, for example when " <<endl
-             << "               constructing pairwise alignments for de novo assembly."<<endl
-             << "   -maxLCPLength l (inf)" << endl
-             << "               The same as -maxMatch." << endl
-             << "   -maxAnchorsPerPosition m (10000) " << endl
-             << "               Do not add anchors from a position if it matches to more than 'm' locations in the target." << endl
-//             << "   -advanceHalf (false) " << endl
-//             << "               A trick for speeding up alignments at the cost of sensitivity.  If " << endl
-//             << "               a cluster of anchors of size n, (a1,...,an) is found, normally anchors " << endl
-//             << "               (a2,...an) of size n-1 is also clustered to make sure a1 did not decrease the " << endl
-//             << "               cluster score.  When advanceHalf is specified, clustering begins at a_(n/2)."<<endl<< endl
-             << "   -advanceExactMatches E (0)" << endl
-             << "               Another trick for speeding up alignments with match - E fewer anchors.  Rather than" << endl 
-             << "               finding anchors between the read and the genome at every position in the read, " <<endl
-             << "               when an anchor is found at position i in a read of length L, the next position " << endl
-             << "               in a read to find an anchor is at i+L-E." << endl
-             << "               Use this when alignining already assembled contigs." << endl
-             << "   -nCandidates n (10)" << endl 
-             << "               Keep up to 'n' candidates for the best alignment.  A large value of n will slow mapping" << endl
-             << "               because the slower dynamic programming steps are applied to more clusters of anchors" <<endl
-             << "               which can be a rate limiting step when reads are very long."<<endl
-             << "   -concordant(false)" << endl
-             << "               Map all subreads of a zmw (hole) to where the longest full pass subread of the zmw " << endl
-             << "               aligned to. This requires to use the region table and hq regions." << endl
-             << "               This option only works when reads are in base or pulse h5 format." << endl
-             << "   -concordantTemplate(mediansubread)" << endl
-             << "               Select a full pass subread of a zmw as template for concordant mapping." << endl
-             << "               longestsubread - use the longest full pass subread" << endl
-             << "               mediansubread  - use the median length full pass subread" << endl
-             << "               typicalsubread - use the second longest full pass subread if length of" << endl
-             << "                                the longest full pass subread is an outlier" << endl
-             << "   -fastMaxInterval(false)" << endl
-             << "               Fast search maximum increasing intervals as alignment candidates. The search " << endl
-             << "               is not as exhaustive as the default, but is much faster." << endl
-             << "   -aggressiveIntervalCut(false)" << endl
-             << "               Agreesively filter out non-promising alignment candidates, if there " << endl
-             << "               exists at least one promising candidate. If this option is turned on, " << endl
-             << "               Blasr is likely to ignore short alignments of ALU elements." << endl
-             << "   -fastSDP(false)" << endl
-             << "               Use a fast heuristic algorithm to speed up sparse dynamic programming." << endl
-             << endl
-             << "  Options for Refining Hits." << endl
-//             << "   -indelRate i (0.30)" << endl
-//             << "               The approximate maximum rate to allow drifting from the diagonal." <<endl << endl
-             << "   -sdpTupleSize K (11)" << endl
-             << "               Use matches of length K to speed dynamic programming alignments.  This controls" <<endl
-             << "               accuracy of assigning gaps in pairwise alignments once a mapping has been found,"<<endl
-             << "               rather than mapping sensitivity itself."<<endl
-             << "   -scoreMatrix \"score matrix string\" " << endl
-             << "               Specify an alternative score matrix for scoring fasta reads.  The matrix is " << endl
-             << "               in the format " << endl
-             << "                  ACGTN" << endl
-             << "                A abcde" << endl
-             << "                C fghij" << endl
-             << "                G klmno" << endl
-             << "                T pqrst" << endl
-             << "                N uvwxy" << " . The values a...y should be input as a quoted space separated " << endl
-             << "               string: \"a b c ... y\". Lower scores are better, so matches should be less " << endl
-             << "               than mismatches e.g. a,g,m,s = -5 (match), mismatch = 6. " << endl
-             << "   -affineOpen value (10) " << endl
-             << "               Set the penalty for opening an affine alignment." << endl
-             << "   -affineExtend a (0)" << endl
-             << "               Change affine (extension) gap penalty. Lower value allows more gaps." << endl << endl
-             << " Options for overlap/dynamic programming alignments and pairwise overlap for de novo assembly. " << endl
-             << "   -useQuality (false)" << endl
-             << "               Use substitution/insertion/deletion/merge quality values to score gap and " << endl
-             << "               mismatch penalties in pairwise alignments.  Because the insertion and deletion" << endl
-             << "               rates are much higher than substitution, this will make many alignments " <<endl
-             << "               favor an insertion/deletion over a substitution.  Naive consensus calling methods "<<endl
-             << "               will then often miss substitution polymorphisms. This option should be " << endl
-             << "               used when calling consensus using the Quiver method.  Furthermore, when " << endl
-             << "               not using quality values to score alignments, there will be a lower consensus " << endl
-             << "               accuracy in homolymer regions." << endl
-             << "   -affineAlign (false)" << endl
-             << "               Refine alignment using affine guided align." << endl << endl
-             << " Options for filtering reads." << endl
-             << "   -minReadLength l(50)" << endl
-             << "               Skip reads that have a full length less than l. Subreads may be shorter." << endl 
-             << "   -minSubreadLength l(0)" << endl
-             << "               Do not align subreads of length less than l." << endl
-             << "   -minRawSubreadScore m(0)" << endl
-             << "               Do not align subreads whose quality score in region table is less than m (quality scores should be in range [0, 1000])." << endl
-             << "   -maxScore m (0)" << endl
-             << "               Maximum score to output (high is bad, negative good)." << endl << endl
-             << " Options for parallel alignment." << endl
-             << "   -nproc N (1)" << endl
-             << "               Align using N processes.  All large data structures such as the suffix array and " << endl
-             << "               tuple count table are shared."<<endl
-             << "   -start S (0)" << endl
-             << "               Index of the first read to begin aligning. This is useful when multiple instances " << endl
-             << "               are running on the same data, for example when on a multi-rack cluster."<<endl
-             << "   -stride S (1)" << endl
-             << "               Align one read every 'S' reads." << endl << endl
-             << " Options for subsampling reads." << endl
-             << "   -subsample (0)" << endl
-             << "               Proportion of reads to randomly subsample (expressed as a decimal) and align." << endl
-             << endl
-//             << " Options for dynamic programming alignments. " << endl << endl
-//             << "   -ignoreQuality" << endl
-//             << "                 Ignore quality values when computing alignments (they still may be used." << endl 
-//             << "                 when mapping)." << endl << endl
-//             << " -v            Print some verbose information." << endl 
-//             << " -V 2          Make verbosity more verbose.  Probably only useful for development." << endl
-             << " -h            Print this help file." << endl << endl
-             << "To cite BLASR, please use: Chaisson M.J., and Tesler G., Mapping " << endl
-             << "single molecule sequencing reads using Basic Local Alignment with " << endl
-             << "Successive Refinement (BLASR): Theory and Application, BMC " << endl
-             << "Bioinformatics 2012, 13:238." << endl 
-             << "Please report any bugs to "
-             << "'https://github.com/PacificBiosciences/blasr/issues'." << endl << endl;
-  str = helpStream.str();
-}
-
-void SetConciseHelp(string &conciseHelp) {
-  stringstream strm;
-  strm << "blasr - a program to map reads to a genome" << endl
-       << " usage: blasr reads genome " << endl
-       << " Run with -h for a list of commands " << endl
-       << "          -help for verbose discussion of how to run blasr." << endl;
-  conciseHelp = strm.str();
-}
-
-void PrintDiscussion() {
-  cout << "NAME"<<endl;
-  cout << "         blasr - Map SMRT Sequences to a reference genome."<< endl << endl;
-  cout << "SYNOPSIS" << endl
-       << "         blasr reads.fasta genome.fasta " << endl << endl
-       << "         blasr reads.fasta genome.fasta -sa genome.fasta.sa" << endl << endl
-       << "         blasr reads.bax.h5 genome.fasta [-sa genome.fasta.sa] " << endl << endl
-       << "         blasr reads.bax.h5 genome.fasta -sa genome.fasta.sa -maxScore -100 -minMatch 15 ... " << endl << endl
-       << "         blasr reads.bax.h5 genome.fasta -sa genome.fasta.sa -nproc 24 -out alignment.out ... " << endl << endl
-       << "DESCRIPTION " << endl
-       << "  blasr is a read mapping program that maps reads to positions " << endl
-       << "  in a genome by clustering short exact matches between the read and" << endl
-       << "  the genome, and scoring clusters using alignment. The matches are" << endl
-       << "  generated by searching all suffixes of a read against the genome" << endl
-       << "  using a suffix array. Global chaining methods are used to score " << endl
-       << "  clusters of matches." << endl << endl
-       << "  The only required inputs to blasr are a file of reads and a" << endl
-       << "  reference genome.  It is exremely useful to have read filtering" << endl
-       << "  information, and mapping runtime may decrease substantially when a" << endl
-       << "  precomputed suffix array index on the reference sequence is" << endl
-       << "  specified." << endl
-       << "  " << endl
-       << "  Although reads may be input in FASTA format, the recommended input is HDF" << endl
-       << "  bax.h5 and plx.h5 files because these contain qualtiy value" << endl
-       << "  information that is used in the alignment and produces higher quality" << endl
-       << "  variant detection.  " << endl
-       << "  " << endl
-       << "  Read filtering information is contained in the .bax.h5 input files as" << endl
-       << "  well as generated by other post-processing programs with analysis of" << endl
-       << "  pulse files and read in from a separate .region.h5 file.  The current" << endl
-       << "  set of filters that are applied to reads are high quality region" << endl
-       << "  filtering, and adapter filtering.  Regions outside high-quality" << endl
-       << "  regions are ignored in mapping.  Reads that contain regions annotated" << endl
-       << "  as adapter are split into non-adapter (template) regions, and mapped" << endl
-       << "  separately." << endl
-       << "  " << endl
-       << "  When suffix array index of a genome is not specified, the suffix array is" << endl
-       << "  built before producing alignment.   This may be prohibitively slow" << endl
-       << "  when the genome is large (e.g. Human).  It is best to precompute the" << endl
-       << "  suffix array of a genome using the program sawriter, and then specify" << endl
-       << "  the suffix array on the command line using -sa genome.fa.sa." << endl
-       << "  " << endl
-       << "  The optional parameters are roughly divided into three categories:" << endl
-       << "  control over anchoring, alignment scoring, and output. " << endl
-       << "  " << endl
-       << "  The default anchoring parameters are optimal for small genomes and" << endl
-       << "  samples with up to 5% divergence from the reference genome.  The main" << endl
-       << "  parameter governing speed and sensitivity is the -minMatch parameter." << endl
-       << "  For human genome alignments, a value of 11 or higher is recommended.  " << endl
-       << "  Several methods may be used to speed up alignments, at the expense of" << endl
-       << "  possibly decreasing sensitivity.  " << endl
-       << "  " << endl
-//       << "  If the genome is highly repetitive or divergent from the read" << endl
-//       << "  sequences, the value of -maxExpand should be increased.  This option" << endl
-//       << "  controls how much the search for anchors is expanded past a simple" << endl
-//       << "  greedy search.  A value for -maxExpand of 1 is sufficent for" << endl
-//       << "  non-repetitive genomes, and values of -maxExpand greater than 5 are" << endl
-//       << "  not recommended." << endl
-//       << "  " << endl
-       << "  Regions that are too repetitive may be ignored during mapping by" << endl
-       << "  limiting the number of positions a read maps to with the" << endl
-       << "  -maxAnchorsPerPosition option.  Values between 500 and 1000 are effective" << endl
-       << "  in the human genome." << endl
-       << "  " << endl
-       << "  For small genomes such as bacterial genomes or BACs, the default parameters " << endl
-       << "  are sufficient for maximal sensitivity and good speed." << endl
-       << endl << endl;
-}
 
 int CountZero(unsigned char *ptr, int length) {
   int i;
@@ -763,7 +415,6 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
                     int useSeqDB, SequenceIndexDatabase<TDBSequence> &seqDB,
                     vector<T_AlignmentCandidate*> &alignments,
                     MappingParameters &params,
-                    int useScoreCutoff, int maxScore,
                     MappingBuffers &mappingBuffers,
                     int procId=0) {
                         
@@ -1539,7 +1190,7 @@ int RemoveOverlappingAlignments(vector<T_AlignmentCandidate*> &alignmentPtrs, Ma
     UInt i;
     for (i = 0; i < alignmentPtrs.size()-1; i++ ){
       T_AlignmentCandidate *aref = alignmentPtrs[i];
-      if (aref->pctSimilarity < params.minPctIdentity) {
+      if (aref->pctSimilarity < params.minPctSimilarity) {
         continue;
       }
       for (j = i + 1; j < int(alignmentPtrs.size()); j++ ){
@@ -2362,7 +2013,6 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
                     params.useSeqDB, seqdb,
                     alignmentPtrs,
                     params,
-                    params.useScoreCutoff, params.maxScore,
                     mappingBuffers,
                     params.startRead );
 
@@ -2920,24 +2570,25 @@ void StoreMapQVs(SMRTSequence &read,
 // The full read is not the subread, and does not have masked off characters.
 //
 void PrintAlignment(T_AlignmentCandidate &alignment, SMRTSequence &fullRead, MappingParameters &params, AlignmentContext &alignmentContext, ostream &outFile, BamWriter * bamWriterPtr) {
+    /*
   if (alignment.score > params.maxScore) {
 		if (params.verbosity > 0) {
 			cout << "Not using " << alignment.qAlignedSeqPos << " " << alignment.tAlignedSeqPos << " because score: " << alignment.score << " is too low (" << params.maxScore  << ")" << endl;
 		}
     return;
   }
-  if (alignment.pctSimilarity < params.minPctIdentity) {
+  if (alignment.pctSimilarity < params.minPctSimilarity) {
 		if (params.verbosity > 0) {
 			cout << "Not using " << alignment.qAlignedSeqPos << " " << alignment.tAlignedSeqPos << " because identity: " << alignment.pctSimilarity << " is too low (" << params.minPctIdentity  << ")" << endl;
 		}
     return;
   }
-  if (alignment.tAlignedSeq.length < params.minAlignLength) {
+  if (alignment.tAlignedSeq.length < params.minAlnLength) {
         if (params.verbosity > 0) {
-			cout << "Not using " << alignment.qAlignedSeqPos << " " << alignment.tAlignedSeqPos << " because length: " << alignment.tAlignedSeq.length << " is too short (" << params.minAlignLength  << ")" << endl;
+			cout << "Not using " << alignment.qAlignedSeqPos << " " << alignment.tAlignedSeqPos << " because length: " << alignment.tAlignedSeq.length << " is too short (" << params.minAlnLength  << ")" << endl;
 		}
 		return;
-  }
+  }*/
 
   try {
     int lastBlock = alignment.blocks.size() - 1;
@@ -2994,46 +2645,24 @@ vector<T_AlignmentCandidate*>
 SelectAlignmentsToPrint(vector<T_AlignmentCandidate*> alignmentPtrs,
                         MappingParameters & params,
                         const int & associatedRandInt) {
-  //
-  // Select all alignments, unless the parameter placeRepeatsRandomly is set.
-  // In this case only one read is selected and it is selected from all
-  // equally top scoring hits.
-  //
-  UInt i;
-  int optScore;
-  int nOpt = 0;
-  int startIndex = 0;
-  int endIndex = 0;
- 
-  if (params.placeRandomly) {
-    if (alignmentPtrs.size() > 0) {
-      std::sort(alignmentPtrs.begin(), alignmentPtrs.end(), 
-                SortAlignmentPointersByScore());
-      optScore = alignmentPtrs[0]->score;
-      nOpt = 1;
-      // First find the minimum score, and count how many times it
-      // exists
-      for (i = 1; i < alignmentPtrs.size(); i++) { 
-        assert(alignmentPtrs[i]->score >= optScore);
-        if (alignmentPtrs[i]->score == optScore) {
-          nOpt++;
-        }
-      }
+  if (params.placeRandomly) {assert(params.hitPolicy.IsRandombest());}
 
-      // Select a random item from all equally top scoring hits:
-      // alignmentPtrs[0...nOpt-1].
-      startIndex = associatedRandInt % nOpt;
-      endIndex = startIndex + 1;
-    }
-  } else {
-    startIndex = 0;
-    endIndex   = MIN(params.nBest, alignmentPtrs.size());
+  if (alignmentPtrs.size() == 0) {return vector<T_AlignmentCandidate*>({});}
+
+  std::sort(alignmentPtrs.begin(), alignmentPtrs.end(), 
+            SortAlignmentPointersByScore());
+
+  // Apply filter criteria and hit policy.
+  // Shallow copy AlignmentCandidate pointers.
+  vector<T_AlignmentCandidate*> filtered;
+  for (auto ptr: alignmentPtrs) {
+      if (params.filterCriteria.Satisfy(ptr)) {
+          filtered.push_back(ptr);
+          if (filtered.size() == params.nBest) break;
+      }
   }
 
-  vector<T_AlignmentCandidate*> ret;
-  ret.assign(alignmentPtrs.begin() + startIndex, 
-             alignmentPtrs.begin() + endIndex);
-  return ret;
+  return params.hitPolicy.Apply(filtered, false, associatedRandInt);
 }
 
 // Print all alignments in vector<T_AlignmentCandidate*> alignmentPtrs
@@ -3583,14 +3212,9 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
         break;
       }
       else {
-        if (params.unrollCcs == false) {
-          readIsCCS = true;
-          smrtRead.Copy(ccsRead);
-          ccsRead.SetQVScale(params.qvScaleType);
-        }
-        else {
-          smrtRead.Copy(ccsRead.unrolledRead);
-        }
+        readIsCCS = true;
+        smrtRead.Copy(ccsRead);
+        ccsRead.SetQVScale(params.qvScaleType);
         ++readIndex;
         smrtRead.SetQVScale(params.qvScaleType);
       }
@@ -4196,213 +3820,32 @@ int main(int argc, char* argv[]) {
   pid_t *pids;
   
   CommandLineParser clp;
-  string commandLine;
-  string helpString;
-  SetHelp(helpString);
-
-  string conciseHelpString;
-  SetConciseHelp(conciseHelpString);
-  
-  stringstream usageSStrm;
-  usageSStrm << "   Basic usage: 'blasr reads.{fasta,bax.h5} genome.fasta [-options] " << endl
-             << " [option]\tDescription (default_value)." << endl << endl
-             << " Input Files." << endl
-             << "   reads.fasta is a multi-fasta file of reads.  While any fasta file is valid input, " 
-             "it is preferable to use plx.h5 or bax.h5 files because they contain "
-             "more rich quality value information." << endl
-             << "   reads.bax.h5|reads.plx.h5 Is the native output format in Hierarchical Data Format of "
-    "SMRT reads. This is the preferred input to blasr because rich quality"
-    "value (insertion,deletion, and substitution quality values) information is "
-    "maintained.  The extra quality information improves variant detection and mapping"<<
-    "speed." << endl << endl;
-
-
-  clp.SetHelp(helpString);
-  clp.SetConciseHelp(conciseHelpString);
-  clp.SetProgramSummary(usageSStrm.str());
+  clp.SetHelp(BlasrHelp(params));
+  clp.SetConciseHelp(BlasrConciseHelp());
+  clp.SetProgramSummary(BlasrSummaryHelp());
   clp.SetProgramName("blasr");
+  clp.SetVersion(GetVersion());
 
-  string versionString;
-  GetVersion(versionString);
-  clp.SetVersion(versionString);
+  // Register Blasr options.
+  RegisterBlasrOptions(clp, params);
 
-  //
-  // Make the default arguments.
-  //
-  bool required=true;
-  bool optional=false;
-  int  trashbinInt;
-  float trashbinFloat;
-  bool trashbinBool;
-  bool printVerboseHelp = false;
-  bool printLongHelp    = false;
-  clp.RegisterStringOption("sa", &params.suffixArrayFileName, "");
-  clp.RegisterStringOption("ctab", &params.countTableName, "" );
-  clp.RegisterStringOption("regionTable", &params.regionTableFileName, "");
-  clp.RegisterStringOption("ccsFofn", &params.ccsFofnFileName, "");
-  clp.RegisterIntOption("bestn", (int*) &params.nBest, "", CommandLineParser::PositiveInteger);
-  clp.RegisterIntOption("limsAlign", &params.limsAlign, "", CommandLineParser::PositiveInteger);
-  clp.RegisterFlagOption("printOnlyBest", &params.printOnlyBest, "");
-  clp.RegisterFlagOption("outputByThread", &params.outputByThread, "");
-  clp.RegisterFlagOption("rbao", &params.refineBetweenAnchorsOnly, "");
-  clp.RegisterFlagOption("allowAdjacentIndels", &params.forPicard, "");
-  clp.RegisterFlagOption("onegap", &params.separateGaps, "");
-  clp.RegisterFlagOption("allowAdjacentIndels", &params.forPicard, "");
-  clp.RegisterFlagOption("placeRepeatsRandomly", &params.placeRandomly, "");
-  clp.RegisterIntOption("randomSeed", &params.randomSeed, "", CommandLineParser::Integer);
-  clp.RegisterFlagOption("extend", &params.extendAlignments, "");
-  clp.RegisterIntOption("branchExpand", &params.anchorParameters.branchExpand, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterIntOption("maxExtendDropoff", &params.maxExtendDropoff, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterFlagOption("nucmer", &params.emulateNucmer, "");
-  clp.RegisterIntOption("maxExpand", &params.maxExpand, "", CommandLineParser::PositiveInteger);
-  clp.RegisterIntOption("minExpand", &params.minExpand, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterStringOption("seqdb",  &params.seqDBName, "");
-  clp.RegisterStringOption("anchors",  &params.anchorFileName, "");
-  clp.RegisterStringOption("clusters", &params.clusterFileName, "");
-  clp.RegisterFlagOption("samplePaths", (bool*) &params.samplePaths, "");
-  clp.RegisterFlagOption("noStoreMapQV", &params.storeMapQV, "");
-  clp.RegisterFlagOption("nowarp", (bool*) &params.nowarp, "");
-  clp.RegisterFlagOption("noRefineAlign", (bool*) &params.refineAlign, "");
-  clp.RegisterFlagOption("guidedAlign", (bool*)&params.useGuidedAlign, "");
-  clp.RegisterFlagOption("useGuidedAlign", (bool*)&trashbinBool, "");
-  clp.RegisterFlagOption("noUseGuidedAlign", (bool*)&params.useGuidedAlign, "");
-  clp.RegisterFlagOption("header", (bool*)&params.printHeader, "");
-  clp.RegisterIntOption("subreadImplType", &params.subreadMapType, "", CommandLineParser::PositiveInteger);
-  clp.RegisterIntOption("bandSize", &params.bandSize, "", CommandLineParser::PositiveInteger);  
-  clp.RegisterIntOption("extendBandSize", &params.extendBandSize, "", CommandLineParser::PositiveInteger);  
-  clp.RegisterIntOption("guidedAlignBandSize", &params.guidedAlignBandSize, "", CommandLineParser::PositiveInteger);  
-  clp.RegisterIntOption("maxAnchorsPerPosition", &params.anchorParameters.maxAnchorsPerPosition, "", CommandLineParser::PositiveInteger);
-  clp.RegisterIntOption("stopMappingOnceUnique", (int*) &params.anchorParameters.stopMappingOnceUnique, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterStringOption("out", &params.outFileName, "");
-  clp.RegisterIntOption("match", &params.match, "", CommandLineParser::Integer);
-  clp.RegisterIntOption("mismatch", &params.mismatch, "", CommandLineParser::Integer);
-  clp.RegisterIntOption("minMatch", &params.minMatchLength, "", CommandLineParser::PositiveInteger);
-  clp.RegisterIntOption("maxMatch", &params.anchorParameters.maxLCPLength, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterIntOption("maxLCPLength", &params.anchorParameters.maxLCPLength, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterIntOption("indel", &params.indel, "", CommandLineParser::Integer);
-  clp.RegisterIntOption("insertion", &params.insertion, "", CommandLineParser::Integer);
-  clp.RegisterIntOption("deletion", &params.deletion, "", CommandLineParser::Integer);
-  clp.RegisterIntOption("idsIndel", &params.idsIndel, "", CommandLineParser::Integer);
-  clp.RegisterIntOption("sdpindel", &params.sdpIndel, "", CommandLineParser::Integer);
-  clp.RegisterIntOption("sdpIns", &params.sdpIns, "", CommandLineParser::Integer);
-  clp.RegisterIntOption("sdpDel", &params.sdpDel, "", CommandLineParser::Integer);
-  clp.RegisterFloatOption("indelRate", &params.indelRate, "", CommandLineParser::NonNegativeFloat);
-  clp.RegisterFloatOption("minRatio", &params.minRatio, "", CommandLineParser::NonNegativeFloat); 
-  clp.RegisterFloatOption("sdpbypass", &params.sdpBypassThreshold, "", CommandLineParser::NonNegativeFloat);
-  clp.RegisterFloatOption("minFrac", &trashbinFloat, "", CommandLineParser::NonNegativeFloat);
-  clp.RegisterIntOption("maxScore", &params.maxScore, "", CommandLineParser::Integer);
-  clp.RegisterStringOption("bwt", &params.bwtFileName, "");
-  clp.RegisterIntOption("m", &params.printFormat, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterFlagOption("sam", &params.printSAM, "");
-#ifdef USE_PBBAM
-  clp.RegisterFlagOption("bam", &params.printBAM, "");
-#endif
-  clp.RegisterStringOption("clipping", &params.clippingString, "");
-  clp.RegisterIntOption("sdpTupleSize", &params.sdpTupleSize, "", CommandLineParser::PositiveInteger);
-  clp.RegisterIntOption("pvaltype", &params.pValueType, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterIntOption("start", &params.startRead, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterIntOption("stride", &params.stride, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterFloatOption("subsample", &params.subsample, "", CommandLineParser::PositiveFloat);
-  clp.RegisterIntOption("nproc", &params.nProc, "", CommandLineParser::PositiveInteger);
-  clp.RegisterFlagOption("sortRefinedAlignments",(bool*) &params.sortRefinedAlignments, "");
-  clp.RegisterIntOption("quallc", &params.qualityLowerCaseThreshold, "", CommandLineParser::Integer);
-  clp.RegisterFlagOption("v", (bool*) &params.verbosity, "");
-  clp.RegisterIntOption("V", &params.verbosity, "Specify a level of verbosity.", CommandLineParser::NonNegativeInteger);
-  clp.RegisterIntOption("contextAlignLength", &params.anchorParameters.contextAlignLength, "", CommandLineParser::PositiveInteger);
-  clp.RegisterFlagOption("skipLookupTable", &params.anchorParameters.useLookupTable, "");
-  clp.RegisterStringOption("metrics", &params.metricsFileName, "");
-  clp.RegisterStringOption("lcpBounds", &params.lcpBoundsFileName, "");
-  clp.RegisterStringOption("fullMetrics", &params.fullMetricsFileName, "");
-  clp.RegisterIntOption("nbranch", &params.anchorParameters.numBranches, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterFlagOption("divideByAdapter", &params.byAdapter, "");
-  clp.RegisterFlagOption("useQuality", &params.ignoreQualities, "");
-  clp.RegisterFlagOption("noFrontAlign", &params.extendFrontAlignment, "");
-  clp.RegisterIntOption("minReadLength", &params.minReadLength, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterIntOption("minAlignLength", &params.minAlignLength, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterIntOption("maxReadLength", &params.maxReadLength, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterIntOption("minSubreadLength", &params.minSubreadLength, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterIntOption("minRawSubreadScore", &params.minRawSubreadScore, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterIntOption("minAvgQual", &params.minAvgQual, "", CommandLineParser::Integer);
-  clp.RegisterFlagOption("advanceHalf", &params.advanceHalf, "");
-  clp.RegisterIntOption("advanceExactMatches", &params.anchorParameters.advanceExactMatches, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterFlagOption("unrollCcs", &params.unrollCcs, "");
-  clp.RegisterFlagOption("useccs", &params.useCcs, "");
-  clp.RegisterFlagOption("useccsdenovo", &params.useCcsOnly, "");
-  clp.RegisterFlagOption("useccsall", &params.useAllSubreadsInCcs, "");
-  clp.RegisterFlagOption("extendDenovoCCSSubreads", &params.extendDenovoCCSSubreads, "");
-  clp.RegisterFlagOption("noRefineAlignments", &params.refineAlignments, "");
-  clp.RegisterFloatOption("minPctIdentity", &params.minPctIdentity, "", CommandLineParser::NonNegativeFloat);
-  clp.RegisterFloatOption("maxPctIdentity", &params.maxPctIdentity, "", CommandLineParser::NonNegativeFloat);
-  clp.RegisterIntOption("nCandidates", &params.nCandidates, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterFlagOption("useTemp", (bool*) &params.tempDirectory, "");
-  clp.RegisterFlagOption("noSplitSubreads", &params.mapSubreadsSeparately, "");
-  clp.RegisterFlagOption("concordant", &params.concordant, "");
-  // When -concordant is turned on, blasr first selects a subread (e.g., the median length full-pass subread) 
-  // of a zmw as template, maps the template subread to a reference, then infers directions of all other subreads
-  // of the same zmw based on direction of the template, and finally maps all other subreads to the same
-  // genomic coordinates as the template. When -concordantAlignBothDirections is turned on, blasr will align
-  // all other subreads both forwardly and backwardly, without infering their directions. This is a hidden
-  // diagnostic option only useful for analyzing movies which have lots of un-identified or missed adapters such
-  // that directions of subreads can not be inferred accurately.
-  clp.RegisterFlagOption("concordantAlignBothDirections", &params.concordantAlignBothDirections, "");
-  clp.RegisterIntOption("flankSize", &params.flankSize, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterIntOption("subreadMapType", &params.subreadMapType, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterStringOption("titleTable", &params.titleTableName, "");
-  clp.RegisterFlagOption("useSensitiveSearch", &params.doSensitiveSearch, "");
-  clp.RegisterFlagOption("ignoreRegions", &params.useRegionTable, "");
-  clp.RegisterFlagOption("ignoreHQRegions", &params.useHQRegionTable, "");
-  clp.RegisterFlagOption("computeAlignProbability", &params.computeAlignProbability, "");
-  clp.RegisterStringOption("unaligned", &params.unalignedFileName, "");
-  clp.RegisterFlagOption("global", &params.doGlobalAlignment, "");
-  clp.RegisterIntOption("globalChainType", &params.globalChainType, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterFlagOption("noPrintSubreadTitle", (bool*) &params.printSubreadTitle, "");
-  clp.RegisterIntOption("saLookupTableLength", &params.lookupTableLength, "", CommandLineParser::PositiveInteger);
-  clp.RegisterFlagOption("useDetailedSDP", &params.detailedSDPAlignment, "");
-  clp.RegisterFlagOption("nouseDetailedSDP", &trashbinBool, "");
-  clp.RegisterIntOption("sdpFilterType", &params.sdpFilterType, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterIntOption("scoreType", &params.scoreType, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterFlagOption("help", &params.printDiscussion, "");
-  clp.RegisterFlagOption("h", &printVerboseHelp, "");
-  clp.RegisterFloatOption("accuracyPrior",    &params.readAccuracyPrior, "", CommandLineParser::NonNegativeFloat);
-  clp.RegisterIntOption("readIndex", &params.readIndex, "", CommandLineParser::NonNegativeInteger);
-  // holeNumberRangesStr is a string of comma-delimited hole number ranges, such as '1,2,3,10-15'.
-  // Blasr only analyzes reads whose hole numbers are in the specified hole number ranges. 
-  clp.RegisterStringOption("holeNumbers", &params.holeNumberRangesStr, "");
-  clp.RegisterIntOption("maxReadIndex", &params.maxReadIndex, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterIntOption("substitutionPrior",  &params.substitutionPrior, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterIntOption("deletionPrior",  &params.globalDeletionPrior, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterIntOption("recurseOver", &params.recurseOver, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterStringOption("scoreMatrix", &params.scoreMatrixString, "");
-  clp.RegisterFlagOption("printDotPlots", &params.printDotPlots, "");
-  clp.RegisterFlagOption("preserveReadTitle", &params.preserveReadTitle,"");
-  clp.RegisterFlagOption("forwardOnly", &params.forwardOnly,"");
-  clp.RegisterFlagOption("affineAlign", &params.affineAlign, "");
-  clp.RegisterIntOption("affineOpen", &params.affineOpen, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterIntOption("affineExtend", &params.affineExtend, "", CommandLineParser::NonNegativeInteger);
-  clp.RegisterFlagOption("scaleMapQVByNClusters", &params.scaleMapQVByNumSignificantClusters, "", false);
-  clp.RegisterFlagOption("printSAMQV", &params.printSAMQV, "", false);
-  clp.RegisterFlagOption("cigarUseSeqMatch", &params.cigarUseSeqMatch, "");
-  clp.RegisterStringListOption("samQV", &params.samQV, "");
-  clp.RegisterFlagOption("fastMaxInterval", &params.fastMaxInterval, "", false);
-  clp.RegisterFlagOption("aggressiveIntervalCut", &params.aggressiveIntervalCut, "", false);
-  clp.RegisterFlagOption("fastSDP", &params.fastSDP, "", false);
-  clp.RegisterStringOption("concordantTemplate", &params.concordantTemplate, "typicalsubread");
-
+  // Parse command line args.
   clp.ParseCommandLine(argc, argv, params.readsFileNames);
+
+  string commandLine;
   clp.CommandLineToString(argc, argv, commandLine);
 
-  if (printVerboseHelp) {
-    cout << helpString << endl;
-    exit(0);
+  if (params.printVerboseHelp) {
+    cout << BlasrHelp(params) << endl;
+    exit(0); // Not a failure.
   }
-
   if (params.printDiscussion) {
-    PrintDiscussion();
-    exit(0);
+    cout << BlasrDiscussion();
+    exit(0); // Not a failure.
   }
   if (argc < 3) {
-    cout << conciseHelpString;
-    exit(1);
+    cout << BlasrConciseHelp();
+    exit(1); // A failure.
   }
   
   int a, b;
@@ -4434,17 +3877,13 @@ int main(int argc, char* argv[]) {
     }
   }
   
-  if (params.printDiscussion == true) {
-    PrintDiscussion();
-    exit(0);
-  }
-
   cerr << "[INFO] " << GetTimestamp() << " [blasr] started." << endl;
   params.MakeSane();
 
   //
   // The random number generator is used for subsampling for debugging
-  // and testing consensus.
+  // and testing consensus and selecting hits when hit policy is random
+  // or randombest.
   //
   if (params.useRandomSeed == true) {
     InitializeRandomGenerator(params.randomSeed);
@@ -4797,7 +4236,7 @@ int main(int argc, char* argv[]) {
   
   if (params.printSAM or params.printBAM) {
       string so = "UNKNOWN"; // sorting order;
-      string version; GetVersion(version); //blasr version;
+      string version = GetVersion(); //blasr version;
       SAMHeaderPrinter shp(so, seqdb, 
               params.queryFileNames, params.queryReadType, 
               params.samQVList, "BLASR", version, 

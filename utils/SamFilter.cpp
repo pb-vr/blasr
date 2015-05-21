@@ -41,11 +41,12 @@
 #include "sam/SAMReader.hpp"
 #include "format/SAMPrinter.hpp"
 #include "datastructures/alignment/AlignmentCandidate.hpp"
-#include "datastructures/alignment/FilterCriteria.h"
+#include "datastructures/alignment/FilterCriteria.hpp"
 #include "metagenome/TitleTable.hpp"
 #include "datastructures/alignment/SAMToAlignmentCandidateAdapter.hpp"
 #include "GFFFile.hpp"
 #include "defs.h"
+#include "../RegisterFilterOptions.h"
 
 //#define USE_GOOGLE_PROFILER
 #ifdef USE_GOOGLE_PROFILER
@@ -55,44 +56,7 @@
 char VERSION[] = "v0.1.0";
 char PERFORCE_VERSION_STRING[] = "$Change: 134995 $";
 // By default negative score is better.
-SCORESIGN scoreSign = NEG;
-
-// Score functions can be: 
-//   ALIGNERSCORE: aligner's score as indicated by 'as' flag
-//   EDITDIST    : edit distance between query and target
-//   BLASESCORE  : blasr's default score
-//   USERSCORE   : score computed from user specifed score matrix, and
-//                 insertion & deletion scores
-enum SCOREFUNC {ALIGNERSCORE, EDITDIST, BLASRSCORE, USERSCORE};
-
-enum HITPOLICY {RANDOM, ALL, ALLBEST, RANDOMBEST, LEFTMOST};
-
-// Return a multiple hit policy.
-HITPOLICY setHitPolicy(const string & hitPolicyStr) {
-    if (hitPolicyStr == "random")          return RANDOM;
-    else if (hitPolicyStr == "all")        return ALL;
-    else if (hitPolicyStr == "allbest")    return ALLBEST;
-    else if (hitPolicyStr == "randombest") return RANDOMBEST;
-    else if (hitPolicyStr == "leftmost")   return LEFTMOST;
-    else {
-        cout <<"ERROR, the specified multiple hit policy " 
-             << hitPolicyStr <<" is not supported." << endl;
-        exit(1);
-    }
-}
-
-// Return a score function for computing alignment scores.
-SCOREFUNC setScoreFunction(const string & scoreFuncStr) {
-    if (scoreFuncStr == "alignerscore")    return ALIGNERSCORE;
-    else if (scoreFuncStr == "editdist")   return EDITDIST;
-    else if (scoreFuncStr == "blasrscore") return BLASRSCORE;
-    else if (scoreFuncStr == "userscore")  return USERSCORE;
-    else {
-        cout <<"ERROR, the specified score function " 
-        << scoreFuncStr <<" is not supported." << endl;
-        exit(1);
-    }
-}
+ScoreSign scoreSign = ScoreSign::NEGATIVE;
 
 // Compare SAMAlignment objects by qName, score and 
 // target positions.
@@ -101,7 +65,7 @@ bool byQNameScoreTStart(const SAMAlignment & a,
     if (a.qName == b.qName) {
         if (a.score == b.score) 
             return a.pos < b.pos;
-        return Score(a.score, scoreSign).WorseThan(b.score);
+        return Score(a.score, scoreSign).WorseThan(Score(b.score, scoreSign));
     }
     return (a.qName < b.qName);
 }
@@ -156,30 +120,31 @@ void GetBestSAMAlignmentsInGroup(vector<SAMAlignment> & allSAMAlignments,
     bestBegin += 1;
 }
 
+
 // Apply hit policy to a group of SAM alignments and return indices
 // of the selected alignments.
-vector<unsigned int> ApplyHitPolicy(HITPOLICY hitPolicy, 
+vector<unsigned int> ApplyHitPolicy(HitPolicy & hitPolicy, 
                                     vector<SAMAlignment> & allSAMAlignments, 
                                     const unsigned int & groupBegin, 
                                     const unsigned int & groupEnd) {
     vector<unsigned int> hitIndices;
-    if (hitPolicy == ALL) {
+    if (hitPolicy.IsAll()) {
         for(unsigned int i = groupBegin; i < groupEnd; i++){
             hitIndices.push_back(i);
         }
-    } else if (hitPolicy == RANDOM) {
+    } else if (hitPolicy.IsRandom()) {
         hitIndices.push_back(rand()%(groupEnd - groupBegin) + groupBegin);
     } else {
         unsigned int bestBegin, bestEnd;
         GetBestSAMAlignmentsInGroup(allSAMAlignments, groupBegin, groupEnd,
                                     bestBegin, bestEnd);
-        if (hitPolicy == ALLBEST) {
+        if (hitPolicy.IsAllbest()) {
             for(unsigned int i = bestBegin; i < bestEnd; i++){
                 hitIndices.push_back(i);
             }
-        } else if (hitPolicy == RANDOMBEST) {
+        } else if (hitPolicy.IsRandombest()) {
             hitIndices.push_back(rand()%(bestEnd-bestBegin) + bestBegin);
-        } else if (hitPolicy == LEFTMOST) {
+        } else if (hitPolicy.IsLeftmost()) {
             hitIndices.push_back(bestBegin);
         } else {
             assert(false);
@@ -274,30 +239,9 @@ int main(int argc, char* argv[]) {
       ProfilerStart("google_profile.txt");
     }
 #endif
+
+    // Register inputs and outputs.
     string samFileName, refFileName, outFileName;
-    int  scoreCutoff    = INF_INT;
-    int  scoreSignInt   = -1;
-    string scoreFuncStr = "alignerscore";
-    string scoreMatrixStr= "";
-    SCOREFUNC scoreFunc;
-
-    int insScore = 5; // Insertion penalty
-    int delScore = 5; // Deletion penalty
-
-    int  seed           = 1; 
-    bool isSorted       = false; // Whether input sam file is sorted.
-    int  verbosity      = 0;
-
-    string holeNumberStr;
-    Ranges holeNumberRanges;
-
-    FilterCriteria filterCriteria;
-    string hitPolicyStr = "randombest";
-    HITPOLICY hitPolicy = RANDOMBEST; 
-
-    bool parseSmrtTitle = false;
-    string titleTableName = "";
-    string adapterGffFileName = "";
 
     CommandLineParser clp;
     clp.RegisterStringOption("file.sam", &samFileName,
@@ -306,80 +250,33 @@ int main(int argc, char* argv[]) {
                              "Reference used to generate reads.");
     clp.RegisterStringOption("out.sam", &outFileName,
                              "Output SAM file.");
-
     clp.RegisterPreviousFlagsAsHidden();
 
-    stringstream help;
-    help << "(" << filterCriteria.minAccuracy 
-         << ") Minimum percentage accuracy to reference.";
-    clp.RegisterFloatOption("minAccuracy", &filterCriteria.minAccuracy,
-            help.str(), CommandLineParser::PositiveFloat);
+    // Register filter criteria options.
+    int minAlnLength = 50;
+    float minPctSimilarity = 70, minPctAccuracy = 70;
+    string hitPolicyStr = "randombest";
+    bool useScoreCutoff = false;
+    int  scoreCutoff = INF_INT;
+    int  scoreSignInt = -1;
+    RegisterFilterOptions(clp, minAlnLength, minPctSimilarity, 
+                          minPctAccuracy, hitPolicyStr, useScoreCutoff,
+                          scoreSignInt, scoreCutoff);
 
-    help.str(string());
-    help << "(" << filterCriteria.minPctSimilarity
-         << ") Minimum percentage similarity to reference.";
-    clp.RegisterFloatOption("minPctSimilarity", &filterCriteria.minPctSimilarity,
-            help.str(), CommandLineParser::PositiveFloat);
+    int seed = 1; 
+    clp.RegisterIntOption("seed", &seed,
+            "(1)  Seed for random number generator.\n"
+            "If seed is 0, then use current time as seed.",
+            CommandLineParser::Integer);
 
-    help.str(string());
-    help << "(" << filterCriteria.minLength
-         << ") Minimum aligned read length to output a hit."; 
-    clp.RegisterIntOption("minLength", &filterCriteria.minLength,
-            help.str(), CommandLineParser::PositiveInteger);
-    clp.RegisterStringOption("hitPolicy", &hitPolicyStr,
-            "(randombest) Specify a policy to treat multiple hits from "
-            "[random, all, allbest, randombest]\n"
-            "  random  : selects a random hit.\n"
-            "  all     : selects all hits.\n"
-            "  allbest : selects all the best alignment score hits.\n"
-            "  randombest: selects a random hit from all best alignment score hits.\n"
-            "  leftmost: selects a hit which has the best alignment score and \n" 
-            "            has the smallest mapping coordinate in any reference.");
-    clp.RegisterStringOption("scoreFunction", &scoreFuncStr,
-            "(alignerscore) Specify an alignment score function from "
-            "[alignerscore, editdist, blasrscore, userscore]\n" // affine
-            "  alignerscore : aligner's score in SAM tag 'as'.\n"
-            "  editdist     : edit distance between read and reference.\n"
-            "  blasrscore   : blasr's default score function.\n"
-            "  userscore    : score computed using a user-defined scoring\n"
-            "                 matrix (specified by -scoreMatrix) and \n"
-            "                 insertion & deletion scores (specified by \n"
-            "                 -insertion and -deletion respectively).");
-    clp.RegisterStringOption("scoreMatrix", &scoreMatrixStr,
-            "Specify a user-defined score matrix for scoring reads."
-            "The matrix is in the format\n"
-            "    ACGTN\n"
-            "  A abcde\n"
-            "  C fghij\n"
-            "  G klmno\n"
-            "  T pqrst\n"
-            "  N uvwxy\n" 
-            ". The values a...y should be input as a quoted space "
-            "seperated string: \"a b c ... y\". Lower scores are better, "
-            "so matches should be less than mismatches e.g. a,g,m,s = -5 "
-            "(match), mismatch = 6. "); 
-    clp.RegisterIntOption("deletion", &delScore, 
-            "Specify a user-defined deletion score.",
-            CommandLineParser::Integer);
-    clp.RegisterIntOption("insertion", &insScore,
-            "Specify a user-defined insertion score.",
-            CommandLineParser::Integer); 
-    clp.RegisterIntOption("scoreCutoff", &scoreCutoff,
-            "Score cut off defines the worst score to output a hit.", 
-            CommandLineParser::Integer);
-    clp.RegisterIntOption("scoreSign", &scoreSignInt,
-            "(-1) Sepcifiy the alignment score sign."
-            "  -1: negative scores are better than positive ones."
-            "   1: positive scores are better than negative ones.",
-            CommandLineParser::Integer);
-    clp.RegisterIntOption ("seed", &seed,
-            "(1)  Seed for random number generator."
-            "   If seed is 0, then the current time will be used as seed.",
-            CommandLineParser::Integer);
+    string holeNumberStr;
+    Ranges holeNumberRanges;
     clp.RegisterStringOption("holeNumbers", &holeNumberStr,
             "A string of comma-delimited hole number ranges to output hits, "
             "such as '1,2,10-12'. "
             "This requires hit titles to be in SMRT read title format.");
+
+    bool parseSmrtTitle = false;
     clp.RegisterFlagOption("smrtTitle", &parseSmrtTitle,
             "Use this option when filtering alignments generated by "
             "programs other than blasr, e.g. bwa-sw or gmap. "
@@ -394,14 +291,22 @@ int main(int argc, char* argv[]) {
      * between full and short reference names, one may call blasr with 
      * -titleTable option to represent all target sequences in the output
      * by their indices in the title table.*/
+
+    string titleTableName = "";
     clp.RegisterStringOption("titleTable", &titleTableName,
             "Use this experimental option when filtering alignments generated by "
             "blasr with -titleTable titleTableName, in which case "
             "reference titles in SAM are represented by their "
             "indices (e.g., 0, 1, 2, ...) in the title table.");
+
+    string adapterGffFileName = "";
     clp.RegisterStringOption("filterAdapterOnly", &adapterGffFileName,
             "Use this option to remove reads which can only map to adapters " 
             "specified in the GFF file.");
+
+    bool verbose = false;
+    clp.RegisterFlagOption("v", &verbose, "Be verbose.");
+
     clp.SetExamples(
             "Because SAM has optional tags that have different meanings"
             " in different programs, careful usage is required in order "
@@ -414,7 +319,6 @@ int main(int argc, char* argv[]) {
             "aligned.  The CIGAR string is relative to this interval.");
 
     clp.ParseCommandLine(argc, argv);
-    filterCriteria.verbosity = verbosity; 
 
     // Set random number seed. 
     if (seed == 0) {
@@ -422,54 +326,18 @@ int main(int argc, char* argv[]) {
     } else {
         srand(seed);
     }
-
-    // Set hit policy.
-    hitPolicy = setHitPolicy(hitPolicyStr);
-
-    // Set score function.
-    scoreFunc = setScoreFunction(scoreFuncStr);
-
-    // Set score cutoff and sign
-    if (scoreCutoff != INF_INT)
-        filterCriteria.SetScoreCutoff((double)scoreCutoff);
-    scoreSign = filterCriteria.SetScoreSign(scoreSignInt);
-
+    
+    scoreSign = (scoreSignInt == -1)?ScoreSign::NEGATIVE:ScoreSign::POSITIVE;
+    Score s(static_cast<float>(scoreCutoff), scoreSign);
+    FilterCriteria filterCriteria(minAlnLength, minPctSimilarity, 
+                                  minPctAccuracy, true, s);
+    filterCriteria.Verbose(verbose);
+    HitPolicy hitPolicy(hitPolicyStr, scoreSign);
+                                  
     string errMsg;
-    if (not  filterCriteria.MakeSane(errMsg)) {
+    if (not filterCriteria.MakeSane(errMsg)) {
         cout << errMsg << endl;
         exit(1);
-    }
-
-    if (scoreFunc == USERSCORE and scoreMatrixStr == "") {
-        cout << "ERROR. Please specify user-defined score matrix using "
-             << "-scoreMatrix." << endl;
-        exit(1);
-    }
-
-    DistanceMatrixScoreFunction<DNASequence, DNASequence> distScoreFn;
-    if (scoreMatrixStr != "") {
-        if (scoreFunc != USERSCORE) {
-            cout << "ERROR. scoreFunc should be 'userscore' if "
-                 << "-scoreMatrix is used." << endl;
-            exit(1);
-        }
-        if (StringToScoreMatrix(scoreMatrixStr, distScoreFn.scoreMatrix) == false) {
-            cout << "ERROR. The string " << endl
-                << scoreMatrixStr << endl
-                << "is not a valid format. It should be a quoted, "
-                << "space separated string of "  << endl
-                << "integer values.  The matrix: " << endl
-                << "    A  C  G  T  N" << endl
-                << " A  1  2  3  4  5" << endl
-                << " C  6  7  8  9 10" << endl
-                << " G 11 12 13 14 15" << endl
-                << " T 16 17 18 19 20" << endl
-                << " N 21 22 23 24 25" << endl
-                << " should be specified as \"1 2 3 4 5 6 7 8 9 "
-                << "10 11 12 13 14 15 16 17 18 19 " << endl
-                << "20 21 22 23 24 25\"" << endl;
-            exit(1);
-        }
     }
 
     // Parse hole number ranges. 
@@ -481,24 +349,7 @@ int main(int argc, char* argv[]) {
         } 
     }
 
-    if (scoreFunc == EDITDIST) {
-        // Penalty=1 for each mismatch and indel. 
-        distScoreFn.InitializeScoreMatrix(EditDistanceMatrix);
-        insScore = delScore = 1;
-        scoreSign = filterCriteria.SetScoreSign(NEG);
-    } else if (scoreFunc == BLASRSCORE) {
-        distScoreFn.InitializeScoreMatrix(SMRTDistanceMatrix);
-        insScore = delScore = 5;
-        scoreSign = filterCriteria.SetScoreSign(NEG);
-    } 
-    //
-    // If ALIGNERSCORE, score matrix does not matter.
-    // If USERSCORE, use user-specified scorematrix, insScore 
-    // and delScore.
-    //
-    distScoreFn.ins = insScore;
-    distScoreFn.del = delScore;
-
+    // Open output file.
     ostream * outFilePtr = &cout;
 	ofstream outFileStrm;
 	if (outFileName != "") {
@@ -603,7 +454,7 @@ int main(int argc, char* argv[]) {
                 exit(1);
             }
             if (not holeNumberRanges.contains(UInt(thisHoleNumber))) {
-                if (verbosity > 0) 
+                if (verbose) 
                     cout << thisHoleNumber << " is not in range." << endl; 
                 continue;
             }
@@ -628,33 +479,25 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < 1; i++) {
             AlignmentCandidate<> & alignment = convertedAlignments[i];
 
+            //score func does not matter
+            DistanceMatrixScoreFunction<DNASequence, DNASequence> distFunc; 
             ComputeAlignmentStats(alignment, alignment.qAlignedSeq.seq, 
-                                  alignment.tAlignedSeq.seq, distScoreFn);
-                                  // scoreMatrix, insScore, delScore);
-            if (verbosity > 0)  {
-                cout << "Aligner's score = "  << samAlignment.as 
-                     << ", computed score = " << alignment.score << endl;
-            }
-
+                                  alignment.tAlignedSeq.seq, distFunc);
+                                  
             // Check whether this alignment can only map to adapters in 
             // the adapter GFF file.
             if (adapterGffFileName != "" and 
                 CheckAdapterOnly(adapterGffFile, alignment, refNameToIndex)) {
-                if (verbosity > 0)
+                if (verbose)
                     cout << alignment.qName << " filter adapter only."
                          << endl;
                 continue;
             }
 
             // Assign score to samAlignment.
-            samAlignment.score = alignment.score;
-            if (scoreFunc == ALIGNERSCORE) 
-                samAlignment.score = samAlignment.as;
+            samAlignment.score = samAlignment.as;
 
-            if (not filterCriteria.Satisfy(alignment)) {
-                if (verbosity > 0)
-                    cout << alignment.qName
-                         << " does not satisfy filter criteria." << endl;
+            if (not filterCriteria.Satisfy(static_cast<AlignmentCandidate<> *>(&alignment))) {
                 continue;
             }
             allSAMAlignments.push_back( samAlignment ); 
@@ -665,10 +508,8 @@ int main(int argc, char* argv[]) {
     }
 
     // Sort all SAM alignments by qName, score and target position.
-    if (!isSorted) {
-        sort(allSAMAlignments.begin(), allSAMAlignments.end(), 
-             byQNameScoreTStart);
-    }
+    sort(allSAMAlignments.begin(), allSAMAlignments.end(), 
+         byQNameScoreTStart);
 
     unsigned int groupBegin = 0;
     unsigned int groupEnd = -1;
@@ -685,6 +526,7 @@ int main(int argc, char* argv[]) {
         groupBegin = groupEnd;
     }
 
+    // Sort all SAM alignments by reference name and query name
     sort(filteredSAMAlignments.begin(), filteredSAMAlignments.end(), 
          byRNameQName);
 
