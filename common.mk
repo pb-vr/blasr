@@ -12,7 +12,6 @@ LIBPBIHDF_INCLUDE := $(PBINCROOT)/hdf
 LIBPBDATA_INCLUDE := $(PBINCROOT)/pbdata
 PBBAM_INCLUDE     := $(PBBAM)/include
 HTSLIB_INCLUDE    := $(PBBAM)/third-party/htslib
-BOOST_INCLUDE     := $(PREBUILT)/boost/boost_1_55_0
 
 LIBBLASR_LIB  := $(PBINCROOT)/alignment
 LIBPBIHDF_LIB := $(PBINCROOT)/hdf
