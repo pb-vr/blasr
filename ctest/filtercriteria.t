@@ -17,7 +17,7 @@ Test -minPctSimilarity
   [INFO]* (glob)
   $ echo $?
   0
-  $ awk '$4 < 90 {print}' |wc -l |cut -f 1 -d ' ' 
+  $ awk '$4 < 90 {print}' $O |wc -l |cut -f 1 -d ' ' 
   0
 
   $ O=$OUTDIR/min_aln_len_1000.m4
