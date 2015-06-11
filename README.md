@@ -73,4 +73,3 @@ and a genome.
     * > sa2bwt hg19.fasta hg19.fasta.sa hg19.fasta.bwt
     * > blasr reads.bas.h5 hg19.fasta -bwt hg19.fasta.bwt
 
-[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/036412483bfb92d2f18c1e62a34586b4 "githalytics.com")](http://githalytics.com/PacificBiosciences/blasr)
