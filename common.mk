@@ -22,17 +22,13 @@ HTSLIB_LIB    := $(PBBAM)/third-party/htslib
 INCDIRS = -I$(LIBBLASR_INCLUDE) \
           -I$(LIBPBIHDF_INCLUDE) \
           -I$(LIBPBDATA_INCLUDE) \
-          -I$(HDF5_INC) \
-          -I$(PBBAM_INCLUDE) \
-          -I$(HTSLIB_INCLUDE) \
-          -I$(BOOST_INCLUDE)
+          -I$(HDF5_INC)
 
 LIBDIRS = -L$(LIBBLASR_LIB) \
           -L$(LIBPBIHDF_LIB) \
           -L$(LIBPBDATA_LIB) \
-          -L$(HDF5_LIB) \
-          -L$(PBBAM_LIB) \
-          -L$(HTSLIB_LIB)
+          -L$(HDF5_LIB) 
+
 
 ifneq ($(ZLIB_ROOT), notfound)
 	INCDIRS += -I$(ZLIB_ROOT)/include
@@ -48,17 +44,32 @@ DEBUGCXXFLAG := -g -ggdb -fno-inline
 PROFILECXXFLAG := -Os -pg 
 GCXXFLAG := -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -fno-omit-frame-pointer 
 
-LIBS := -lblasr -lpbihdf -lpbdata -lpbbam 
+LIBS := -lblasr -lpbihdf -lpbdata
+PBBAMLIBS := -lpbbam
 ifneq ($(wildcard "$(HTSLIB_LIB)/libhts.a"),"")
-	LIBS += $(HTSLIB_LIB)/libhts.a
+	PBBAMLIBS += $(HTSLIB_LIB)/libhts.a
 else
-	LIBS += -lhts
+	PBBAMLIBS += -lhts
 endif
+
 ifneq ($(wildcard "$(HDF5_LIB)/libhdf5_cpp.a"),"")
-    LIBS += $(HDF5_LIB)/libhdf5_cpp.a $(HDF5_LIB)/libhdf5.a -lz -lpthread -ldl
+    LIBS += $(HDF5_LIB)/libhdf5_cpp.a $(HDF5_LIB)/libhdf5.a
 else
-    LIBS += -lhdf5_cpp -lhdf5 -lz -lpthread -ldl
+    LIBS += -lhdf5_cpp -lhdf5 
 endif
+
+ifeq ($(origin nopbbam), undefined)
+	INCDIRS += -I$(PBBAM_INCLUDE) \
+			   -I$(HTSLIB_INCLUDE) \
+			   -I$(BOOST_INCLUDE)
+
+	LIBDIRS += -L$(PBBAM_LIB) \
+			   -L$(HTSLIB_LIB)
+
+	LIBS += $(PBBAMLIBS) 
+endif
+
+LIBS += -lz -lpthread -ldl
 
 ifneq ($(OS), Darwin)
 	LIBS += -lrt
