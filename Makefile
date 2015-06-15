@@ -57,7 +57,7 @@ cleanlib: $(PBINCROOT)/Makefile
 	@make -C $(PBINCROOT) cleanall
 
 clean: 
-	@rm -f $(EXE) $(OBJS) $(DEPS)
+	@rm -f $(EXE) $(OBJS) $(DEPS) blasr.d
 	@make -C $(UTILS) clean
 
 -include $(DEPS)
