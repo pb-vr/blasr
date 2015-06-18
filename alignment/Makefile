@@ -27,7 +27,7 @@ EXECS = blasr wordCounter printReadWordCount sdpMatcher swMatcher kbandMatcher s
 all: bin make.dep $(EXECS)
 
 BUILTEXECS = $(addprefix bin/, $(EXECS))
-DISTRIB_SET = swMatcher kbandMatcher sawriter samodify printTupleCountTable cmpPrintTupleCountTable removeAdapters sdpMatcher pbmask
+DISTRIB_SET = blasr swMatcher kbandMatcher sawriter samodify printTupleCountTable cmpPrintTupleCountTable removeAdapters sdpMatcher pbmask
 DISTRIB_EXECS = $(addprefix bin/, $(DISTRIB_SET))
 INSTALL_EXECS = $(addprefix install-, $(DISTRIB_SET))
 
