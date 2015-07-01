@@ -28,8 +28,8 @@ Input is fasta, compare with stdout
   [INFO]* (glob)
 
   $ $SAMTOOLS view -h $OUTDIR/tiny_fasta_in.bam -o $OUTDIR/tiny_fasta_in.bam.sam
-  $ sed -n '6,$p' $OUTDIR/tiny_fasta_in.bam.sam > $TMP1.fasta_in
-  $ sed -n '6,$p' $STDDIR/$UPDATEDATE/tiny_fasta_in.bam.sam > $TMP2.fasta_in
+  $ sed -n '6,$p' $OUTDIR/tiny_fasta_in.bam.sam |cut -f 1-11,13- > $TMP1.fasta_in
+  $ sed -n '6,$p' $STDDIR/$UPDATEDATE/tiny_fasta_in.bam.sam |cut -f 1-11,13- > $TMP2.fasta_in
   $ diff $TMP1.fasta_in $TMP2.fasta_in
 
 Input is bam, clipping=soft and subread should produce identical results
