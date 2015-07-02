@@ -266,7 +266,7 @@ const string BlasrHelp(MappingParameters & params) {
              << "   -out out (terminal)  " << endl
              << "               Write output to 'out'." << endl
 #ifdef USE_PBBAM
-             << "   -bam        Write output in PacBio BAM format." << endl
+             << "   -bam        Write output in PacBio BAM format. Input query reads must be in PacBio BAM format." << endl
 #endif 
              << "   -sam        Write output in SAM format." << endl
              << "   -m t           " << endl

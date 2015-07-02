@@ -203,6 +203,7 @@ public:
     FilterCriteria filterCriteria;
     string hitPolicyStr;
     HitPolicy hitPolicy;
+    bool enableHiddenPaths;
 
     void Init() {
         readIndex = -1;
@@ -378,6 +379,7 @@ public:
 
         hitPolicyStr = "all";
         ResetFilterAndHit();
+        enableHiddenPaths = false; //turn off hidden paths.
     }
 
     MappingParameters()
@@ -574,6 +576,11 @@ public:
             if (clipping != SAMOutput::soft) {
                 // Only support two clipping methods: soft or subread.
                 clipping = SAMOutput::subread;
+            }
+            if (queryFileType != PBBAM and not enableHiddenPaths) {
+                // bax|fasta|fastq -> bam paths are turned off by default 
+                cout << "ERROR, could not output alignments in BAM unless input reads are in PacBio BAM files." << endl;
+                exit(1);
             }
             if (outFileName == "") {
                 cout << "ERROR, BAM output file must be specified." << endl;
