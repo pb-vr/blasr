@@ -45,8 +45,9 @@ sawriter: SAWriter.cpp $(PBLIB)
 sdpMatcher: SDPMatcher.cpp $(PBLIB)
 	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
 
-pblib: $(PBINCROOT)/Makefile
-	make -C $(PBINCROOT)
+pblib: $(PBINCROOT)/makefile
+	echo skipping making pblib
+	#make -C $(PBINCROOT)
 
 CTESTS := $(wildcard ctest/*.t)
 SLOW_CTESTS := ctest/loadPulses.t ctest/pls2fasta.t

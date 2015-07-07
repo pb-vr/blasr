@@ -46,11 +46,11 @@ $(EXE): $(SRCS) $(PBLIB)
 	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $(SRCS) $(LIBDIRS) $(LIBS)
 
 # DON'T use pbbam which is not on github.
-pblib: $(PBINCROOT)/Makefile
-	export PBINCROOT=$(PBINCROOT) && export HDF5_LIB=$(HDF5_LIB) && export HDF5_INC=$(HDF5_INC) && export nopbbam=true  && make -C $(PBINCROOT) all $(MODE)
+pblib: $(PBINCROOT)/configure.py $(PBINCROOT)/makefile
+	cd $(PBINCROOT) && NOPBBAM=true ./configure.py && export PBINCROOT=$(PBINCROOT) && export nopbbam=true  && make -f makefile
 
 makeutils:
-	export PBINCROOT=$(PBINCROOT) && export HDF5_LIB=$(HDF5_LIB) && export HDF5_INC=$(HDF5_INC) && export nopbbam=true  && make -C $(UTILS) $(MODE) 
+	export PBINCROOT=$(PBINCROOT) && export nopbbam=true && export COMMON_NO_THIRD_PARTY_REQD=true && export HDF5_LIB=$(HDF5_LIB) && export HDF5_INC=$(HDF5_INC) && make -C $(UTILS) $(MODE) 
 
 CTESTS := $(wildcard ctest/*.t)
 SLOW_CTESTS := ctest/bug25328.t ctest/useccsallLargeGenome.t
@@ -70,7 +70,7 @@ check: gtest cramtests
 
 cleanall: cleanlib clean
 
-cleanlib: $(PBINCROOT)/Makefile
+cleanlib: $(PBINCROOT)/makefile
 	@COMMON_NO_THIRD_PARTY_REQD=true make -C $(PBINCROOT) cleanall
 
 clean: 
