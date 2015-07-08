@@ -348,7 +348,7 @@ int main(int argc, char* argv[]) {
 
                 readLength = sampleSeq.length;
                 vector<string> tokens;
-                Tokenize(sampleSeq.title, "|", tokens);
+                Splice(sampleSeq.title, "|", tokens);
                 if (tokens.size() == 4) {
                     seqPos = atoi(tokens[2].c_str());
                     if (titleTableFileName == "") {

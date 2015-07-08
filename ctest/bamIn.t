@@ -13,7 +13,7 @@ Check whether blasr produces identical results taking fasta sequences of the bam
   $ diff $OUTDIR/tiny_bam_in.m4 $OUTDIR/tiny_fasta_in.m4
 
 Test bam in, sam out
-  $ $EXEC $DATDIR/test_bam/tiny_bam.fofn $DATDIR/lambda_ref.fasta -sam -out $OUTDIR/tiny_bam_in.sam -printSAMQV -clipping subread
+  $ $EXEC $DATDIR/test_bam/tiny_bam.fofn $DATDIR/lambda_ref.fasta -sam -out $OUTDIR/tiny_bam_in.sam -printSAMQV -clipping subread -cigarUseSeqMatch
   [INFO]* (glob)
   [INFO]* (glob)
 

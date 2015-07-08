@@ -568,6 +568,7 @@ public:
 #ifndef USE_PBBAM
             REQUIRE_PBBAM_ERROR();
 #else
+            cigarUseSeqMatch = true; // ALWAYS true for BAM
             printFormat = BAM;
             forPicard = true;
             printSAM = false;

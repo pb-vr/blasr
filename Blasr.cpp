@@ -2605,7 +2605,7 @@ void PrintAlignment(T_AlignmentCandidate &alignment, SMRTSequence &fullRead, Map
     }
     else if (params.printFormat == BAM) {
 #ifdef USE_PBBAM
-      BAMOutput::PrintAlignment(alignment, fullRead, *bamWriterPtr, alignmentContext, params.samQVList, params.clipping);
+      BAMOutput::PrintAlignment(alignment, fullRead, *bamWriterPtr, alignmentContext, params.samQVList, params.clipping, params.cigarUseSeqMatch);
 #else
       REQUIRE_PBBAM_ERROR();
 #endif

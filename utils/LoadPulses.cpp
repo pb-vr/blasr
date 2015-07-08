@@ -257,7 +257,7 @@ void StoreDatasetFieldsFromPulseFields(MetricOptionsMap &fieldSet,
 
 void ParseMetricsList(string metricListString, MetricOptionsMap &metricOptions) {
     vector<string> metrics;
-    Tokenize(metricListString, ",", metrics);
+    Splice(metricListString, ",", metrics);
     int m;
     for  (m = 0; m < metrics.size(); m++) {
         if (metricOptions.find(metrics[m]) != metricOptions.end()) {
