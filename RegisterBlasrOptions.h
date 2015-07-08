@@ -182,12 +182,12 @@ void RegisterBlasrOptions(CommandLineParser & clp, MappingParameters & params) {
 const string BlasrHelp(MappingParameters & params) {
   stringstream helpStream;
   helpStream << "   Options for blasr " << endl
-             << "   Basic usage: 'blasr reads.{fasta,bax.h5} genome.fasta [-options] " << endl
+             << "   Basic usage: 'blasr reads.{fasta,bax.h5}|fofn genome.fasta [-options] " << endl
              << " option\tDescription (default_value)." << endl << endl
              << " Input Files." << endl
              << "   reads.fasta is a multi-fasta file of reads.  While any fasta file is valid input, " <<endl
              << "               it is preferable to use plx.h5 or bax.h5 files because they contain" << endl
-             << "               more rich quality value information." << endl << endl
+             << "               more rich quality value information. fofn is accepted. " << endl << endl
              << "   reads.bax.h5|reads.plx.h5 Is the native output format in Hierarchical Data Format of " <<endl
              << "               SMRT reads. This is the preferred input to blasr because rich quality" << endl
              << "               value (insertion,deletion, and substitution quality values) information is " << endl
