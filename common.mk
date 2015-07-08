@@ -11,13 +11,13 @@ LIBBLASR_INCLUDE  := $(PBINCROOT)/alignment
 LIBPBIHDF_INCLUDE := $(PBINCROOT)/hdf
 LIBPBDATA_INCLUDE := $(PBINCROOT)/pbdata
 PBBAM_INCLUDE     := $(PBBAM)/include
-HTSLIB_INCLUDE    := $(PBBAM)/third-party/htslib
+HTSLIB_INCLUDE    := $(PBBAM)/../htslib/htslib
 
 LIBBLASR_LIB  := $(PBINCROOT)/alignment
 LIBPBIHDF_LIB := $(PBINCROOT)/hdf
 LIBPBDATA_LIB := $(PBINCROOT)/pbdata
 PBBAM_LIB     := $(PBBAM)/lib
-HTSLIB_LIB    := $(PBBAM)/third-party/htslib
+HTSLIB_LIB    := $(PBBAM)/../htslib
 
 INCDIRS = -I$(LIBBLASR_INCLUDE) \
           -I$(LIBPBIHDF_INCLUDE) \
