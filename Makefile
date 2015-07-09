@@ -22,15 +22,11 @@ all debug profile g: $(EXE) makeutils
 $(EXE): $(SRCS) $(PBLIB)
 	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $(SRCS) $(LIBDIRS) $(LIBS)
 
-ifeq ($(origin nopbbam), undefined)
-pblib: $(PBINCROOT)/Makefile
-	@echo building pblib with pbbam
-	make -C $(PBINCROOT)
-else
-pblib: $(PBINCROOT)/Makefile
-	@echo building pblib without pbbam
-	nopbbam=true make -C $(PBINCROOT)
-endif
+# DON'T use pbbam which is not on github.
+PBINCROOT:=$(abspath libcpp)
+pblib: $(PBINCROOT)/configure.py $(PBINCROOT)/makefile
+	cd $(PBINCROOT) && NOPBBAM=true HDF5_LIB=${HDF5_LIB}/libhdf5.so ./configure.py
+	cd $(PBINCROOT) && ${MAKE}
 
 makeutils:
 	make -C $(UTILS) $(MODE) 
