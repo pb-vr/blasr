@@ -47,7 +47,8 @@ $(EXE): $(SRCS) $(PBLIB)
 
 # DON'T use pbbam which is not on github.
 pblib: $(PBINCROOT)/configure.py $(PBINCROOT)/makefile
-	cd $(PBINCROOT) && NOPBBAM=true ./configure.py && export PBINCROOT=$(PBINCROOT) && export nopbbam=true  && make -f makefile
+	cd $(PBINCROOT) && NOPBBAM=true HDF5_LIB=${HDF5_LIB}/libhdf5.so ./configure.py
+	cd $(PBINCROOT) && make -j
 
 makeutils:
 	export PBINCROOT=$(PBINCROOT) && export nopbbam=true && export COMMON_NO_THIRD_PARTY_REQD=true && export HDF5_LIB=$(HDF5_LIB) && export HDF5_INC=$(HDF5_INC) && make -C $(UTILS) $(MODE) 
