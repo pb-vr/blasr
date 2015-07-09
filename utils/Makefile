@@ -22,28 +22,28 @@ EXE = loadPulses pls2fasta samtoh5 samtom4 samFilter toAfg sawriter sdpMatcher
 all debug profile g: $(EXE)
 
 loadPulses: LoadPulses.cpp $(PBLIB)
-	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
+	$(CXX) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
 
 pls2fasta: PulseToFasta.cpp $(PBLIB)
-	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
+	$(CXX) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
 
 samtoh5: SamToCmpH5.cpp $(PBLIB)
-	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
+	$(CXX) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
 
 samtom4: SamToM4.cpp $(PBLIB)
-	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
+	$(CXX) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
 
 samFilter: SamFilter.cpp $(PBLIB)
-	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
+	$(CXX) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
 
 toAfg: ToAfg.cpp $(PBLIB)
-	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
+	$(CXX) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
 
 sawriter: SAWriter.cpp $(PBLIB)
-	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
+	$(CXX) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
 
 sdpMatcher: SDPMatcher.cpp $(PBLIB)
-	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
+	$(CXX) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $< $(LIBDIRS) $(LIBS)
 
 pblib: $(PBINCROOT)/Makefile
 	make -C $(PBINCROOT)

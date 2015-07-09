@@ -20,7 +20,7 @@ g: LIBS = $(GLIBS)
 all debug profile g: $(EXE) makeutils 
 
 $(EXE): $(SRCS) $(PBLIB)
-	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $(SRCS) $(LIBDIRS) $(LIBS)
+	$(CXX) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $(SRCS) $(LIBDIRS) $(LIBS)
 
 # DON'T use pbbam which is not on github.
 PBINCROOT:=$(abspath libcpp)

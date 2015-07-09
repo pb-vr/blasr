@@ -21,7 +21,7 @@ MAKE := make
 all debug profile g: $(EXE) makeutils 
 
 $(EXE): $(SRCS) mkliba
-	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $(SRCS) $(LIBDIRS) $(LIBS)
+	$(CXX) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $(SRCS) $(LIBDIRS) $(LIBS)
 
 makeutils: mkliba
 	export CXXFLAGS="$(CXXFLAGS)" && make -C $(UTILS) $(MODE) -f p4.mk
