@@ -6,6 +6,7 @@ PREBUILT ?= $(realpath ../../../prebuilt.out)
 THIRD_PARTY_PREFIX ?= $(realpath ..)
 
 #####include $(PBINCROOT)/common.mk
+include $(PBINCROOT)/rules.mk
 
 LIBBLASR_INCLUDE  := $(PBINCROOT)/alignment
 LIBPBIHDF_INCLUDE := $(PBINCROOT)/hdf

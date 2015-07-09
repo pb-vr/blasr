@@ -43,7 +43,7 @@ g: MODE = g
 all debug profile g: $(EXE) makeutils
 
 $(EXE): $(SRCS) $(PBLIB)
-	$(CXX_pp) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $(SRCS) $(LIBDIRS) $(LIBS)
+	$(CXX) $(CXXOPTS) $(CXXFLAGS) $(INCDIRS) -MF"$(@:%=%.d)" $(STATIC) -o $@ $(SRCS) $(LIBDIRS) $(LIBS)
 
 # DON'T use pbbam which is not on github.
 pblib: $(PBINCROOT)/configure.py $(PBINCROOT)/makefile
