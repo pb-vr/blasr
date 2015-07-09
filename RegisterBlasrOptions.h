@@ -182,17 +182,17 @@ void RegisterBlasrOptions(CommandLineParser & clp, MappingParameters & params) {
 const string BlasrHelp(MappingParameters & params) {
   stringstream helpStream;
   helpStream << "   Options for blasr " << endl
-             << "   Basic usage: 'blasr reads.{fasta,bax.h5} genome.fasta [-options] " << endl
+             << "   Basic usage: 'blasr reads.{bam|fasta|bax.h5|fofn} genome.fasta [-options] " << endl
              << " option\tDescription (default_value)." << endl << endl
              << " Input Files." << endl
-             << "   reads.fasta is a multi-fasta file of reads.  While any fasta file is valid input, " <<endl
-             << "               it is preferable to use plx.h5 or bax.h5 files because they contain" << endl
-             << "               more rich quality value information." << endl << endl
-             << "   reads.bax.h5|reads.plx.h5 Is the native output format in Hierarchical Data Format of " <<endl
-             << "               SMRT reads. This is the preferred input to blasr because rich quality" << endl
+             << "   reads.bam   is a PacBio BAM file of reads." << endl
+             << "               This is the preferred input to blasr because rich quality" << endl
              << "               value (insertion,deletion, and substitution quality values) information is " << endl
              << "               maintained.  The extra quality information improves variant detection and mapping"<<endl
-             << "               speed." << endl <<endl
+             << "               speed." << endl
+             << "   reads.fasta is a multi-fasta file of reads.  While any fasta file is valid input, " << endl
+             << "   reads.bax.h5|reads.plx.h5 is the old DEPRECATED output format of SMRT reads." << endl
+             << "   input.fofn  File of file names accepted." << endl << endl
              << "   -sa suffixArrayFile"<< endl
              << "               Use the suffix array 'sa' for detecting matches" << endl 
              << "               between the reads and the reference.  The suffix" << endl 
@@ -202,18 +202,14 @@ const string BlasrHelp(MappingParameters & params) {
              << "               by the program 'printTupleCountTable'.  While it is quick to generate on " << endl
              << "               the fly, if there are many invocations of blasr, it is useful to"<<endl
              << "               precompute the ctab." <<endl << endl
-             << "   -regionTable table" << endl
+             << "   -regionTable table (DEPRECATED)" << endl
              << "               Read in a read-region table in HDF format for masking portions of reads." << endl
              << "               This may be a single table if there is just one input file, " << endl
              << "               or a fofn.  When a region table is specified, any region table inside " << endl
              << "               the reads.plx.h5 or reads.bax.h5 files are ignored."<< endl
-//             << "   -ccsFofn ccsFofn" << endl
-//             << "               Read in a ciruclar consensus sequence (ccs) file in HDF format. " << endl
-//             << "               This may be a single ccs.h5 file if there is just one input file, " << endl
-//             << "               or a fofn. When a ccs file (or fofn) is specified, any ccs data inside the " << endl
-//             << "               read.bax.h5 file (or files) are ignored." << endl
              << endl 
-             << " Options for modifying reads. There is ancilliary information about substrings of reads " << endl
+             << "(DEPRECATED) Options for modifying reads." << endl
+             << "               There is ancilliary information about substrings of reads " << endl
              << "               that is stored in a 'region table' for each read file.  Because " << endl
              << "               HDF is used, the region table may be part of the .bax.h5 or .plx.h5 file," << endl
              << "               or a separate file.  A contiguously read substring from the template " << endl
@@ -248,7 +244,7 @@ const string BlasrHelp(MappingParameters & params) {
              << "   -hitPolicy" << endl
              << "               " << params.hitPolicy.Help(string(15, ' ')) << endl
              << "   -placeRepeatsRandomly (false)" << endl
-             << "               Deprecated! If true, equivalent to -hitPolicy randombest." << endl
+             << "               DEPRECATED! If true, equivalent to -hitPolicy randombest." << endl
              << "   -randomSeed (0)" << endl
              << "               Seed for random number generator. By default (0), use current time as seed. " << endl
              << "   -noSortRefinedAlignments (false) " << endl
@@ -266,7 +262,8 @@ const string BlasrHelp(MappingParameters & params) {
              << "   -out out (terminal)  " << endl
              << "               Write output to 'out'." << endl
 #ifdef USE_PBBAM
-             << "   -bam        Write output in PacBio BAM format. Input query reads must be in PacBio BAM format." << endl
+             << "   -bam        Write output in PacBio BAM format. This is the preferred output format." << endl
+             << "               Input query reads must be in PacBio BAM format." << endl
 #endif 
              << "   -sam        Write output in SAM format." << endl
              << "   -m t           " << endl
@@ -274,7 +271,7 @@ const string BlasrHelp(MappingParameters & params) {
              << "                t=" << StickPrint <<   " Print blast like output with |'s connecting matched nucleotides." << endl 
              << "                  " << SummaryPrint << " Print only a summary: score and pos." << endl 
              << "                  " << CompareXML <<   " Print in Compare.xml format." << endl 
-             << "                  " << Vulgar <<       " Print in vulgar format (deprecated)." << endl
+             << "                  " << Vulgar <<       " Print in vulgar format (DEPRECATED)." << endl
              << "                  " << Interval <<     " Print a longer tabular version of the alignment." << endl 
              << "                  " << CompareSequencesParsable  << " Print in a machine-parsable format that is read by compareSequences.py." << endl
              << "   -header" <<endl
@@ -409,7 +406,7 @@ const string BlasrHelp(MappingParameters & params) {
              << "   -holeNumbers LIST " << endl
              << "               When specified, only align reads whose ZMW hole numbers are in LIST." << endl
              << "               LIST is a comma-delimited string of ranges, such as '1,2,3,10-13'." << endl
-             << "               This option only works when reads are in base or pulse h5 format." << endl
+             << "               This option only works when reads are in bam, bax.h5 or plx.h5 format." << endl
              << endl 
 //             << " Options for dynamic programming alignments. " << endl << endl
 //             << "   -ignoreQuality" << endl
@@ -438,17 +435,20 @@ const string BlasrConciseHelp(void) {
 
 const string BlasrSummaryHelp(void) {
     stringstream ss;
-    ss << "   Basic usage: 'blasr reads.{fasta,bax.h5} genome.fasta [-options] " << endl
+    ss << "   Basic usage: 'blasr reads.{bam|fasta|bax.h5|fofn} genome.fasta [-options] " << endl
        << " [option]\tDescription (default_value)." << endl << endl
        << " Input Files." << endl
-       << "   reads.fasta is a multi-fasta file of reads.  While any fasta file is valid input, " 
-          "it is preferable to use plx.h5 or bax.h5 files because they contain "
-          "more rich quality value information." << endl
-       << "   reads.bax.h5|reads.plx.h5 Is the native output format in Hierarchical Data Format of "
-          "SMRT reads. This is the preferred input to blasr because rich quality"
+       << "   reads.bam is the NEW native output format for SMRT reads." 
+          "This is the preferred input to blasr because rich quality"
           "value (insertion,deletion, and substitution quality values) information is "
           "maintained.  The extra quality information improves variant detection and mapping"<<
-          "speed." 
+          "speed." << endl
+       << "   reads.fasta is a multi-fasta file of reads.  While any fasta file is valid input, " 
+          "it is preferable to use bax.h5 or plx.h5 files because they contain "
+          "more rich quality value information." << endl
+       << "   reads.bax.h5|reads.plx.h5 is the OLD (DEPRECATED) output format of "
+          "SMRT reads. " << endl
+       << "   reads.fofn File of file names accepted."
        << endl << endl;
   return ss.str();
 }
@@ -458,6 +458,7 @@ const string BlasrDiscussion(void) {
     ss << "NAME" << endl
        << "         blasr - Map SMRT Sequences to a reference genome."<< endl << endl
        << "SYNOPSIS" << endl
+       << "         blasr reads.bam genome.fasta -bam -out out.bam" << endl << endl
        << "         blasr reads.fasta genome.fasta " << endl << endl
        << "         blasr reads.fasta genome.fasta -sa genome.fasta.sa" << endl << endl
        << "         blasr reads.bax.h5 genome.fasta [-sa genome.fasta.sa] " << endl << endl
@@ -476,19 +477,22 @@ const string BlasrDiscussion(void) {
        << "  precomputed suffix array index on the reference sequence is" << endl
        << "  specified." << endl
        << "  " << endl
-       << "  Although reads may be input in FASTA format, the recommended input is HDF" << endl
-       << "  bax.h5 and plx.h5 files because these contain qualtiy value" << endl
+       << "  Although reads may be input in FASTA format, the recommended input is" << endl
+       << "  PacBio BAM files because these contain qualtiy value" << endl
        << "  information that is used in the alignment and produces higher quality" << endl
-       << "  variant detection.  " << endl
-       << "  " << endl
-       << "  Read filtering information is contained in the .bax.h5 input files as" << endl
-       << "  well as generated by other post-processing programs with analysis of" << endl
-       << "  pulse files and read in from a separate .region.h5 file.  The current" << endl
-       << "  set of filters that are applied to reads are high quality region" << endl
-       << "  filtering, and adapter filtering.  Regions outside high-quality" << endl
-       << "  regions are ignored in mapping.  Reads that contain regions annotated" << endl
-       << "  as adapter are split into non-adapter (template) regions, and mapped" << endl
-       << "  separately." << endl
+       << "  variant detection." << endl
+       << "  Although alignments can be output in various formats, the recommended " << endl
+       << "  output format is PacBio BAM." << endl
+       << "  Support to bax.h5 and plx.h5 files will be DEPRECATED." << endl
+       << "  Support to region tables for h5 files will be DEPRECATED." << endl
+       //<< "  Read filtering information is contained in the .bax.h5 input files as" << endl
+       //<< "  well as generated by other post-processing programs with analysis of" << endl
+       //<< "  pulse files and read in from a separate .region.h5 file.  The current" << endl
+       //<< "  set of filters that are applied to reads are high quality region" << endl
+       //<< "  filtering, and adapter filtering.  Regions outside high-quality" << endl
+       //<< "  regions are ignored in mapping.  Reads that contain regions annotated" << endl
+       //<< "  as adapter are split into non-adapter (template) regions, and mapped" << endl
+       //<< "  separately." << endl
        << "  " << endl
        << "  When suffix array index of a genome is not specified, the suffix array is" << endl
        << "  built before producing alignment.   This may be prohibitively slow" << endl
