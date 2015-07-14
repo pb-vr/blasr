@@ -22,16 +22,16 @@ To specify HDF5 headers and lib on your system,
 
 To make 'blasr' only:
 
-    $ make blasr
+    $ make -f yli.makefile blasr
 
 To compile all tools, including blasr, pls2fasta, loadPusles, sawriter:
 
-    $ make 
+    $ make -f yli.makefile
 
 To clean all compiled tools and lib:
 
-    $ make cleanall
+    $ make -f yli.makefile cleanall
 
 To clean compiled tools without cleaning lib:
 
-    $ make clean
+    $ make -f yli.makefile clean
