@@ -24,7 +24,7 @@ To make 'blasr' only:
 
     $ make -f yli.makefile blasr
 
-To compile all tools, including blasr, pls2fasta, loadPusles, sawriter:
+To compile all tools, including blasr, pls2fasta, loadPulses, sawriter:
 
     $ make -f yli.makefile
 
