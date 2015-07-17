@@ -1,37 +1,48 @@
-#NEWS: refactored blasr has been put online. Please try it out!#
+# NEWS: refactored blasr has been put online. Please try it out!
 
 Blasr installation and maual: 
 
-    $ more Manual.md
+    more Manual.md
 
 To pull this project from git hub to your local system:
 
-    $ git clone git@github.com:PacificBiosciences/blasr.git blasr --recursive
+    git clone git@github.com:PacificBiosciences/blasr.git blasr --recursive
 
 To sync your code with the latest git code base:
 
-    $ git pull -u origin master && git submodule update --init --recursive 
+    git pull -u origin master && git submodule update --init --recursive 
 
-To specify HDF5 headers and lib on your system, 
+To specify HDF5 headers and lib on your system:
 
-    $ edit blasr_git_common.mk
+    export HDF5_INCLUDE=path_to_your_hdf5_include && export HDF5_LIB=path_to_your_hdf5_lib
 
-    or
+To configure:
 
-    $ export HDF5_INC=path_to_your_hdf5_include && export HDF5_LIB=path_to_your_hdf5_lib
+    ./configure.py --no-pbbam
+
+or with HDF5 directories:
+
+    ./configure.py --no-pbbam HDF5_INCLUDE=... HDF5_LIB=...
 
 To make 'blasr' only:
 
-    $ make -f yli.makefile blasr
+    make blasr
 
-To compile all tools, including blasr, pls2fasta, loadPusles, sawriter:
+To compile all tools, including blasr, pls2fasta, loadPulses, sawriter:
 
-    $ make -f yli.makefile
+    make
+
+To test (with **cram** installed):
+
+    #make cramtests
+    make cramfast
+    ## Currently:
+    ## Ran 22 tests, 0 skipped, 4 failed.
 
 To clean all compiled tools and lib:
 
-    $ make -f yli.makefile cleanall
+    make cleanall
 
 To clean compiled tools without cleaning lib:
 
-    $ make -f yli.makefile clean
+    make clean
