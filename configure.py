@@ -3,10 +3,18 @@
 
 - Create defines.mk
 """
+import argparse
 import commands
 import contextlib
 import os
 import sys
+
+#DEFAULTCXXFLAG := -O3
+#DEBUGCXXFLAG := -g -ggdb -fno-inline
+#PROFILECXXFLAG := -Os -pg 
+#GCXXFLAG := -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -fno-omit-frame-pointer 
+
+ROOT = '${ROOT}'
 
 def log(msg):
     sys.stderr.write(msg)
@@ -18,6 +26,13 @@ def shell(cmd):
     if status:
         raise Exception('%d <- %r' %(status, cmd))
     return output
+
+def system(cmd):
+    log(cmd)
+    status = os.system(cmd)
+    if status:
+        raise Exception('%d <- %r' %(status, cmd))
+    return
 
 @contextlib.contextmanager
 def cd(nwd):
@@ -41,33 +56,6 @@ def get_OS_STRING():
 def get_PREBUILT():
     cmd = 'cd ../../../../prebuilt.out 2>/dev/null && pwd || echo -n notfound'
     return shell(cmd)
-def get_BOOST_INCLUDE(env):
-    key_bi = 'BOOST_INCLUDE'
-    key_br = 'BOOST_ROOT'
-    if key_bi in env:
-        return env[key_bi]
-    if key_br in env:
-        return env[key_br]
-    return '${PREBUILT}/boost/boost_1_55_0'
-
-def get_PBBAM(env, prefix):
-    """
-    key = 'PBBAM'
-    if key in env:
-        return env[key]
-    cmd = 'cd $(THIRD_PARTY_PREFIX)/../staging/PostPrimary/pbbam 2>/dev/null && pwd || echo -n notfound' %(
-            THIRD_PARTY_PREFIX=prefix)
-    return shell(cmd)
-    """
-def get_HTSLIB(env, prefix):
-    """
-    key = 'HTSLIB'
-    if key in env:
-        return env[key]
-    cmd = 'cd $(THIRD_PARTY_PREFIX)/../staging/PostPrimary/htslib 2>/dev/null && pwd || echo -n notfound' %(
-            THIRD_PARTY_PREFIX=prefix)
-    return shell(cmd)
-    """
 def ifenvf(env, key, func):
     if key in env:
         return env[key]
@@ -107,6 +95,8 @@ def compose_defines_pacbio(envin):
             'HTSLIB_INCLUDE', 'HTSLIB_LIB', 'HTSLIB_LIBFLAGS',
             'BOOST_INCLUDE',
             'ZLIB_LIB', 'ZLIB_LIBFLAGS',
+            'PTHREAD_LIBFLAGS',
+            'DL_LIBFLAGS',
     ])
     update_env_if(env, envin, nondefaults)
     return compose_defs_env(env)
@@ -119,9 +109,48 @@ def update(content_defines_mk):
     fn_defines_mk = os.path.join(thisdir, 'defines.mk')
     update_content(fn_defines_mk, content_defines_mk)
 
-def configure_pacbio(envin):
+def configure_pacbio(envin, shared):
     content1 = compose_defines_pacbio(envin)
+    if shared:
+        content1 += 'LDLIBS+=-lrt\n'
+    else:
+        content1 += 'LDFLAGS+=-static\n'
+    content1 += 'SUB_CONF_FLAGS+=--shared\n'
     update(content1)
+
+def set_defs_defaults(env, nopbbam):
+    # OS := $(shell uname)
+    # if Darwin, -lsz (for static builds?)
+    defaults = {
+        'LIBBLASR_INCLUDE':  os.path.join(ROOT, 'libcpp', 'alignment'),
+        'LIBPBDATA_INCLUDE':  os.path.join(ROOT, 'libcpp', 'pbdata'),
+        'LIBPBIHDF_INCLUDE':  os.path.join(ROOT, 'libcpp', 'hdf'),
+        'LIBBLASR_LIB':  os.path.join(ROOT, 'libcpp', 'alignment'),
+        'LIBPBDATA_LIB':  os.path.join(ROOT, 'libcpp', 'pbdata'),
+        'LIBPBIHDF_LIB':  os.path.join(ROOT, 'libcpp', 'hdf'),
+        'LIBBLASR_LIBFLAGS':  '-lblasr',
+        'LIBPBDATA_LIBFLAGS': '-lpbdata',
+        'LIBPBIHDF_LIBFLAGS': '-lpbihdf',
+        'HDF5_LIBFLAGS': '-lhdf5_cpp -lhdf5',
+        'ZLIB_LIBFLAGS': '-lz',
+        'PTHREAD_LIBFLAGS': '-lpthread',
+        'DL_LIBFLAGS': '-ldl', # neeeded by HDF5 always
+        'SHELL': 'bash -xe',
+    }
+    setifenvf(defaults, env, 'OS_STRING', get_OS_STRING)
+    setifenvf(defaults, env, 'PREBUILT', get_PREBUILT)
+    pbbam_defaults = {
+        'PBBAM_LIBFLAGS': '-lpbbam',
+        'HTSLIB_LIBFLAGS': '-lhts',
+        'ZLIB_LIBFLAGS': '-lz',
+        'PTHREAD_LIBFLAGS': '-lpthread',
+        'DL_LIBFLAGS': '-ldl', # neeeded by HDF5 always
+    }
+    if not nopbbam:
+        defaults.update(pbbam_defaults)
+    for k in defaults:
+        if k not in env:
+            env[k] = defaults[k]
 
 def get_make_style_env(envin, args):
     envout = dict()
@@ -132,11 +161,33 @@ def get_make_style_env(envin, args):
     envout.update(envin)
     return envout
 
+def parse_args(args):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--no-pbbam', action='store_true',
+            help='Avoid compiling anything which would need pbbam.')
+    parser.add_argument('--submodules', action='store_true',
+            help='Set variables to use our git-submodules, which must be pulled and built first. (Implies --no-pbbam.)')
+    parser.add_argument('--shared', action='store_true',
+            help='Build for dynamic linking.')
+    parser.add_argument('--mode', default='opt',
+            help='debug, opt, profile [default=%(default)s] CURRENTLY IGNORED')
+    parser.add_argument('makevars', nargs='*',
+            help='Variables in the style of make: FOO=val1 BAR=val2 etc.')
+    return parser.parse_args(args)
+
 def main(prog, *args):
     """We are still deciding what env-vars to use, if any.
     """
-    envin = get_make_style_env(os.environ, args)
-    configure_pacbio(envin)
+    # Set up an alias, until everything uses one consistently.
+    if 'HDF5_INC' in os.environ and 'HDF5_INCLUDE' not in os.environ:
+        os.environ['HDF5_INCLUDE'] = os.environ['HDF5_INC']
+    conf = parse_args(args)
+    envin = get_make_style_env(os.environ, conf.makevars)
+    if conf.submodules:
+        set_defs_submodule_defaults(envin, conf.no_pbbam)
+        conf.no_pbbam = True
+    set_defs_defaults(envin, conf.no_pbbam)
+    configure_pacbio(envin, conf.shared)
 
 
 if __name__=="__main__":

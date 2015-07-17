@@ -1,8 +1,8 @@
-ROOT:=.
-include q.mk
-#include rules.mk
+all:
 
-LDLIBS += -lpthread
+ROOT:=.
+include defines.mk
+include rules.mk
 
 CXXFLAGS += -O3 -g
 CXXOPTS += \
@@ -28,9 +28,26 @@ LD_LIBRARY_PATH=${HDF5_LIB}:${LIBBLASR_LIB}:${LIBPBIHDF_LIB}:${LIBPBDATA_LIB}
 export LD_LIBRARY_PATH
 
 
+init-submodule:
+	${MAKE} update-submodule
+	${MAKE} build-submodule
+
+update-submodule:
+	git submodule update --init
+
+build-submodule:
+	# DON'T use pbbam which is not on github.
+	cd libcpp && NOPBBAM=true HDF5_LIB=${HDF5_LIB}/libhdf5.so HDF5_INCLUDE=${HDF5_INCLUDE} ./configure.py
+	${MAKE} -C libcpp
+
+submodule-clean:
+	${RM} -r blasr_libcpp
+
+# The rules above must be run separately.
 all: blasr makeutils makeextrautils
 blasr: ${OBJS}
 	${CXX} -o $@ ${CXXFLAGS} ${CPPFLAGS} -MF"${@:%=%.d}" ${OBJS} ${LDFLAGS} ${LDLIBS}
+	echo ${LD_LIBRARY_PATH}
 
 makeutils:
 	${MAKE} -C utils
