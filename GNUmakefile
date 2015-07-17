@@ -41,17 +41,45 @@ build-submodule:
 	${MAKE} -C libcpp
 
 submodule-clean:
-	${RM} -r blasr_libcpp
+	${RM} -r libcpp
 
 # The rules above must be run separately.
-all: blasr makeutils makeextrautils
+all: blasr makeutils
+#all: makeextrautils #This would require pbbam.
 blasr: ${OBJS}
 	${CXX} -o $@ ${CXXFLAGS} ${CPPFLAGS} -MF"${@:%=%.d}" ${OBJS} ${LDFLAGS} ${LDLIBS}
-	echo ${LD_LIBRARY_PATH}
+	@echo LD_LIBRARY_PATH=${LD_LIBRARY_PATH}
 
 makeutils:
 	${MAKE} -C utils
 makeextrautils:
 	${MAKE} -C extrautils
+
+CTESTS := $(wildcard ctest/*.t)
+SLOW_CTESTS := ctest/bug25328.t ctest/useccsallLargeGenome.t
+
+cramtests: blasr utils
+	cram -v --shell=/bin/bash ${CTESTS}
+	make -C utils cramtests
+
+cramfast: blasr utils
+	cram -v --shell=/bin/bash $(filter-out ${SLOW_CTESTS},${CTESTS})
+	make -C utils cramfast
+
+gtest: blasr
+	# This requires the submodule to be configured with gtest.
+	make -C libcpp gtest
+
+check: gtest cramtests
+
+cleanall: cleanlib clean
+
+cleanlib: libcpp/defines.mk
+	${MAKE} -C libcpp clean
+
+clean: 
+	${RM} blasr ${OBJS} ${DEPS} blasr.d
+	${MAKE} -C utils clean
+	${MAKE} -C extrautils clean
 
 -include ${DEPS}

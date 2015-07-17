@@ -1,10 +1,13 @@
 .PHONY=all cramtests
 
 ROOT:=..
-include ${ROOT}/q.mk
+include ${ROOT}/defines.mk
+include ${ROOT}/rules.mk
 
-ALL_CXXFLAGS := \
-		   ${CXXFLAGS}
+CXXOPTS := -std=c++0x -pedantic \
+           -Wall -Wuninitialized -Wno-div-by-zero \
+           -MMD -MP -w -fpermissive
+CXXFLAGS += ${CXXOPTS} ${GCXXFLAGS}
 
 EXE = sa2bwt bwt2sa alchemy excrep evolve bsdb simpleShredder swMatcher \
   samodify sals printTupleCountTable cmpH5StoreQualityByContext ccsh5tobam
@@ -16,7 +19,7 @@ export LD_LIBRARY_PATH
 all: ${EXE}
 
 ${EXE}:
-	${CXX} -o $@ $< ${ALL_CXXFLAGS} ${CPPFLAGS} -MF"${@:%=%.d}" ${STATIC} ${LDFLAGS} ${LDLIBS}
+	${CXX} -o $@ $< ${CXXFLAGS} ${CPPFLAGS} -MF"${@:%=%.d}" ${STATIC} ${LDFLAGS} ${LDLIBS}
 
 sa2bwt: SuffixArrayToBWT.cpp
 bwt2sa: BwtToSuffixArray.cpp

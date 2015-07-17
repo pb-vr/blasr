@@ -1,12 +1,13 @@
 .PHONY=all cramtests
 
 ROOT:=..
-include ${ROOT}/q.mk
+include ${ROOT}/defines.mk
+include ${ROOT}/rules.mk
 
-ALL_CXXFLAGS := -std=c++0x -pedantic \
+CXXOPTS := -std=c++0x -pedantic \
            -Wall -Wuninitialized -Wno-div-by-zero \
-           -MMD -MP -w -fpermissive \
-		   ${CXXFLAGS}
+           -MMD -MP -w -fpermissive
+CXXFLAGS += ${CXXOPTS} ${GCXXFLAGS}
 
 EXE = loadPulses pls2fasta samtoh5 samtom4 samFilter toAfg sawriter sdpMatcher
 
@@ -17,7 +18,7 @@ export LD_LIBRARY_PATH
 all: ${EXE}
 
 ${EXE}:
-	${CXX} -o $@ $< ${ALL_CXXFLAGS} ${CPPFLAGS} -MF"${@:%=%.d}" ${STATIC} ${LDFLAGS} ${LDLIBS}
+	${CXX} -o $@ $< ${CXXFLAGS} ${CPPFLAGS} -MF"${@:%=%.d}" ${STATIC} ${LDFLAGS} ${LDLIBS}
 
 loadPulses: LoadPulses.cpp
 pls2fasta: PulseToFasta.cpp

@@ -32,6 +32,13 @@ To compile all tools, including blasr, pls2fasta, loadPulses, sawriter:
 
     make
 
+To test (with **cram** installed):
+
+    #make cramtests
+    make cramfast
+    ## Currently:
+    ## Ran 22 tests, 0 skipped, 4 failed.
+
 To clean all compiled tools and lib:
 
     make cleanall
