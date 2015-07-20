@@ -20,7 +20,7 @@ To configure:
 
     ./configure.py --no-pbbam
 
-or with HDF5 directories:
+or with HDF5 directories (and note that `HDF5_LIB` is a *directory* here):
 
     ./configure.py --no-pbbam HDF5_INCLUDE=... HDF5_LIB=...
 
