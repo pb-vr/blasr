@@ -123,10 +123,10 @@ def set_defs_submodule_defaults(env, nopbbam):
     defaults = {
         'LIBPBDATA_INCLUDE': os.path.join(subdir, 'pbdata'),
         'LIBBLASR_INCLUDE':  os.path.join(subdir, 'alignment'),
-        'LIBPBIHDF_INCLUDE': '' if nopbbam else os.path.join(subdir, 'hdf'),
+        #'LIBPBIHDF_INCLUDE': '' if nopbbam else os.path.join(subdir, 'hdf'),
         'LIBPBDATA_LIB': os.path.join(subdir, 'pbdata'),
         'LIBBLASR_LIB':  os.path.join(subdir, 'alignment'),
-        'LIBPBIHDF_LIB': '' if nopbbam else os.path.join(subdir, 'hdf'),
+        #'LIBPBIHDF_LIB': '' if nopbbam else os.path.join(subdir, 'hdf'),
     }
     for k in defaults:
         if k not in env:
