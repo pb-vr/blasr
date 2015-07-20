@@ -15,6 +15,7 @@ LIBDIRS := \
 	${HTSLIB_LIB} \
 	${ZLIB_LIB}
 LDLIBS+= \
+	${LIBPBIHDF_LIBFLAGS} \
 	${LIBBLASR_LIBFLAGS} \
 	${LIBPBDATA_LIBFLAGS} \
 	${LIBPBIHDF_LIBFLAGS} \
@@ -24,6 +25,7 @@ LDLIBS+= \
 	${ZLIB_LIBFLAGS} \
 	${PTHREAD_LIBFLAGS} \
 	${DL_LIBFLAGS}
+# We repeat LIBPBIHDF_LIBFLAGS because of a circular dependency. See #77.
 
 CPPFLAGS+=$(patsubst %,-I%,${INCDIRS})
 LDFLAGS+=$(patsubst %,-L%,${LIBDIRS})
