@@ -118,6 +118,20 @@ def configure_pacbio(envin, shared):
     content1 += 'SUB_CONF_FLAGS+=--shared\n'
     update(content1)
 
+def set_defs_submodule_defaults(env, nopbbam):
+    subdir = os.path.join(ROOT, 'libcpp')
+    defaults = {
+        'LIBPBDATA_INCLUDE': os.path.join(subdir, 'pbdata'),
+        'LIBBLASR_INCLUDE':  os.path.join(subdir, 'alignment'),
+        'LIBPBIHDF_INCLUDE': '' if nopbbam else os.path.join(subdir, 'hdf'),
+        'LIBPBDATA_LIB': os.path.join(subdir, 'pbdata'),
+        'LIBBLASR_LIB':  os.path.join(subdir, 'alignment'),
+        'LIBPBIHDF_LIB': '' if nopbbam else os.path.join(subdir, 'hdf'),
+    }
+    for k in defaults:
+        if k not in env:
+            env[k] = defaults[k]
+
 def set_defs_defaults(env, nopbbam):
     # OS := $(shell uname)
     # if Darwin, -lsz (for static builds?)
