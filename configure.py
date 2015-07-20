@@ -151,8 +151,8 @@ def set_defs_defaults(env, nopbbam):
         'DL_LIBFLAGS': '-ldl', # neeeded by HDF5 always
         'SHELL': 'bash -xe',
     }
-    setifenvf(defaults, env, 'OS_STRING', get_OS_STRING)
-    setifenvf(defaults, env, 'PREBUILT', get_PREBUILT)
+    #setifenvf(defaults, env, 'OS_STRING', get_OS_STRING)
+    #setifenvf(defaults, env, 'PREBUILT', get_PREBUILT)
     pbbam_defaults = {
         'PBBAM_LIBFLAGS': '-lpbbam',
         'HTSLIB_LIBFLAGS': '-lhts',
