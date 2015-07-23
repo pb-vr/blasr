@@ -24,6 +24,10 @@ or with HDF5 directories (and note that `HDF5_LIB` is a *directory* here):
 
     ./configure.py --no-pbbam HDF5_INCLUDE=... HDF5_LIB=...
 
+To make the 'libcpp' libraries:
+
+    make build-submodule
+
 To make 'blasr' only:
 
     make blasr
