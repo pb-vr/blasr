@@ -3,9 +3,9 @@
 
 - Create defines.mk
 """
-import argparse
 import commands
 import contextlib
+import optparse
 import os
 import sys
 
@@ -176,18 +176,14 @@ def get_make_style_env(envin, args):
     return envout
 
 def parse_args(args):
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--no-pbbam', action='store_true',
+    parser = optparse.OptionParser()
+    parser.add_option('--no-pbbam', action='store_true',
             help='Avoid compiling anything which would need pbbam.')
-    parser.add_argument('--submodules', action='store_true',
+    parser.add_option('--submodules', action='store_true',
             help='Set variables to use our git-submodules, which must be pulled and built first. (Implies --no-pbbam.)')
-    parser.add_argument('--shared', action='store_true',
+    parser.add_option('--shared', action='store_true',
             help='Build for dynamic linking.')
-    parser.add_argument('--mode', default='opt',
-            help='debug, opt, profile [default=%(default)s] CURRENTLY IGNORED')
-    parser.add_argument('makevars', nargs='*',
-            help='Variables in the style of make: FOO=val1 BAR=val2 etc.')
-    return parser.parse_args(args)
+    return parser.parse_args(list(args))
 
 def main(prog, *args):
     """We are still deciding what env-vars to use, if any.
@@ -195,8 +191,8 @@ def main(prog, *args):
     # Set up an alias, until everything uses one consistently.
     if 'HDF5_INC' in os.environ and 'HDF5_INCLUDE' not in os.environ:
         os.environ['HDF5_INCLUDE'] = os.environ['HDF5_INC']
-    conf = parse_args(args)
-    envin = get_make_style_env(os.environ, conf.makevars)
+    conf, makevars = parse_args(args)
+    envin = get_make_style_env(os.environ, makevars)
     if conf.submodules:
         set_defs_submodule_defaults(envin, conf.no_pbbam)
         conf.no_pbbam = True
