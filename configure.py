@@ -106,20 +106,14 @@ def compose_defines_pacbio(envin):
     return compose_defs_env(env)
 
 
-def update(content_defines_mk):
-    """ Write these relative to the current directory.
-    """
-    fn_defines_mk = 'defines.mk'
-    update_content(fn_defines_mk, content_defines_mk)
-
-def configure_pacbio(envin, shared):
+def configure_pacbio(envin, shared, build_dir):
     content1 = compose_defines_pacbio(envin)
     if shared:
         content1 += 'LDLIBS+=-lrt\n'
     else:
         content1 += 'LDFLAGS+=-static\n'
     content1 += 'SUB_CONF_FLAGS+=--shared\n'
-    update(content1)
+    update_content(os.path.join(build_dir, 'defines.mk'), content1)
 
 def set_defs_submodule_defaults(env, nopbbam):
     subdir = os.path.join(ROOT, 'libcpp')
@@ -213,14 +207,17 @@ def main(prog, *args):
     if 'HDF5_INC' in os.environ and 'HDF5_INCLUDE' not in os.environ:
         os.environ['HDF5_INCLUDE'] = os.environ['HDF5_INC']
     conf, makevars = parse_args(args)
+    if conf.build_dir is not None:
+        write_makefiles(conf.build_dir)
+    else:
+        conf.build_dir = '.'
+    conf.build_dir = os.path.abspath(conf.build_dir)
     envin = get_make_style_env(os.environ, makevars)
     if conf.submodules:
         set_defs_submodule_defaults(envin, conf.no_pbbam)
         conf.no_pbbam = True
     set_defs_defaults(envin, conf.no_pbbam)
-    configure_pacbio(envin, conf.shared)
-    if conf.build_dir is not None:
-        write_makefiles(conf.build_dir)
+    configure_pacbio(envin, conf.shared, conf.build_dir)
 
 
 if __name__=="__main__":
