@@ -1,7 +1,8 @@
 .PHONY=all cramtests
 
-ROOT:=..
-include ${ROOT}/defines.mk
+THISDIR:=$(dir $(lastword $(MAKEFILE_LIST)))
+ROOT:=${THISDIR}/..
+include ${CURDIR}/../defines.mk
 include ${ROOT}/rules.mk
 
 CXXOPTS := -std=c++0x -pedantic \
@@ -21,21 +22,24 @@ all: ${EXE}
 ${EXE}:
 	${CXX} -o $@ $< ${CXXFLAGS} ${CPPFLAGS} -MF"${@:%=%.d}" ${STATIC} ${LDFLAGS} ${LDLIBS}
 
-sa2bwt: SuffixArrayToBWT.cpp
-bwt2sa: BwtToSuffixArray.cpp
-alchemy: BasH5Simulator.cpp
-excrep: ExciseRepeats.cpp
-evolve: Evolve.cpp
-bsdb: BuildSequenceDB.cpp
-simpleShredder: SimpleShredder.cpp
-swMatcher: SWMatcher.cpp
-samodify: SAModify.cpp
-sals: SALS.cpp
-printTupleCountTable: PrintTupleCountTable.cpp
-cmpH5StoreQualityByContext: StoreQualityByContextFromCmpH5.cpp
-ccsh5tobam: CCSH5ToBam.cpp
+sa2bwt: SuffixArrayToBWT.o
+bwt2sa: BwtToSuffixArray.o
+alchemy: BasH5Simulator.o
+excrep: ExciseRepeats.o
+evolve: Evolve.o
+bsdb: BuildSequenceDB.o
+simpleShredder: SimpleShredder.o
+swMatcher: SWMatcher.o
+samodify: SAModify.o
+sals: SALS.o
+printTupleCountTable: PrintTupleCountTable.o
+cmpH5StoreQualityByContext: StoreQualityByContextFromCmpH5.o
+ccsh5tobam: CCSH5ToBam.o
 
-CTESTS := $(wildcard ctest/*.t)
+CTESTS := \
+ctest/alchemy.t  ctest/ccsh5tobam.t                  ctest/printTupleCountTable.t  ctest/sals.t      ctest/swmatcher.t \
+ctest/bwt2sa.t   ctest/cmpH5StoreQualityByContext.t  ctest/sa2bwt.t                ctest/samodify.t
+
 
 cramtests: ${EXE}
 	cram -v --shell=/bin/bash ${CTESTS}

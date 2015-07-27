@@ -1,8 +1,9 @@
 all:
 
-ROOT:=.
-include defines.mk
-include rules.mk
+THISDIR:=$(dir $(lastword $(MAKEFILE_LIST)))
+ROOT:=${THISDIR}
+include ${CURDIR}/defines.mk
+include ${THISDIR}/rules.mk
 
 CXXFLAGS += -O3 -g
 CXXOPTS += \
@@ -20,7 +21,7 @@ CXXFLAGS += ${CXXOPTS} ${GCXXFLAGS}
 
 # HDF5 needs -ldl, but mobs does not pass it in.
 
-SRCS := $(wildcard *.cpp)
+SRCS := Blasr.cpp
 OBJS := ${SRCS:.cpp=.o}
 DEPS := ${SRCS:.cpp=.d}
 
@@ -55,25 +56,31 @@ makeutils:
 makeextrautils:
 	${MAKE} -C extrautils
 
-CTESTS := $(wildcard ctest/*.t)
+CTESTS := \
+ctest/affineAlign.t            ctest/bamOut.t    ctest/ccsH5.t            ctest/filtercriteria.t  ctest/m0-5.t             ctest/samNM.t \
+ctest/aggressiveIntervalCut.t  ctest/bug25328.t  ctest/concordant.t       ctest/fofn.t            ctest/multipart.t        ctest/useccsallBestN1.t \
+ctest/alignScore.t             ctest/bug25741.t  ctest/ecoli.t            ctest/hitpolicy.t       ctest/noSplitSubreads.t  ctest/useccsallLargeGenome.t\
+ctest/bamIn.t                  ctest/bug25766.t  ctest/fastMaxInterval.t  ctest/holeNumbers.t     ctest/open_fail.t        ctest/verbose.t
+
 SLOW_CTESTS := ctest/bug25328.t ctest/useccsallLargeGenome.t
 
 cramtests: blasr utils
 	cram -v --shell=/bin/bash ${CTESTS}
-	make -C utils cramtests
+	${MAKE} -C utils cramtests
 
 cramfast: blasr utils
 	cram -v --shell=/bin/bash $(filter-out ${SLOW_CTESTS},${CTESTS})
-	make -C utils cramfast
+	${MAKE} -C utils cramfast
 
 gtest: blasr
 	# This requires the submodule to be configured with gtest.
-	make -C libcpp gtest
+	${MAKE} -C libcpp gtest
 
 check: gtest cramtests
 
 cleanall: cleanlib clean
 
+# cleanlib is only for submodule users
 cleanlib: libcpp/defines.mk
 	${MAKE} -C libcpp clean
 

@@ -14,7 +14,7 @@ import sys
 #PROFILECXXFLAG := -Os -pg 
 #GCXXFLAG := -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -fno-omit-frame-pointer 
 
-ROOT = '${ROOT}'
+ROOT = os.path.abspath(os.path.dirname(__file__))
 
 def log(msg):
     sys.stderr.write(msg)
@@ -34,6 +34,10 @@ def system(cmd):
         raise Exception('%d <- %r' %(status, cmd))
     return
 
+def mkdirs(path):
+    if not os.path.isdir(path):
+        os.makedirs(path)
+
 @contextlib.contextmanager
 def cd(nwd):
     cwd = os.getcwd()
@@ -46,8 +50,8 @@ def cd(nwd):
 def update_content(fn, content):
     current_content = open(fn).read() if os.path.exists(fn) else None
     if content != current_content:
-        log('writing to %r' %fn)
-        log('"""\n' + content + '"""')
+        log('writing to %r:' %fn)
+        log('"""\n' + content + '"""\n----')
         open(fn, 'w').write(content)
 
 def get_OS_STRING():
@@ -103,10 +107,9 @@ def compose_defines_pacbio(envin):
 
 
 def update(content_defines_mk):
-    """ Write these relative to the same directory as *this* file.
+    """ Write these relative to the current directory.
     """
-    thisdir = os.path.dirname(os.path.abspath(__file__))
-    fn_defines_mk = os.path.join(thisdir, 'defines.mk')
+    fn_defines_mk = 'defines.mk'
     update_content(fn_defines_mk, content_defines_mk)
 
 def configure_pacbio(envin, shared):
@@ -183,7 +186,25 @@ def parse_args(args):
             help='Set variables to use our git-submodules, which must be pulled and built first. (Implies --no-pbbam.)')
     parser.add_option('--shared', action='store_true',
             help='Build for dynamic linking.')
+    parser.add_option('--build-dir',
+            help='Can be different from source directory, but only when *not* also building submodule.')
     return parser.parse_args(list(args))
+
+def write_makefile(build_dir_root, src_dir_root, makefilename, relpath):
+    src_dir = os.path.join(src_dir_root, relpath)
+    build_dir = os.path.join(build_dir_root, relpath)
+    content = """\
+include %(src_dir)s/%(makefilename)s
+VPATH:=%(src_dir)s
+""" %dict(makefilename=makefilename, src_dir=src_dir)
+    mkdirs(build_dir)
+    fn = os.path.join(build_dir, makefilename)
+    update_content(fn, content)
+
+def write_makefiles(build_dir):
+    write_makefile(build_dir, ROOT, 'makefile', '.')
+    write_makefile(build_dir, ROOT, 'makefile', 'utils')
+    write_makefile(build_dir, ROOT, 'makefile', 'extrautils')
 
 def main(prog, *args):
     """We are still deciding what env-vars to use, if any.
@@ -198,6 +219,8 @@ def main(prog, *args):
         conf.no_pbbam = True
     set_defs_defaults(envin, conf.no_pbbam)
     configure_pacbio(envin, conf.shared)
+    if conf.build_dir is not None:
+        write_makefiles(conf.build_dir)
 
 
 if __name__=="__main__":
