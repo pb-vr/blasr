@@ -6,7 +6,7 @@ Blasr installation and maual:
 
 To pull this project from git hub to your local system:
 
-    git clone git@github.com:PacificBiosciences/blasr.git blasr --recursive
+    git clone git://github.com/PacificBiosciences/blasr.git blasr --recursive
 
 To sync your code with the latest git code base:
 
