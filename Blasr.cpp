@@ -3533,6 +3533,24 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
             }
           }
         }
+        // VR
+	// Preliminary fix for cleaning filtered out AC
+	// delete all AC which are in complement of SelectedAlignmemntPtrs
+	// (SelectedAlignmentPtrs/alignmentPtrs)
+        for (int ii = 0; ii < alignmentPtrs.size(); ii++)
+        {
+          int found =0;
+          for (int jj = 0; jj < selectedAlignmentPtrs.size(); jj++)
+          {
+            if (alignmentPtrs[ii] == selectedAlignmentPtrs[jj] )
+            {
+                found = 1;
+                break;
+            }
+          }
+          if (found == 0) delete alignmentPtrs[ii];
+
+        }
         subreadSequence.Free();
         subreadSequenceRC.Free();
       } // End of looping over subread intervals within [startIndex, endIndex).
