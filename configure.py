@@ -108,9 +108,8 @@ def compose_defines_pacbio(envin):
 
 def configure_pacbio(envin, shared, build_dir):
     content1 = compose_defines_pacbio(envin)
-    if shared:
-        content1 += 'LDLIBS+=-lrt\n'
-    else:
+    content1 += 'LDLIBS+=-lrt\n'
+    if not shared:
         content1 += 'LDFLAGS+=-static\n'
     content1 += 'SUB_CONF_FLAGS+=--shared\n'
     update_content(os.path.join(build_dir, 'defines.mk'), content1)
