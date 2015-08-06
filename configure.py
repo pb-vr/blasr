@@ -111,7 +111,6 @@ def configure_pacbio(envin, shared, build_dir):
     content1 = compose_defines_pacbio(envin)
     if not shared:
         content1 += 'LDFLAGS+=-static\n'
-    content1 += 'SUB_CONF_FLAGS+=--shared\n'
     update_content(os.path.join(build_dir, 'defines.mk'), content1)
 
 def set_defs_submodule_defaults(env, nopbbam):
