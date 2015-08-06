@@ -101,6 +101,7 @@ def compose_defines_pacbio(envin):
             'ZLIB_LIB', 'ZLIB_LIBFLAGS',
             'PTHREAD_LIBFLAGS',
             'DL_LIBFLAGS',
+            'RT_LIBFLAGS',
     ])
     update_env_if(env, envin, nondefaults)
     return compose_defs_env(env)
@@ -108,7 +109,6 @@ def compose_defines_pacbio(envin):
 
 def configure_pacbio(envin, shared, build_dir):
     content1 = compose_defines_pacbio(envin)
-    content1 += 'LDLIBS+=-lrt\n'
     if not shared:
         content1 += 'LDFLAGS+=-static\n'
     content1 += 'SUB_CONF_FLAGS+=--shared\n'
@@ -142,6 +142,7 @@ def set_defs_defaults(env, nopbbam):
         'LIBPBDATA_LIBFLAGS': '-lpbdata',
         'LIBPBIHDF_LIBFLAGS': '-lpbihdf',
         'HDF5_LIBFLAGS': '-lhdf5_cpp -lhdf5',
+        'RT_LIBFLAGS': '-lrt',
         'ZLIB_LIBFLAGS': '-lz',
         'PTHREAD_LIBFLAGS': '-lpthread',
         'DL_LIBFLAGS': '-ldl', # neeeded by HDF5 always
@@ -153,8 +154,8 @@ def set_defs_defaults(env, nopbbam):
         'PBBAM_LIBFLAGS': '-lpbbam',
         'HTSLIB_LIBFLAGS': '-lhts',
         'ZLIB_LIBFLAGS': '-lz',
-        'PTHREAD_LIBFLAGS': '-lpthread',
-        'DL_LIBFLAGS': '-ldl', # neeeded by HDF5 always
+        #'PTHREAD_LIBFLAGS': '-lpthread',
+        #'DL_LIBFLAGS': '-ldl', # neeeded by HDF5 always
     }
     if not nopbbam:
         defaults.update(pbbam_defaults)
