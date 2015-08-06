@@ -2,7 +2,7 @@ all:
 
 THISDIR:=$(dir $(lastword $(MAKEFILE_LIST)))
 ROOT:=${THISDIR}
-include ${CURDIR}/defines.mk
+-include ${CURDIR}/defines.mk
 include ${THISDIR}/rules.mk
 
 CXXFLAGS += -O3 -g
