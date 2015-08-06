@@ -2,7 +2,7 @@
 
 THISDIR:=$(dir $(lastword $(MAKEFILE_LIST)))
 ROOT:=${THISDIR}/..
-include ${CURDIR}/../defines.mk
+-include ${CURDIR}/../defines.mk
 include ${ROOT}/rules.mk
 
 CXXOPTS := -std=c++0x -pedantic \

@@ -23,6 +23,7 @@ LDLIBS+= \
 	${HDF5_LIBFLAGS} \
 	${HTSLIB_LIBFLAGS} \
 	${ZLIB_LIBFLAGS} \
+	${RT_LIBFLAGS} \
 	${PTHREAD_LIBFLAGS} \
 	${DL_LIBFLAGS}
 # We repeat LIBPBIHDF_LIBFLAGS because of a circular dependency. See #77.
