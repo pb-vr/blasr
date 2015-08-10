@@ -35,3 +35,4 @@ Use a precomputed BWT-FM index for smaller runtime memory footprint, but slower 
 
     sa2bwt hg19.fasta hg19.fasta.sa hg19.fasta.bwt
     blasr reads.bas.h5 hg19.fasta -bwt hg19.fasta.bwt
+
