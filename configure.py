@@ -98,6 +98,7 @@ def compose_defines_pacbio(envin):
             'PBBAM_INCLUDE', 'PBBAM_LIB', 'PBBAM_LIBFLAGS',
             'HTSLIB_INCLUDE', 'HTSLIB_LIB', 'HTSLIB_LIBFLAGS',
             'BOOST_INCLUDE',
+            'GCC_LIB',
             'ZLIB_LIB', 'ZLIB_LIBFLAGS',
             'PTHREAD_LIBFLAGS',
             'DL_LIBFLAGS',

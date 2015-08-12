@@ -13,6 +13,7 @@ LIBDIRS := \
 	${PBBAM_LIB} \
 	${HDF5_LIB} \
 	${HTSLIB_LIB} \
+	${GCC_LIB} \
 	${ZLIB_LIB}
 LDLIBS+= \
 	${LIBPBIHDF_LIBFLAGS} \
