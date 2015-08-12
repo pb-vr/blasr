@@ -184,21 +184,21 @@ def parse_args(args):
             help='Can be different from source directory, but only when *not* also building submodule.')
     return parser.parse_args(list(args))
 
-def write_makefile(build_dir_root, src_dir_root, makefilename, relpath):
+def symlink_makefile(build_dir_root, src_dir_root, makefilename, relpath):
     src_dir = os.path.join(src_dir_root, relpath)
     build_dir = os.path.join(build_dir_root, relpath)
-    content = """\
-include %(src_dir)s/%(makefilename)s
-VPATH:=%(src_dir)s
-""" %dict(makefilename=makefilename, src_dir=src_dir)
+    src_name = os.path.join(src_dir, 'makefile')
+    dst_name = os.path.join(build_dir, 'makefile')
+    if os.path.lexists(dst_name):
+        os.unlink(dst_name)
+    print('%r <- %r' %(src_name, dst_name))
     mkdirs(build_dir)
-    fn = os.path.join(build_dir, makefilename)
-    update_content(fn, content)
+    os.symlink(src_name, dst_name)
 
-def write_makefiles(build_dir):
-    write_makefile(build_dir, ROOT, 'makefile', '.')
-    write_makefile(build_dir, ROOT, 'makefile', 'utils')
-    write_makefile(build_dir, ROOT, 'makefile', 'extrautils')
+def symlink_makefiles(build_dir):
+    symlink_makefile(build_dir, ROOT, 'makefile', '.')
+    symlink_makefile(build_dir, ROOT, 'makefile', 'utils')
+    symlink_makefile(build_dir, ROOT, 'makefile', 'extrautils')
 
 def main(prog, *args):
     """We are still deciding what env-vars to use, if any.
@@ -208,7 +208,7 @@ def main(prog, *args):
         os.environ['HDF5_INCLUDE'] = os.environ['HDF5_INC']
     conf, makevars = parse_args(args)
     if conf.build_dir is not None:
-        write_makefiles(conf.build_dir)
+        symlink_makefiles(conf.build_dir)
     else:
         conf.build_dir = '.'
     conf.build_dir = os.path.abspath(conf.build_dir)
