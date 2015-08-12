@@ -1,9 +1,13 @@
 all:
 
-THISDIR:=$(dir $(lastword $(MAKEFILE_LIST)))
-ROOT:=${THISDIR}
+SRCDIR:=$(dir $(realpath $(firstword $(MAKEFILE_LIST))))
 -include ${CURDIR}/defines.mk
-include ${THISDIR}/rules.mk
+-include ${SRCDIR}/rules.mk
+foo:
+	echo $(realpath $(firstword $(MAKEFILE_LIST)))
+	echo $(firstword $(MAKEFILE_LIST))
+	echo $(MAKEFILE_LIST)
+	echo ${SRCDIR}
 
 CXXFLAGS += -O3 -g
 CXXOPTS += \
@@ -28,6 +32,7 @@ DEPS := ${SRCS:.cpp=.d}
 LD_LIBRARY_PATH=${HDF5_LIB}:${LIBBLASR_LIB}:${LIBPBIHDF_LIB}:${LIBPBDATA_LIB}
 export LD_LIBRARY_PATH
 
+vpath %.cpp ${SRCDIR}
 
 init-submodule:
 	${MAKE} update-submodule

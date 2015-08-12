@@ -1,9 +1,8 @@
 .PHONY=all cramtests
 
-THISDIR:=$(dir $(lastword $(MAKEFILE_LIST)))
-ROOT:=${THISDIR}/..
+SRCDIR:=$(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 -include ${CURDIR}/../defines.mk
-include ${ROOT}/rules.mk
+include ${SRCDIR}/../rules.mk
 
 CXXOPTS := -std=c++0x -pedantic \
            -Wall -Wuninitialized -Wno-div-by-zero \
@@ -15,6 +14,7 @@ EXE = loadPulses pls2fasta samtoh5 samtom4 samFilter toAfg sawriter sdpMatcher
 LD_LIBRARY_PATH=${HDF5_LIB}:${LIBBLASR_LIB}:${LIBPBIHDF_LIB}:${LIBPBDATA_LIB}
 export LD_LIBRARY_PATH
 
+vpath %.cpp ${SRCDIR}
 
 all: ${EXE}
 
