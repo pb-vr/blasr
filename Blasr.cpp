@@ -3533,10 +3533,10 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
             }
           }
         }
-	// Fix for memory leakage bug due to undeleted Alignment Candidate objectts which wasn't selected
+        // Fix for memory leakage bug due to undeleted Alignment Candidate objectts which wasn't selected
         // for printing
-	// delete all AC which are in complement of SelectedAlignmemntPtrs vector
-	// namely (SelectedAlignmentPtrs/alignmentPtrs)
+        // delete all AC which are in complement of SelectedAlignmemntPtrs vector
+        // namely (SelectedAlignmentPtrs/alignmentPtrs)
         for (int ii = 0; ii < alignmentPtrs.size(); ii++)
         {
           int found =0;
