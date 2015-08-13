@@ -3533,6 +3533,23 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
             }
           }
         }
+        // Fix for memory leakage bug due to undeleted Alignment Candidate objectts which wasn't selected
+        // for printing
+        // delete all AC which are in complement of SelectedAlignmemntPtrs vector
+        // namely (SelectedAlignmentPtrs/alignmentPtrs)
+        for (int ii = 0; ii < alignmentPtrs.size(); ii++)
+        {
+          int found =0;
+          for (int jj = 0; jj < selectedAlignmentPtrs.size(); jj++)
+          {
+            if (alignmentPtrs[ii] == selectedAlignmentPtrs[jj] )
+            {
+                found = 1;
+                break;
+            }
+          }
+          if (found == 0) delete alignmentPtrs[ii];
+        }
         subreadSequence.Free();
         subreadSequenceRC.Free();
       } // End of looping over subread intervals within [startIndex, endIndex).
@@ -3743,6 +3760,23 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData) {
         } // End of alignining all subreads to where the de novo ccs has aligned to.
       } // End of if readIsCCS and !params.useCcsOnly 
 
+      // Fix for memory leakage due to undeleted Alignment Candidate objectts not selected
+      // for printing
+      // delete all AC which are in complement of SelectedAlignmemntPtrs vector
+      // namely (SelectedAlignmentPtrs/alignmentPtrs)
+      for (int ii = 0; ii < alignmentPtrs.size(); ii++)
+      {
+        int found =0;
+        for (int jj = 0; jj < selectedAlignmentPtrs.size(); jj++)
+        {
+          if (alignmentPtrs[ii] == selectedAlignmentPtrs[jj] )
+          {
+              found = 1;
+              break;
+          }
+        }
+        if (found == 0) delete alignmentPtrs[ii];
+      }
     } // End of if not (readIsCCS == false and params.mapSubreadsSeparately) 
 
     PrintAllReadAlignments(allReadAlignments, alignmentContext,
