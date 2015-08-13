@@ -10,4 +10,5 @@ Test -useccsall with Large genome.
   $ $EXEC $BASFILE $REFFA -out $OUTFILE -m 4 -sa $REFSA -holeNumbers 109020
   [INFO]* (glob)
   [INFO]* (glob)
-  $ diff $STDDIR/intflow_2014_06_10.m4 $OUTFILE
+  $ sort $OUTFILE > $TMP1 && sort $STDDIR/intflow_2014_06_10.m4 > $TMP2 && diff $TMP1 $TMP2 && echo $?
+  0
