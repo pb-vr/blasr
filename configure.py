@@ -8,6 +8,7 @@ import contextlib
 import optparse
 import os
 import sys
+import warnings
 
 #DEFAULTCXXFLAG := -O3
 #DEBUGCXXFLAG := -g -ggdb -fno-inline
@@ -128,9 +129,13 @@ def set_defs_submodule_defaults(env, nopbbam):
         if k not in env:
             env[k] = defaults[k]
 
+def update_defaults_for_os(env):
+    OS = shell('uname')
+    if 'Darwin' in OS:
+        #-lsz (for static builds?)
+        env['RT_LIBFLAGS'] = ''
+
 def set_defs_defaults(env, nopbbam):
-    # OS := $(shell uname)
-    # if Darwin, -lsz (for static builds?)
     defaults = {
         'LIBBLASR_INC':  os.path.join(ROOT, 'libcpp', 'alignment'),
         'LIBPBDATA_INC':  os.path.join(ROOT, 'libcpp', 'pbdata'),
@@ -148,6 +153,10 @@ def set_defs_defaults(env, nopbbam):
         'DL_LIBFLAGS': '-ldl', # neeeded by HDF5 always
         'SHELL': 'bash -xe',
     }
+    try:
+        update_defaults_for_os(defaults)
+    except Exception as e:
+        warnings.warn(e)
     #setifenvf(defaults, env, 'OS_STRING', get_OS_STRING)
     #setifenvf(defaults, env, 'PREBUILT', get_PREBUILT)
     pbbam_defaults = {
