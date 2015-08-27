@@ -43,7 +43,7 @@ update-submodule:
 
 build-submodule:
 	# DON'T use pbbam which is not on github.
-	cd libcpp && NOPBBAM=true HDF5_LIB=${HDF5_LIB}/libhdf5.so HDF5_INCLUDE=${HDF5_INCLUDE} ./configure.py
+	cd libcpp && NOPBBAM=true HDF5_LIB=${HDF5_LIB} HDF5_INC=${HDF5_INC} ./configure.py
 	${MAKE} -C libcpp
 
 submodule-clean:
