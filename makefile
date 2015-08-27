@@ -16,7 +16,7 @@ CXXOPTS += \
            -MMD -MP -w -fpermissive
 GCXXFLAGS := -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -fno-omit-frame-pointer 
 CXXFLAGS += ${CXXOPTS} ${GCXXFLAGS}
-#INC_DIRS:=${LIBBLASR_INCLUDE} ${LIBPBIHDF_INCLUDE} ${LIBPBDATA_INCLUDE} ${PBBAM_INCLUDE} ${HTSLIB_INCLUDE} ${HDF5_INCLUDE} ${ZLIB_INCLUDE}
+#INC_DIRS:=${LIBBLASR_INC} ${LIBPBIHDF_INC} ${LIBPBDATA_INC} ${PBBAM_INC} ${HTSLIB_INC} ${HDF5_INC} ${ZLIB_INC}
 #LIB_DIRS:=${LIBBLASR_LIB} ${LIBPBIHDF_LIB} ${LIBPBDATA_LIB} ${PBBAM_LIB} ${HTSLIB_LIB} ${HDF5_LIB} ${ZLIB_LIB}
 #LDLIBS := \
 #	${LIBBLASR_LIBFLAGS} ${LIBPBIHDF_LIBFLAGS} ${LIBPBDATA_LIBFLAGS} \
@@ -43,7 +43,7 @@ update-submodule:
 
 build-submodule:
 	# DON'T use pbbam which is not on github.
-	cd libcpp && NOPBBAM=true HDF5_LIB=${HDF5_LIB}/libhdf5.so HDF5_INCLUDE=${HDF5_INCLUDE} ./configure.py
+	cd libcpp && NOPBBAM=true HDF5_LIB=${HDF5_LIB} HDF5_INC=${HDF5_INC} ./configure.py
 	${MAKE} -C libcpp
 
 submodule-clean:

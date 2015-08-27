@@ -4,6 +4,6 @@
 set -ex
 
 # There is a bug without --shared. Working on it. See #77.
-./configure.py --shared --sub --no-pbbam HDF5_INCLUDE=${HDF5_INCLUDE} HDF5_LIB=${HDF5_LIB}
+./configure.py --shared --sub --no-pbbam HDF5_INC=${HDF5_INC} HDF5_LIB=${HDF5_LIB}
 make -j4 init-submodule
 make --debug=b -j4 all

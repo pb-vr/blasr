@@ -91,13 +91,13 @@ def compose_defines_pacbio(envin):
     #setifenvf(env, envin, 'PREBUILT', get_PREBUILT)
     nondefaults = set([
             'CXX',
-            'LIBPBDATA_INCLUDE', 'LIBPBDATA_LIB', 'LIBPBDATA_LIBFLAGS',
-            'LIBPBIHDF_INCLUDE', 'LIBPBIHDF_LIB', 'LIBPBIHDF_LIBFLAGS',
-            'LIBBLASR_INCLUDE', 'LIBBLASR_LIB', 'LIBBLASR_LIBFLAGS',
-            'HDF5_INCLUDE', 'HDF5_LIB', 'HDF5_LIBFLAGS',
-            'PBBAM_INCLUDE', 'PBBAM_LIB', 'PBBAM_LIBFLAGS',
-            'HTSLIB_INCLUDE', 'HTSLIB_LIB', 'HTSLIB_LIBFLAGS',
-            'BOOST_INCLUDE',
+            'LIBPBDATA_INC', 'LIBPBDATA_LIB', 'LIBPBDATA_LIBFLAGS',
+            'LIBPBIHDF_INC', 'LIBPBIHDF_LIB', 'LIBPBIHDF_LIBFLAGS',
+            'LIBBLASR_INC', 'LIBBLASR_LIB', 'LIBBLASR_LIBFLAGS',
+            'HDF5_INC', 'HDF5_LIB', 'HDF5_LIBFLAGS',
+            'PBBAM_INC', 'PBBAM_LIB', 'PBBAM_LIBFLAGS',
+            'HTSLIB_INC', 'HTSLIB_LIB', 'HTSLIB_LIBFLAGS',
+            'BOOST_INC',
             'GCC_LIB',
             'ZLIB_LIB', 'ZLIB_LIBFLAGS',
             'PTHREAD_LIBFLAGS',
@@ -117,9 +117,9 @@ def configure_pacbio(envin, shared, build_dir):
 def set_defs_submodule_defaults(env, nopbbam):
     subdir = os.path.join(ROOT, 'libcpp')
     defaults = {
-        'LIBPBDATA_INCLUDE': os.path.join(subdir, 'pbdata'),
-        'LIBBLASR_INCLUDE':  os.path.join(subdir, 'alignment'),
-        #'LIBPBIHDF_INCLUDE': '' if nopbbam else os.path.join(subdir, 'hdf'),
+        'LIBPBDATA_INC': os.path.join(subdir, 'pbdata'),
+        'LIBBLASR_INC':  os.path.join(subdir, 'alignment'),
+        #'LIBPBIHDF_INC': '' if nopbbam else os.path.join(subdir, 'hdf'),
         'LIBPBDATA_LIB': os.path.join(subdir, 'pbdata'),
         'LIBBLASR_LIB':  os.path.join(subdir, 'alignment'),
         #'LIBPBIHDF_LIB': '' if nopbbam else os.path.join(subdir, 'hdf'),
@@ -132,9 +132,9 @@ def set_defs_defaults(env, nopbbam):
     # OS := $(shell uname)
     # if Darwin, -lsz (for static builds?)
     defaults = {
-        'LIBBLASR_INCLUDE':  os.path.join(ROOT, 'libcpp', 'alignment'),
-        'LIBPBDATA_INCLUDE':  os.path.join(ROOT, 'libcpp', 'pbdata'),
-        'LIBPBIHDF_INCLUDE':  os.path.join(ROOT, 'libcpp', 'hdf'),
+        'LIBBLASR_INC':  os.path.join(ROOT, 'libcpp', 'alignment'),
+        'LIBPBDATA_INC':  os.path.join(ROOT, 'libcpp', 'pbdata'),
+        'LIBPBIHDF_INC':  os.path.join(ROOT, 'libcpp', 'hdf'),
         'LIBBLASR_LIB':  os.path.join(ROOT, 'libcpp', 'alignment'),
         'LIBPBDATA_LIB':  os.path.join(ROOT, 'libcpp', 'pbdata'),
         'LIBPBIHDF_LIB':  os.path.join(ROOT, 'libcpp', 'hdf'),
@@ -204,8 +204,6 @@ def main(prog, *args):
     """We are still deciding what env-vars to use, if any.
     """
     # Set up an alias, until everything uses one consistently.
-    if 'HDF5_INC' in os.environ and 'HDF5_INCLUDE' not in os.environ:
-        os.environ['HDF5_INCLUDE'] = os.environ['HDF5_INC']
     conf, makevars = parse_args(args)
     if conf.build_dir is not None:
         symlink_makefiles(conf.build_dir)
@@ -213,6 +211,8 @@ def main(prog, *args):
         conf.build_dir = '.'
     conf.build_dir = os.path.abspath(conf.build_dir)
     envin = get_make_style_env(os.environ, makevars)
+    if 'HDF5_INCLUDE' in envin and 'HDF5_INC' not in envin:
+        envin['HDF5_INC'] = envin['HDF5_INCLUDE']
     if conf.submodules:
         set_defs_submodule_defaults(envin, conf.no_pbbam)
         conf.no_pbbam = True
