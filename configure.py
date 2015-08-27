@@ -204,8 +204,6 @@ def main(prog, *args):
     """We are still deciding what env-vars to use, if any.
     """
     # Set up an alias, until everything uses one consistently.
-    if 'HDF5_INC' in os.environ and 'HDF5_INCLUDE' not in os.environ:
-        os.environ['HDF5_INCLUDE'] = os.environ['HDF5_INC']
     conf, makevars = parse_args(args)
     if conf.build_dir is not None:
         symlink_makefiles(conf.build_dir)
@@ -213,6 +211,8 @@ def main(prog, *args):
         conf.build_dir = '.'
     conf.build_dir = os.path.abspath(conf.build_dir)
     envin = get_make_style_env(os.environ, makevars)
+    if 'HDF5_INC' in envin and 'HDF5_INCLUDE' not in envin:
+        envin['HDF5_INCLUDE'] = envin['HDF5_INC']
     if conf.submodules:
         set_defs_submodule_defaults(envin, conf.no_pbbam)
         conf.no_pbbam = True
