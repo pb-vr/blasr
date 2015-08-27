@@ -31,6 +31,7 @@ DEPS := ${SRCS:.cpp=.d}
 
 LD_LIBRARY_PATH=${HDF5_LIB}:${LIBBLASR_LIB}:${LIBPBIHDF_LIB}:${LIBPBDATA_LIB}
 export LD_LIBRARY_PATH
+# Note: On macosx, this would be DYLD_LIBRARY_PATH.
 
 vpath %.cpp ${SRCDIR}
 
