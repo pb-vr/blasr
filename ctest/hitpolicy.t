@@ -35,22 +35,32 @@ Test hitpolicy allbest
 
 Test hitpolicy random
   $ O=$OUTDIR/hitpolicy_random.m4
+  $ O2=$OUTDIR/hitpolicy_random_2.m4
   $ X=$STDDIR/hitpolicy_random.m4
   $ $EXEC $I $R -out $O -m 4 -hitPolicy random -randomSeed 1
   [INFO]* (glob)
   [INFO]* (glob)
+  $ $EXEC $I $R -out $O2 -m 4 -hitPolicy random -randomSeed 1
+  [INFO]* (glob)
+  [INFO]* (glob)
   $ sort $O > $TMP1 && mv $TMP1 $O
-  $ diff $O $X && echo $?
+  $ sort $O2 > $TMP2 && mv $TMP2 $O2
+  $ diff $O $O2 && echo $?
   0
 
 Test hitpolicy randombest bam inputs, nproc > 1, fixed seed
   $ O=$OUTDIR/hitpolicy_randombest_bam_in.m4
+  $ O2=$OUTDIR/hitpolicy_randombest_bam_in_2.m4
   $ X=$STDDIR/hitpolicy_randombest_bam_in.m4
   $ $EXEC $I $R -out $O -m 4 -hitPolicy randombest -randomSeed 1 -nproc 10
   [INFO]* (glob)
   [INFO]* (glob)
+  $ $EXEC $I $R -out $O2 -m 4 -hitPolicy randombest -randomSeed 1 -nproc 10
+  [INFO]* (glob)
+  [INFO]* (glob)
   $ sort $O > $TMP1 && mv $TMP1 $O
-  $ diff $O $X && echo $?
+  $ sort $O2 > $TMP1 && mv $TMP1 $O2
+  $ diff $O $O2 && echo $?
   0
 
 Test hitpolicy randombest bax inputs, nproc > 1, fixed seed
