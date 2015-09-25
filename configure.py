@@ -22,10 +22,11 @@ def log(msg):
     sys.stderr.write('\n')
 
 def shell(cmd):
-    log(cmd)
+    log('`%s`'%cmd)
     status, output = commands.getstatusoutput(cmd)
     if status:
         raise Exception('%d <- %r' %(status, cmd))
+    log(output)
     return output
 
 def system(cmd):
