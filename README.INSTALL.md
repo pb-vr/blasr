@@ -14,11 +14,11 @@
 
 * To configure:
 
-        ./configure.py --no-pbbam
+        ./configure.py --shared --sub --no-pbbam
 
 * or with HDF5 directories (and note that `HDF5_LIB` is a *directory* here):
 
-        ./configure.py --no-pbbam HDF5_INCLUDE=... HDF5_LIB=...
+        ./configure.py --shared --sub --no-pbbam HDF5_INCLUDE=... HDF5_LIB=...
 
 To build BLASR, you must have hdf 1.8.12 or above installed and
   configured with c++ support (you should have the library
@@ -70,3 +70,17 @@ To build BLASR, you must have hdf 1.8.12 or above installed and
 
         make blasr
         ./blasr
+
+## Other issues
+### Static binaries
+If you want static binaries, drop `--shared` when you run configure.py. In that case, you
+might need to pass `-lsz` to make, if you built HDF5 with szlib support (`--with-szlib`).
+
+        ./configure.py --with-szlib ...
+
+See [our issues](https://github.com/PacificBiosciences/blasr/issues/113#issuecomment-143981496).
+
+If you have macosx (Darwin), then you almost certainly want non-static binaries (--shared).
+
+### blasr_libcpp
+If you have built and installed blasr_libcpp elsewhere, then drop `--sub` and do not run `make build-submodule`.

@@ -102,6 +102,7 @@ def compose_defines_pacbio(envin):
             'BOOST_INC',
             'GCC_LIB',
             'ZLIB_LIB', 'ZLIB_LIBFLAGS',
+            'SZLIB_LIB', 'SZLIB_LIBFLAGS',
             'PTHREAD_LIBFLAGS',
             'DL_LIBFLAGS',
             'RT_LIBFLAGS',
@@ -136,7 +137,7 @@ def update_defaults_for_os(env):
         #-lsz (for static builds?)
         env['RT_LIBFLAGS'] = ''
 
-def set_defs_defaults(env, nopbbam):
+def set_defs_defaults(env, nopbbam, with_szlib):
     defaults = {
         'LIBBLASR_INC':  os.path.join(ROOT, 'libcpp', 'alignment'),
         'LIBPBDATA_INC':  os.path.join(ROOT, 'libcpp', 'pbdata'),
@@ -169,6 +170,12 @@ def set_defs_defaults(env, nopbbam):
     }
     if not nopbbam:
         defaults.update(pbbam_defaults)
+    szlib_defaults = {
+        'SZLIB_LIBFLAGS': '-lsz',
+        #'ZLIB_LIBFLAGS': '-lz', # probably needed, but provided elsewhere
+    }
+    if with_szlib:
+        defaults.update(szlib_defaults)
     for k in defaults:
         if k not in env:
             env[k] = defaults[k]
@@ -186,10 +193,12 @@ def parse_args(args):
     parser = optparse.OptionParser()
     parser.add_option('--no-pbbam', action='store_true',
             help='Avoid compiling anything which would need pbbam.')
+    parser.add_option('--with-szlib', action='store_true',
+            help='If HDF5 was built with --with-szlib, then -lz is needed for static binaries.')
     parser.add_option('--submodules', action='store_true',
             help='Set variables to use our git-submodules, which must be pulled and built first. (Implies --no-pbbam.)')
     parser.add_option('--shared', action='store_true',
-            help='Build for dynamic linking.')
+            help='Build for dynamic linking. (Non-static binaries.)')
     parser.add_option('--build-dir',
             help='Can be different from source directory, but only when *not* also building submodule.')
     return parser.parse_args(list(args))
@@ -226,7 +235,7 @@ def main(prog, *args):
     if conf.submodules:
         set_defs_submodule_defaults(envin, conf.no_pbbam)
         conf.no_pbbam = True
-    set_defs_defaults(envin, conf.no_pbbam)
+    set_defs_defaults(envin, conf.no_pbbam, conf.with_szlib)
     configure_pacbio(envin, conf.shared, conf.build_dir)
 
 
