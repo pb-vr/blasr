@@ -77,7 +77,7 @@ public:
         refSeq.deleteOnExit = false;
     }
 
-    void Initialize(T_SuffixArray *saP, T_GenomeSequence *refP, 
+    void Initialize(T_SuffixArray *saP, T_GenomeSequence *refP,
             SequenceIndexDatabase<FASTASequence> *seqDBP,
             TupleCountTable<T_GenomeSequence, T_Tuple> *ctabP,
             ReverseCompressIndex *rciP,
@@ -86,7 +86,7 @@ public:
             RegionTable *regionTableP,
             ostream *outFileP,
             ostream *unalignedFileP,
-            ostream *anchorFilePtrP, 
+            ostream *anchorFilePtrP,
             ostream *clusterFilePtrP=NULL) {
         suffixArrayPtr     = saP;
         referenceSeqPtr    = refP;

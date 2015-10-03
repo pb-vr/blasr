@@ -58,10 +58,10 @@ public:
    subreads to where the denovo ccs aligned.
    5. CCSFullPass - Same as allpass, except using only complete
    subreads.
-   6. ZmwSubreads - Align subreads of each zmw to where the longest 
+   6. ZmwSubreads - Align subreads of each zmw to where the longest
    subread of the zmw aligned to.
 
-   The alignments are a raggad array of n sequences; n is 1 for cases 
+   The alignments are a raggad array of n sequences; n is 1 for cases
    1 and 3, the number of subreads for cases 2 and 4, and the number
    of full length passes for case 5.
 
@@ -83,7 +83,7 @@ public:
     inline void Resize(int nSeq);
 
     inline void CheckSeqIndex(int seqIndex);
-        
+
     inline void SetSequence(int seqIndex, SMRTSequence &seq);
 
     inline void AddAlignmentForSeq(int seqIndex, T_AlignmentCandidate *alignmentPtr);
@@ -142,7 +142,7 @@ inline void ReadAlignments::Resize(int nSeq) {
 
 inline void ReadAlignments::CheckSeqIndex(int seqIndex) {
     if ( seqIndex < 0 or seqIndex >= int(subreads.size()) ) {
-        cout << "ERROR, adding a sequence to an unallocated position." 
+        cout << "ERROR, adding a sequence to an unallocated position."
             << endl;
         assert(0);
     }
@@ -173,19 +173,19 @@ inline vector<T_AlignmentCandidate*> ReadAlignments::CopySubreadAlignments(int s
     return ret;
 }
 
-inline void ReadAlignments::Print(ostream &out=cout) { 
-    out << "A ReadAlignments object with " 
+inline void ReadAlignments::Print(ostream &out=cout) {
+    out << "A ReadAlignments object with "
         << subreadAlignments.size()
         << " groups of subread alignments." << endl;
     for (int i = 0; i < int(subreadAlignments.size()); i++) {
-        out << "  subreadAlignment group [" << i << "/" 
+        out << "  subreadAlignment group [" << i << "/"
             << subreadAlignments.size() << "] has "
             << subreadAlignments[i].size() << " alignments." << endl;
         for(int j = 0; j < int(subreadAlignments[i].size()); j++) {
-            out << "    [" << i << "][" << j << "/" 
+            out << "    [" << i << "][" << j << "/"
                 << subreadAlignments[i].size() << "]" << endl;
             subreadAlignments[i][j]->Print(out);
-        } 
+        }
     }
     out << "  read: ";
     read.Print(out);
