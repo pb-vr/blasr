@@ -46,13 +46,13 @@ public:
     QVScale qvScaleType;
     vector<string> readsFileNames; // = queryFileNames, genomeFileName
     vector<string> queryFileNames;
-    string genomeFileName; 
+    string genomeFileName;
     // Query file type: FASTA/FASTQ/HDF*/PBBAM,
     // Note that mixed query file types is not allowed.
-    FileType queryFileType; 
+    FileType queryFileType;
     // Query read type, SUBREAD, CCS or UNKNOWN
     // Note that mixed read types is not allowed.
-    ReadType::ReadTypeEnum queryReadType; 
+    ReadType::ReadTypeEnum queryReadType;
     vector<string> regionTableFileNames;
     vector<string> ccsFofnFileNames;
     string tupleListName;
@@ -195,7 +195,7 @@ public:
     bool fastMaxInterval;
     bool aggressiveIntervalCut;
     bool fastSDP;
-    string concordantTemplate; 
+    string concordantTemplate;
     bool concordantAlignBothDirections;
     FilterCriteria filterCriteria;
     string hitPolicyStr;
@@ -338,7 +338,7 @@ public:
         byAdapter = false;
         qvScaleType = PHRED;
         printHeader = false;
-        computeAlignProbability = false;    
+        computeAlignProbability = false;
         readAccuracyPrior = 0.85;
         printVersion = false;
         clipping = SAMOutput::none;
@@ -383,11 +383,11 @@ public:
         Init();
     }
 
-    void MakeSane() { 
+    void MakeSane() {
         // Expand FOFN
         FileOfFileNames::ExpandFileNameList(readsFileNames);
 
-        // Must have at least a query and a genome 
+        // Must have at least a query and a genome
         if (readsFileNames.size() <= 1) {
             cout << "Error, you must provide at least one reads file and a genome file." <<endl;
             exit(1);
@@ -398,7 +398,7 @@ public:
         queryFileNames = readsFileNames;
         queryFileNames.pop_back();
         genomeFileName = readsFileNames.back();
-  
+
         // Check query file type.
         BaseSequenceIO::DetermineFileTypeByExtension(queryFileNames[0], queryFileType);
         for (size_t i = 1; i < queryFileNames.size(); i++) {
@@ -418,7 +418,7 @@ public:
         // -useQuality can not be used in combination with a fasta input
         if (!ignoreQualities) {
             if (queryFileType == Fasta) {
-                cout<<"ERROR, you can not use -useQuality option when any of the input reads files are in multi-fasta format."<<endl; 
+                cout<<"ERROR, you can not use -useQuality option when any of the input reads files are in multi-fasta format."<<endl;
                 exit(1);
             }
         }
@@ -569,7 +569,7 @@ public:
                 clipping = SAMOutput::subread;
             }
             if (queryFileType != PBBAM and not enableHiddenPaths) {
-                // bax|fasta|fastq -> bam paths are turned off by default 
+                // bax|fasta|fastq -> bam paths are turned off by default
                 cout << "ERROR, could not output alignments in BAM unless input reads are in PacBio BAM files." << endl;
                 exit(1);
             }
@@ -591,7 +591,7 @@ public:
 
         if (holeNumberRangesStr.size() > 0) {
             if (not holeNumberRanges.setRanges(holeNumberRangesStr)) {
-                cout << "ERROR, could not parse hole number ranges: " 
+                cout << "ERROR, could not parse hole number ranges: "
                     << holeNumberRangesStr << "." << endl;
                 exit(1);
             }
@@ -617,14 +617,14 @@ public:
         // Determine query read type
         queryReadType = DetermineQueryReadType();
         // Pass verbosity
-        anchorParameters.verbosity = verbosity; 
+        anchorParameters.verbosity = verbosity;
 
         // Set filter criteria and hit policy
         ResetFilterAndHit();
     }
     void ResetFilterAndHit(void) {
-        filterCriteria = FilterCriteria(minAlnLength, minPctSimilarity, 
-                                        minPctAccuracy, true, 
+        filterCriteria = FilterCriteria(minAlnLength, minPctSimilarity,
+                                        minPctAccuracy, true,
                                         Score(static_cast<float>(maxScore), ScoreSign::NEGATIVE));
         hitPolicy = HitPolicy(hitPolicyStr, ScoreSign::NEGATIVE);
     }
@@ -637,7 +637,7 @@ public:
             // Read type in BAM may be CCS, SUBREAD, HQREGION or POLYMERASE.
             // Determine it later.
             return ReadType::UNKNOWN;
-        } 
+        }
         if (mapSubreadsSeparately) {
             return ReadType::SUBREAD;
         } else {

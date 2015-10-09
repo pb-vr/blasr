@@ -3,7 +3,7 @@
  *
  *       Filename:  RegisterOptions.hpp
  *
- *    Description:  
+ *    Description:
  *
  *        Version:  1.0
  *        Created:  04/29/2015 04:48:26 PM
@@ -58,9 +58,9 @@ void RegisterBlasrOptions(CommandLineParser & clp, MappingParameters & params) {
     clp.RegisterFlagOption("useGuidedAlign", (bool*)&trashbinBool, "");
     clp.RegisterFlagOption("noUseGuidedAlign", (bool*)&params.useGuidedAlign, "");
     clp.RegisterFlagOption("header", (bool*)&params.printHeader, "");
-    clp.RegisterIntOption("bandSize", &params.bandSize, "", CommandLineParser::PositiveInteger);  
-    clp.RegisterIntOption("extendBandSize", &params.extendBandSize, "", CommandLineParser::PositiveInteger);  
-    clp.RegisterIntOption("guidedAlignBandSize", &params.guidedAlignBandSize, "", CommandLineParser::PositiveInteger);  
+    clp.RegisterIntOption("bandSize", &params.bandSize, "", CommandLineParser::PositiveInteger);
+    clp.RegisterIntOption("extendBandSize", &params.extendBandSize, "", CommandLineParser::PositiveInteger);
+    clp.RegisterIntOption("guidedAlignBandSize", &params.guidedAlignBandSize, "", CommandLineParser::PositiveInteger);
     clp.RegisterIntOption("maxAnchorsPerPosition", &params.anchorParameters.maxAnchorsPerPosition, "", CommandLineParser::PositiveInteger);
     clp.RegisterIntOption("stopMappingOnceUnique", (int*) &params.anchorParameters.stopMappingOnceUnique, "", CommandLineParser::NonNegativeInteger);
     clp.RegisterStringOption("out", &params.outFileName, "");
@@ -77,7 +77,7 @@ void RegisterBlasrOptions(CommandLineParser & clp, MappingParameters & params) {
     clp.RegisterIntOption("sdpIns", &params.sdpIns, "", CommandLineParser::Integer);
     clp.RegisterIntOption("sdpDel", &params.sdpDel, "", CommandLineParser::Integer);
     clp.RegisterFloatOption("indelRate", &params.indelRate, "", CommandLineParser::NonNegativeFloat);
-    clp.RegisterFloatOption("minRatio", &params.minRatio, "", CommandLineParser::NonNegativeFloat); 
+    clp.RegisterFloatOption("minRatio", &params.minRatio, "", CommandLineParser::NonNegativeFloat);
     clp.RegisterFloatOption("sdpbypass", &params.sdpBypassThreshold, "", CommandLineParser::NonNegativeFloat);
     clp.RegisterFloatOption("minFrac", &trashbinFloat, "", CommandLineParser::NonNegativeFloat);
     clp.RegisterIntOption("maxScore", &params.maxScore, "", CommandLineParser::Integer);
@@ -123,7 +123,7 @@ void RegisterBlasrOptions(CommandLineParser & clp, MappingParameters & params) {
     clp.RegisterFlagOption("useTemp", (bool*) &params.tempDirectory, "");
     clp.RegisterFlagOption("noSplitSubreads", &params.mapSubreadsSeparately, "");
     clp.RegisterFlagOption("concordant", &params.concordant, "");
-    // When -concordant is turned on, blasr first selects a subread (e.g., the median length full-pass subread) 
+    // When -concordant is turned on, blasr first selects a subread (e.g., the median length full-pass subread)
     // of a zmw as template, maps the template subread to a reference, then infers directions of all other subreads
     // of the same zmw based on direction of the template, and finally maps all other subreads to the same
     // genomic coordinates as the template. When -concordantAlignBothDirections is turned on, blasr will align
@@ -150,7 +150,7 @@ void RegisterBlasrOptions(CommandLineParser & clp, MappingParameters & params) {
     clp.RegisterFlagOption("help", &params.printDiscussion, "");
     clp.RegisterFloatOption("accuracyPrior",    &params.readAccuracyPrior, "", CommandLineParser::NonNegativeFloat);
     // holeNumberRangesStr is a string of comma-delimited hole number ranges, such as '1,2,3,10-15'.
-    // Blasr only analyzes reads whose hole numbers are in the specified hole number ranges. 
+    // Blasr only analyzes reads whose hole numbers are in the specified hole number ranges.
     clp.RegisterStringOption("holeNumbers", &params.holeNumberRangesStr, "");
     clp.RegisterIntOption("substitutionPrior",  &params.substitutionPrior, "", CommandLineParser::NonNegativeInteger);
     clp.RegisterIntOption("deletionPrior",  &params.globalDeletionPrior, "", CommandLineParser::NonNegativeInteger);
@@ -171,7 +171,7 @@ void RegisterBlasrOptions(CommandLineParser & clp, MappingParameters & params) {
     clp.RegisterFlagOption("fastSDP", &params.fastSDP, "", false);
     clp.RegisterStringOption("concordantTemplate", &params.concordantTemplate, "typicalsubread");
 
-    RegisterFilterOptions(clp, params.minAlnLength, params.minPctSimilarity, params.minPctAccuracy, 
+    RegisterFilterOptions(clp, params.minAlnLength, params.minPctSimilarity, params.minPctAccuracy,
                           params.hitPolicyStr, trashbinBool=true, trashbinInt, params.maxScore);
 }
 
@@ -190,9 +190,9 @@ const string BlasrHelp(MappingParameters & params) {
              << "   reads.bax.h5|reads.plx.h5 is the old DEPRECATED output format of SMRT reads." << endl
              << "   input.fofn  File of file names accepted." << endl << endl
              << "   -sa suffixArrayFile"<< endl
-             << "               Use the suffix array 'sa' for detecting matches" << endl 
-             << "               between the reads and the reference.  The suffix" << endl 
-             << "               array has been prepared by the sawriter program." << endl << endl 
+             << "               Use the suffix array 'sa' for detecting matches" << endl
+             << "               between the reads and the reference.  The suffix" << endl
+             << "               array has been prepared by the sawriter program." << endl << endl
              << "   -ctab tab "<<endl
              << "               A table of tuple counts used to estimate match significance.  This is " << endl
              << "               by the program 'printTupleCountTable'.  While it is quick to generate on " << endl
@@ -203,7 +203,7 @@ const string BlasrHelp(MappingParameters & params) {
              << "               This may be a single table if there is just one input file, " << endl
              << "               or a fofn.  When a region table is specified, any region table inside " << endl
              << "               the reads.plx.h5 or reads.bax.h5 files are ignored."<< endl
-             << endl 
+             << endl
              << "(DEPRECATED) Options for modifying reads." << endl
              << "               There is ancilliary information about substrings of reads " << endl
              << "               that is stored in a 'region table' for each read file.  Because " << endl
@@ -218,8 +218,8 @@ const string BlasrHelp(MappingParameters & params) {
              << "   -useccs   " << endl
              << "               Align the circular consensus sequence (ccs), then report alignments" << endl
              << "               of the ccs subreads to the window that the ccs was mapped to.  Only " << endl
-             << "               alignments of the subreads are reported." << endl  
-             << "   -useccsall"<<endl 
+             << "               alignments of the subreads are reported." << endl
+             << "   -useccsall"<<endl
              << "               Similar to -useccs, except all subreads are aligned, rather than just" << endl
              << "               the subreads used to call the ccs.  This will include reads that only"<<endl
              << "               cover part of the template." << endl
@@ -260,15 +260,15 @@ const string BlasrHelp(MappingParameters & params) {
 #ifdef USE_PBBAM
              << "   -bam        Write output in PacBio BAM format. This is the preferred output format." << endl
              << "               Input query reads must be in PacBio BAM format." << endl
-#endif 
+#endif
              << "   -sam        Write output in SAM format." << endl
              << "   -m t           " << endl
              << "               If not printing SAM, modify the output of the alignment." << endl
-             << "                t=" << StickPrint <<   " Print blast like output with |'s connecting matched nucleotides." << endl 
-             << "                  " << SummaryPrint << " Print only a summary: score and pos." << endl 
-             << "                  " << CompareXML <<   " Print in Compare.xml format." << endl 
+             << "                t=" << StickPrint <<   " Print blast like output with |'s connecting matched nucleotides." << endl
+             << "                  " << SummaryPrint << " Print only a summary: score and pos." << endl
+             << "                  " << CompareXML <<   " Print in Compare.xml format." << endl
              << "                  " << Vulgar <<       " Print in vulgar format (DEPRECATED)." << endl
-             << "                  " << Interval <<     " Print a longer tabular version of the alignment." << endl 
+             << "                  " << Interval <<     " Print a longer tabular version of the alignment." << endl
              << "                  " << CompareSequencesParsable  << " Print in a machine-parsable format that is read by compareSequences.py." << endl
              << "   -header" <<endl
              << "               Print a header as the first line of the output file describing the contents of each column."<<endl
@@ -309,12 +309,12 @@ const string BlasrHelp(MappingParameters & params) {
 //             << "               (a2,...an) of size n-1 is also clustered to make sure a1 did not decrease the " << endl
 //             << "               cluster score.  When advanceHalf is specified, clustering begins at a_(n/2)."<<endl<< endl
              << "   -advanceExactMatches E (0)" << endl
-             << "               Another trick for speeding up alignments with match - E fewer anchors.  Rather than" << endl 
+             << "               Another trick for speeding up alignments with match - E fewer anchors.  Rather than" << endl
              << "               finding anchors between the read and the genome at every position in the read, " <<endl
              << "               when an anchor is found at position i in a read of length L, the next position " << endl
              << "               in a read to find an anchor is at i+L-E." << endl
              << "               Use this when alignining already assembled contigs." << endl
-             << "   -nCandidates n (10)" << endl 
+             << "   -nCandidates n (10)" << endl
              << "               Keep up to 'n' candidates for the best alignment.  A large value of n will slow mapping" << endl
              << "               because the slower dynamic programming steps are applied to more clusters of anchors" <<endl
              << "               which can be a rate limiting step when reads are very long."<<endl
@@ -374,7 +374,7 @@ const string BlasrHelp(MappingParameters & params) {
              << "               Refine alignment using affine guided align." << endl << endl
              << " Options for filtering reads and alignments" << endl
              << "   -minReadLength l(50)" << endl
-             << "               Skip reads that have a full length less than l. Subreads may be shorter." << endl 
+             << "               Skip reads that have a full length less than l. Subreads may be shorter." << endl
              << "   -minSubreadLength l(0)" << endl
              << "               Do not align subreads of length less than l." << endl
              << "   -minRawSubreadScore m(0)" << endl
@@ -386,7 +386,7 @@ const string BlasrHelp(MappingParameters & params) {
              << "   -minPctSimilarity" << endl
              << "               " << params.filterCriteria.MinPctSimilarityHelp() << endl
              << "   -minPctAccuracy" << endl
-             << "               " << params.filterCriteria.MinPctAccuracyHelp() << endl << endl 
+             << "               " << params.filterCriteria.MinPctAccuracyHelp() << endl << endl
              << " Options for parallel alignment." << endl
              << "   -nproc N (1)" << endl
              << "               Align using N processes.  All large data structures such as the suffix array and " << endl
@@ -403,18 +403,18 @@ const string BlasrHelp(MappingParameters & params) {
              << "               When specified, only align reads whose ZMW hole numbers are in LIST." << endl
              << "               LIST is a comma-delimited string of ranges, such as '1,2,3,10-13'." << endl
              << "               This option only works when reads are in bam, bax.h5 or plx.h5 format." << endl
-             << endl 
+             << endl
 //             << " Options for dynamic programming alignments. " << endl << endl
 //             << "   -ignoreQuality" << endl
-//             << "                 Ignore quality values when computing alignments (they still may be used." << endl 
+//             << "                 Ignore quality values when computing alignments (they still may be used." << endl
 //             << "                 when mapping)." << endl << endl
-//             << " -v            Print some verbose information." << endl 
+//             << " -v            Print some verbose information." << endl
 //             << " -V 2          Make verbosity more verbose.  Probably only useful for development." << endl
              << " -h            Print this help file." << endl << endl
              << "To cite BLASR, please use: Chaisson M.J., and Tesler G., Mapping " << endl
              << "single molecule sequencing reads using Basic Local Alignment with " << endl
              << "Successive Refinement (BLASR): Theory and Application, BMC " << endl
-             << "Bioinformatics 2012, 13:238." << endl 
+             << "Bioinformatics 2012, 13:238." << endl
              << "Please report any bugs to "
              << "'https://github.com/PacificBiosciences/blasr/issues'." << endl << endl;
   return helpStream.str();
@@ -434,12 +434,12 @@ const string BlasrSummaryHelp(void) {
     ss << "   Basic usage: 'blasr reads.{bam|fasta|bax.h5|fofn} genome.fasta [-options] " << endl
        << " [option]\tDescription (default_value)." << endl << endl
        << " Input Files." << endl
-       << "   reads.bam is the NEW native output format for SMRT reads." 
+       << "   reads.bam is the NEW native output format for SMRT reads."
           "This is the preferred input to blasr because rich quality"
           "value (insertion,deletion, and substitution quality values) information is "
           "maintained.  The extra quality information improves variant detection and mapping"<<
           "speed." << endl
-       << "   reads.fasta is a multi-fasta file of reads.  While any fasta file is valid input, " 
+       << "   reads.fasta is a multi-fasta file of reads.  While any fasta file is valid input, "
           "it is preferable to use bax.h5 or plx.h5 files because they contain "
           "more rich quality value information." << endl
        << "   reads.bax.h5|reads.plx.h5 is the OLD (DEPRECATED) output format of "
