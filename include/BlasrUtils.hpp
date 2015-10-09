@@ -155,9 +155,9 @@ void PrintAlignment(T_AlignmentCandidate &alignment,
                     SMRTSequence &fullRead,
                     MappingParameters &params,
                     AlignmentContext &alignmentContext,
-                    ostream &outFile,
+                    ostream &outFile
 #ifdef USE_PBBAM
-                    PacBio::BAM::BamWriter * bamWriterPtr
+                    , PacBio::BAM::BamWriter * bamWriterPtr
 #endif
                     );
 

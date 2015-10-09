@@ -985,9 +985,9 @@ void PrintAlignment(T_AlignmentCandidate &alignment,
                     SMRTSequence &fullRead,
                     MappingParameters &params,
                     AlignmentContext &alignmentContext,
-                    ostream &outFile,
+                    ostream &outFile
 #ifdef USE_PBBAM
-                    PacBio::BAM::BamWriter * bamWriterPtr
+                    , PacBio::BAM::BamWriter * bamWriterPtr
 #endif
                     ) {
    try {
@@ -1096,9 +1096,9 @@ void PrintAlignments(vector<T_AlignmentCandidate*> alignmentPtrs,
     }
 
     PrintAlignment(*alignmentPtrs[i], read,
-                   params, alignmentContext, outFile,
+                   params, alignmentContext, outFile
 #ifdef USE_PBBAM
-                   bamWriterPtr
+                   , bamWriterPtr
 #endif
                    );
   }
