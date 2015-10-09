@@ -42,7 +42,7 @@ template<typename T_Sequence>
 bool GetNextReadThroughSemaphore(ReaderAgglomerate &reader,
                                  MappingParameters &params,
                                  T_Sequence &read,
-                                 AlignmentContext &context,
+                                 string & readGroupId,
                                  int & associatedRandInt,
                                  MappingSemaphores & semaphores)
 {
@@ -68,7 +68,7 @@ bool GetNextReadThroughSemaphore(ReaderAgglomerate &reader,
     // Set the read group id before releasing the semaphore, since other
     // threads may change the reader object to a new read group before
     // sending this alignment out to printing.
-    context.readGroupId = reader.readGroupId;
+    readGroupId = reader.readGroupId;
 
     if (params.nProc > 1) {
 #ifdef __APPLE__
@@ -172,42 +172,6 @@ int CountZero(unsigned char *ptr, int length)
         if (ptr[i] == 0) { ++nZero; }
     }
     return nZero;
-}
-
-bool FirstContainsSecond(DNALength aStart, DNALength aEnd, DNALength bStart, DNALength bEnd)
-{
-    return ((bStart > aStart and bEnd <= aEnd) or
-            (bStart >= aStart and bEnd < aEnd));
-}
-
-float ComputePMatch(float accuracy, int anchorLength)
-{
-    assert(anchorLength >= 0);
-    if (anchorLength == 0) {
-        return 0;
-    }
-    else {
-        return pow(accuracy,anchorLength);
-    }
-}
-
-//
-// Assume the number of mismatches in a row follow a geometric distribution.
-//
-void GeometricDistributionSummaryStats(float pSuccess,
-                                       float &mean, float &variance)
-{
-    mean = 1/pSuccess;
-    variance = (1-pSuccess)/ (pow(pSuccess,2));
-}
-
-
-
-int ComputeExpectedWaitingBases(float mean, float variance, float certainty)
-{
-    float nStdDev;
-    assert(FindQNorm(certainty, nStdDev) != false);
-    return mean + sqrt(variance) * nStdDev;
 }
 
 #endif
