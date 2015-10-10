@@ -174,4 +174,49 @@ int CountZero(unsigned char *ptr, int length)
     return nZero;
 }
 
+void MakeVirtualRead(SMRTSequence & smrtRead,
+                     const vector<SMRTSequence> & subreads)
+{
+    assert(subreads.size() > 0);
+    DNALength hqStart = 0, hqEnd = 0;
+    for(auto subread: subreads) {
+        hqStart = min(DNALength(subread.SubreadStart()), hqStart);
+        hqEnd   = max(DNALength(subread.SubreadEnd()),   hqEnd);
+    }
+    smrtRead.Free();
+    smrtRead.Allocate(hqEnd);
+    smrtRead.lowQualityPrefix = hqStart;
+    smrtRead.lowQualitySuffix = smrtRead.length - hqEnd;
+    smrtRead.highQualityRegionScore = subreads[0].highQualityRegionScore;
+    stringstream ss;
+    ss << SMRTTitle(subreads[0].GetTitle()).MovieName() << "/" << subreads[0].HoleNumber();
+    smrtRead.CopyTitle(ss.str());
+    for (auto subread: subreads) {
+        memcpy(&smrtRead.seq[subread.SubreadStart()],
+               &subread.seq[0], sizeof(char) * subread.length);
+    }
+}
+
+void MakeSubreadIntervals(vector<SMRTSequence> & subreads,
+                          vector<ReadInterval> & subreadIntervals)
+{
+    subreadIntervals.clear();
+    for (auto subread: subreads) {
+        subreadIntervals.push_back(ReadInterval(subread.SubreadStart(),
+            subread.SubreadEnd(), subread.highQualityRegionScore));
+    }
+}
+
+int GetIndexOfMedian(const vector<ReadInterval> & subreadIntervals)
+{
+    vector<ReadInterval> intervals = subreadIntervals;
+    size_t n = intervals.size() / 2;
+    nth_element(intervals.begin(), intervals.begin() + n, intervals.end(),
+                [](const ReadInterval & a, const ReadInterval & b) -> bool
+                {a.end - a.start < b.end - b.start;});
+    auto it = std::find(subreadIntervals.begin(), subreadIntervals.end(), intervals[n]);
+    int pos = int(std::distance(subreadIntervals.begin(), it));
+    return pos;
+}
+
 #endif

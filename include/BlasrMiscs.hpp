@@ -80,6 +80,17 @@ void MakeSubreadRC(SMRTSequence & subreadSequenceRC,
                    SMRTSequence & subreadSequence,
                    SMRTSequence & smrtRead);
 
+// Make a virtual SMRTSequence (polymerase reads) given all subreads.
+// NO QVs will be copied at this point.
+void MakeVirtualRead(SMRTSequence & smrtRead,
+                     const vector<SMRTSequence> & subreads);
+
+// Construct subreads invervals from subreads
+void MakeSubreadIntervals(vector<SMRTSequence> & subreads,
+                          vector<ReadInterval> & subreadIntervals);
+
+// Get index of median length interval
+int GetIndexOfMedian(const vector<ReadInterval> & subreadIntervals);
 
 //-------------------------MISC-----------------------------------//
 int CountZero(unsigned char *ptr, int length);
