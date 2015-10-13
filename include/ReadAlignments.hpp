@@ -173,7 +173,7 @@ inline vector<T_AlignmentCandidate*> ReadAlignments::CopySubreadAlignments(int s
     return ret;
 }
 
-inline void ReadAlignments::Print(ostream &out=cout) {
+inline void ReadAlignments::Print(ostream &out) {
     out << "A ReadAlignments object with "
         << subreadAlignments.size()
         << " groups of subread alignments." << endl;

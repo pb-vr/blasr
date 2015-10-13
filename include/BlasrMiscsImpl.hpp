@@ -37,6 +37,7 @@
 
 #ifndef _BLASR_MISCS_IMPL_HPP_
 #define _BLASR_MISCS_IMPL_HPP_
+#include "utils/SMRTTitle.hpp"
 
 template<typename T_Sequence>
 bool GetNextReadThroughSemaphore(ReaderAgglomerate &reader,

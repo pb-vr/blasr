@@ -620,7 +620,7 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
         vector<T_AlignmentCandidate*> &alignments,
         MappingParameters &params,
         MappingBuffers &mappingBuffers,
-        int procId=0) {
+        int procId) {
 
     vector<T_QuerySequence*> forrev;
     forrev.resize(2);
@@ -1293,7 +1293,7 @@ void PairwiseLocalAlign(T_Sequence &qSeq, T_RefSequence &tSeq,
         int k,
         MappingParameters &params, T_AlignmentCandidate &alignment,
         MappingBuffers &mappingBuffers,
-        AlignmentType alignType=Global) {
+        AlignmentType alignType) {
     //
     // Perform a pairwise alignment between qSeq and tSeq, but choose
     // the pairwise alignment method based on the parameters.  The

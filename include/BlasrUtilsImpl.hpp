@@ -36,6 +36,7 @@
 // Author: Mark Chaisson
 #ifndef _BLASR_INC_UTILS_IMPL_HPP_
 #define _BLASR_INC_UTILS_IMPL_HPP_
+#include "BlasrAlign.hpp"
 
 
 //----------------------MODIFY ALIGNMENTS--------------------------//
@@ -639,7 +640,7 @@ int RemoveOverlappingAlignments(vector<T_AlignmentCandidate*> &alignmentPtrs,
 
 // Delete all alignments from index startIndex in vector, inclusive.
 void DeleteAlignments(vector<T_AlignmentCandidate*> &alignmentPtrs,
-        int startIndex=0)
+        int startIndex)
 {
     int i;
     for (i = startIndex; i < int(alignmentPtrs.size()); i++ ) {
@@ -1114,7 +1115,7 @@ void PrintAlignments(vector<T_AlignmentCandidate*> alignmentPtrs,
 }
 
 void PrintAlignmentPtrs(vector <T_AlignmentCandidate*> & alignmentPtrs,
-    ostream & out = cout) {
+    ostream & out) {
     for(int alignmentIndex = 0;
         alignmentIndex < int(alignmentPtrs.size());
         alignmentIndex++) {
