@@ -78,7 +78,7 @@ def update_env_if(envout, envin, keys):
         if key in envin:
             envout[key] = envin[key]
 def compose_defs_env(env):
-    # We disallow env overrides for anything with a default from GNU make.
+    # We disallow env overrides for some things with defaults from GNU make.
     nons = ['CXX', 'CC', 'AR'] # 'SHELL'?
     ovr    = ['%-20s ?= %s' %(k, v) for k,v in env.items() if k not in nons]
     nonovr = ['%-20s := %s' %(k, v) for k,v in env.items() if k in nons]
@@ -93,7 +93,8 @@ def compose_defines_pacbio(envin):
     #setifenvf(env, envin, 'PREBUILT', get_PREBUILT)
     nondefaults = set([
             'CXX',
-            'BLASR_INC',
+            'CXXFLAGS',
+            'NO_PBBAM',
             'LIBPBDATA_INC', 'LIBPBDATA_LIB', 'LIBPBDATA_LIBFLAGS',
             'LIBPBIHDF_INC', 'LIBPBIHDF_LIB', 'LIBPBIHDF_LIBFLAGS',
             'LIBBLASR_INC', 'LIBBLASR_LIB', 'LIBBLASR_LIBFLAGS',
@@ -172,6 +173,8 @@ def set_defs_defaults(env, nopbbam, with_szlib):
     }
     if not nopbbam:
         defaults.update(pbbam_defaults)
+    else:
+        defaults['NO_PBBAM'] = 1
     szlib_defaults = {
         'SZLIB_LIBFLAGS': '-lsz',
         #'ZLIB_LIBFLAGS': '-lz', # probably needed, but provided elsewhere
