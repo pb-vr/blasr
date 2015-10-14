@@ -1,6 +1,5 @@
 // Author: Mark Chaisson
-#ifndef _BLASR_MISCS_HPP_
-#define _BLASR_MISCS_HPP_
+#pragma once
 
 #include "BlasrHeaders.h"
 
@@ -61,5 +60,3 @@ int GetIndexOfMedian(const vector<ReadInterval> & subreadIntervals);
 int CountZero(unsigned char *ptr, int length);
 
 #include "BlasrMiscsImpl.hpp"
-
-#endif

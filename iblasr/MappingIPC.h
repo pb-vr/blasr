@@ -1,5 +1,4 @@
-#ifndef MAPPING_IPC_H_
-#define MAPPING_IPC_H_
+#pragma once
 
 #include <pthread.h>
 
@@ -101,5 +100,3 @@ public:
         clusterFilePtr= clusterFilePtrP;
     }
 };
-
-#endif

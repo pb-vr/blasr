@@ -1,8 +1,5 @@
 // Author: Mark Chaisson
-
-
-#ifndef _BLASR_INC_UTILS_HPP_
-#define _BLASR_INC_UTILS_HPP_
+#pragma once
 
 #include "BlasrHeaders.h"
 
@@ -161,4 +158,3 @@ void PrintAllReadAlignments(ReadAlignments & allReadAlignments,
                             MappingSemaphores & semaphores);
 
 #include "BlasrUtilsImpl.hpp"
-#endif

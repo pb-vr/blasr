@@ -1,6 +1,5 @@
 // Author: Mark Chaisson
-#ifndef __BLASR_MAPPING_BUFFERS__
-#define __BLASR_MAPPING_BUFFERS__
+#pragma once
 
 #include <vector>
 #include <tuples/DNATuple.hpp>
@@ -77,5 +76,3 @@ inline void MappingBuffers::Reset(void) {
     vector<float>().swap(lnMatchPValueMat);
     vector<int>().swap(clusterNumBases);
 }
-
-#endif

@@ -1,6 +1,6 @@
 // Author: Mark Chaisson
-#ifndef _BLASR_INC_UTILS_IMPL_HPP_
-#define _BLASR_INC_UTILS_IMPL_HPP_
+#pragma once
+
 #include "BlasrAlign.hpp"
 
 
@@ -1185,6 +1185,3 @@ void PrintAllReadAlignments(ReadAlignments & allReadAlignments,
     } // End of finding no alignments for the subread with subreadIndex.
   } // End of printing and processing alignmentContext for each subread.
 }
-
-
-#endif

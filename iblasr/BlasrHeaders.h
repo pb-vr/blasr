@@ -1,5 +1,4 @@
-#ifndef _BLASR_HEADERS_H_
-#define _BLASR_HEADERS_H_
+#pragma once
 
 #ifdef __linux__
 #  include <mcheck.h>
@@ -110,5 +109,3 @@ typedef DNATuple T_Tuple;
 typedef LISPValueWeightor<T_GenomeSequence, DNATuple, vector<ChainedMatchPos> >  PValueWeightor;
 typedef LISSMatchFrequencyPValueWeightor<T_GenomeSequence, DNATuple, vector<ChainedMatchPos> >  MultiplicityPValueWeightor;
 typedef MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> MappingIPC;
-
-#endif
