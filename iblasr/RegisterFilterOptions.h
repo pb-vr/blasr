@@ -1,13 +1,12 @@
 #include <libconfig.h>
 #include <CommandLineParser.hpp>
 #include <datastructures/alignment/FilterCriteria.hpp>
-#include <sstream>
-using namespace std;
+#include <string>
 
 /// Register options for filtering alignments.
 void RegisterFilterOptions(CommandLineParser & clp, int & minAlnLength,
                            float & minPctSimilarity, float & minPctAccuracy,
-                           string & hitPolicyStr, bool & useScoreCutoff,
+                           std::string & hitPolicyStr, bool & useScoreCutoff,
                            int & scoreSignInt, int & scoreCutoff) {
     ScoreSign ss = static_cast<ScoreSign>(scoreSignInt);
     Score sc(static_cast<float>(scoreCutoff),  ss);
