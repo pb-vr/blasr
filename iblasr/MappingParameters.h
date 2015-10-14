@@ -6,16 +6,16 @@ assert("blasr must be compiled with lib pbbam to perform IO on bam." == 0);
 
 #include <vector>
 
-#include "reads/ReadType.hpp"
-#include "utils/FileOfFileNames.hpp"
-#include "utils/RangeUtils.hpp"
-#include "tuples/TupleMetrics.hpp"
-#include "datastructures/anchoring/AnchorParameters.hpp"
-#include "qvs/QualityValue.hpp"
-#include "format/SAMPrinter.hpp"
-#include "algorithms/alignment/AlignmentFormats.hpp"
-#include "files/BaseSequenceIO.hpp"
-#include "datastructures/alignment/FilterCriteria.hpp"
+#include <reads/ReadType.hpp>
+#include <utils/FileOfFileNames.hpp>
+#include <utils/RangeUtils.hpp>
+#include <tuples/TupleMetrics.hpp>
+#include <datastructures/anchoring/AnchorParameters.hpp>
+#include <qvs/QualityValue.hpp>
+#include <format/SAMPrinter.hpp>
+#include <algorithms/alignment/AlignmentFormats.hpp>
+#include <files/BaseSequenceIO.hpp>
+#include <datastructures/alignment/FilterCriteria.hpp>
 
 class MappingParameters {
 public:

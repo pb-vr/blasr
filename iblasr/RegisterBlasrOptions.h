@@ -16,11 +16,12 @@
  * ============================================================================
  */
 
-#include "libconfig.h"
-#include "CommandLineParser.hpp"
+#include <sstream>
+#include <libconfig.h>
+#include <CommandLineParser.hpp>
+
 #include "MappingParameters.h"
 #include "RegisterFilterOptions.h"
-#include <sstream>
 using namespace std;
 
 void RegisterBlasrOptions(CommandLineParser & clp, MappingParameters & params) {

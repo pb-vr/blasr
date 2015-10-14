@@ -41,8 +41,8 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include "SMRTSequence.hpp"
-#include "datastructures/alignment/AlignmentCandidate.hpp"
+#include <SMRTSequence.hpp>
+#include <datastructures/alignment/AlignmentCandidate.hpp>
 
 using namespace std;
 

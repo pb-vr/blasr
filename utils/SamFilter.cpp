@@ -28,29 +28,29 @@
 
 #include <iostream>
 
-#include "FASTASequence.hpp"
-#include "FASTAReader.hpp"
-#include "CommandLineParser.hpp"
-#include "ChangeListID.hpp"
-#include "utils/TimeUtils.hpp"
-#include "utils/RangeUtils.hpp"
-#include "utils/SMRTReadUtils.hpp"
-#include "algorithms/alignment/DistanceMatrixScoreFunction.hpp"
-#include "algorithms/alignment/AlignmentUtils.hpp"
-#include "algorithms/alignment/StringToScoreMatrix.hpp"
-#include "sam/SAMReader.hpp"
-#include "format/SAMPrinter.hpp"
-#include "datastructures/alignment/AlignmentCandidate.hpp"
-#include "datastructures/alignment/FilterCriteria.hpp"
-#include "metagenome/TitleTable.hpp"
-#include "datastructures/alignment/SAMToAlignmentCandidateAdapter.hpp"
-#include "GFFFile.hpp"
-#include "defs.h"
+#include <FASTASequence.hpp>
+#include <FASTAReader.hpp>
+#include <CommandLineParser.hpp>
+#include <ChangeListID.hpp>
+#include <utils/TimeUtils.hpp>
+#include <utils/RangeUtils.hpp>
+#include <utils/SMRTReadUtils.hpp>
+#include <algorithms/alignment/DistanceMatrixScoreFunction.hpp>
+#include <algorithms/alignment/AlignmentUtils.hpp>
+#include <algorithms/alignment/StringToScoreMatrix.hpp>
+#include <sam/SAMReader.hpp>
+#include <format/SAMPrinter.hpp>
+#include <datastructures/alignment/AlignmentCandidate.hpp>
+#include <datastructures/alignment/FilterCriteria.hpp>
+#include <metagenome/TitleTable.hpp>
+#include <datastructures/alignment/SAMToAlignmentCandidateAdapter.hpp>
+#include <GFFFile.hpp>
+#include <defs.h>
 #include "../iblasr/RegisterFilterOptions.h"
 
 //#define USE_GOOGLE_PROFILER
 #ifdef USE_GOOGLE_PROFILER
-#include "gperftools/profiler.h"
+#include <gperftools/profiler.h>
 #endif
 
 char VERSION[] = "v0.1.0";

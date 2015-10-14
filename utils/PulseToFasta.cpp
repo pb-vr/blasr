@@ -2,18 +2,18 @@
 #include <iostream>
 #include <vector>
 
-#include "HDFPlsReader.hpp"
-#include "HDFUtils.hpp"
-#include "HDFRegionTableReader.hpp"
-#include "reads/RegionTable.hpp"
-#include "reads/ReadInterval.hpp"
-#include "files/ReaderAgglomerate.hpp"
-#include "utils/FileOfFileNames.hpp"
-#include "utils/RegionUtils.hpp"
-#include "utils/TimeUtils.hpp"
-#include "SMRTSequence.hpp"
-#include "utils.hpp"
-#include "CommandLineParser.hpp"
+#include <HDFPlsReader.hpp>
+#include <HDFUtils.hpp>
+#include <HDFRegionTableReader.hpp>
+#include <reads/RegionTable.hpp>
+#include <reads/ReadInterval.hpp>
+#include <files/ReaderAgglomerate.hpp>
+#include <utils/FileOfFileNames.hpp>
+#include <utils/RegionUtils.hpp>
+#include <utils/TimeUtils.hpp>
+#include <SMRTSequence.hpp>
+#include <utils.hpp>
+#include <CommandLineParser.hpp>
 
 
 using namespace std;

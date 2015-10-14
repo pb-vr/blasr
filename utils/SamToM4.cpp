@@ -16,16 +16,16 @@
  * =====================================================================================
  */
 #include <iostream>
-#include "FASTASequence.hpp"
-#include "FASTAReader.hpp"
-#include "CommandLineParser.hpp"
-#include "ChangeListID.hpp"
-#include "algorithms/alignment/DistanceMatrixScoreFunction.hpp"
-#include "algorithms/alignment/AlignmentUtils.hpp"
-#include "sam/SAMReader.hpp"
-#include "format/IntervalPrinter.hpp"
-#include "datastructures/alignment/AlignmentCandidate.hpp"
-#include "datastructures/alignment/SAMToAlignmentCandidateAdapter.hpp"
+#include <FASTASequence.hpp>
+#include <FASTAReader.hpp>
+#include <CommandLineParser.hpp>
+#include <ChangeListID.hpp>
+#include <algorithms/alignment/DistanceMatrixScoreFunction.hpp>
+#include <algorithms/alignment/AlignmentUtils.hpp>
+#include <sam/SAMReader.hpp>
+#include <format/IntervalPrinter.hpp>
+#include <datastructures/alignment/AlignmentCandidate.hpp>
+#include <datastructures/alignment/SAMToAlignmentCandidateAdapter.hpp>
 
 char VERSION[] = "v0.1.0";
 char PERFORCE_VERSION_STRING[] = "$Change: 126414 $";

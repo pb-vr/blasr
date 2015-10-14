@@ -3,16 +3,16 @@
 #include <string>
 #include <vector>
 
-#include "HDFPlsReader.hpp"
-#include "amos/AfgBasWriter.hpp"
-#include "HDFRegionTableReader.hpp"
-#include "reads/RegionTable.hpp"
-#include "reads/ReadInterval.hpp"
-#include "files/ReaderAgglomerate.hpp"
-#include "utils/FileOfFileNames.hpp"
-#include "utils/RegionUtils.hpp"
-#include "SMRTSequence.hpp"
-#include "utils.hpp"
+#include <HDFPlsReader.hpp>
+#include <amos/AfgBasWriter.hpp>
+#include <HDFRegionTableReader.hpp>
+#include <reads/RegionTable.hpp>
+#include <reads/ReadInterval.hpp>
+#include <files/ReaderAgglomerate.hpp>
+#include <utils/FileOfFileNames.hpp>
+#include <utils/RegionUtils.hpp>
+#include <SMRTSequence.hpp>
+#include <utils.hpp>
 
 using namespace std;
 void PrintUsage() {
