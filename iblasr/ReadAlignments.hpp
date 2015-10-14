@@ -1,7 +1,5 @@
 // Author: Mark Chaisson
-
-#ifndef __BLASR_READ_ALIGNMENTS__
-#define __BLASR_READ_ALIGNMENTS__
+#pragma once
 
 #include <string>
 #include <iostream>
@@ -160,5 +158,3 @@ inline void ReadAlignments::Print(ostream &out) {
 inline ReadAlignments::~ReadAlignments() {
     read.Free();
 }
-
-#endif

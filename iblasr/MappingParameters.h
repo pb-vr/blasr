@@ -1,5 +1,4 @@
-#ifndef MAPPING_PARAMETERS_H_
-#define MAPPING_PARAMETERS_H_
+#pragma once
 
 #define REQUIRE_PBBAM_ERROR() \
 assert("blasr must be compiled with lib pbbam to perform IO on bam." == 0);
@@ -666,6 +665,3 @@ public:
         anchorParameters.maxAnchorsPerPosition = 10000;
     }
 };
-
-
-#endif

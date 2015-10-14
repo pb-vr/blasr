@@ -1,3 +1,5 @@
+#pragma once
+
 #include <libconfig.h>
 #include <CommandLineParser.hpp>
 #include <datastructures/alignment/FilterCriteria.hpp>

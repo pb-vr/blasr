@@ -1,7 +1,5 @@
 // Author: Mark Chaisson
-
-#ifndef _BLASR_ALIGN_IMPL_HPP_
-#define _BLASR_ALIGN_IMPL_HPP_
+#pragma once
 
 template<typename T_Sequence, typename T_RefSequence, typename T_SuffixArray, typename T_TupleCountTable>
 void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
@@ -1525,5 +1523,3 @@ void AlignSubreadToAlignmentTarget(ReadAlignments & allReadAlignments,
         }
     } // End of exploded.blocks.size() > 0.
 }
-
-#endif

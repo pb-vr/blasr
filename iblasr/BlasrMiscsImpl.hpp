@@ -1,7 +1,6 @@
 // Author: Mark Chaisson
+#pragma once
 
-#ifndef _BLASR_MISCS_IMPL_HPP_
-#define _BLASR_MISCS_IMPL_HPP_
 #include <utils/SMRTTitle.hpp>
 
 template<typename T_Sequence>
@@ -184,5 +183,3 @@ int GetIndexOfMedian(const vector<ReadInterval> & subreadIntervals)
     int pos = int(std::distance(subreadIntervals.begin(), it));
     return pos;
 }
-
-#endif

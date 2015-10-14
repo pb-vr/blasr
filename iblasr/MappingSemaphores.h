@@ -1,5 +1,5 @@
-#ifndef ALIGNMENT_MAPPING_SEMAPHORE_H_
-#define ALIGNMENT_MAPPING_SEMAPHORE_H_
+#pragma once
+
 #include <vector>
 #include <pthread.h>
 #include <semaphore.h>
@@ -40,6 +40,4 @@ class MappingSemaphores {
                 hitCluster = sem_open("/hitCluster", O_CREAT, 0644, 1);
         }
 };
-#endif
-
 #endif

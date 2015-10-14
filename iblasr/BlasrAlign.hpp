@@ -1,6 +1,5 @@
 // Author: Mark Chaisson
-#ifndef __BLASR_ALIGN_HPP_
-#define __BLASR_ALIGN_HPP_
+#pragma once
 
 #include "BlasrHeaders.h"
 #include "BlasrMiscs.hpp"
@@ -84,4 +83,3 @@ void AlignSubreadToAlignmentTarget(ReadAlignments & allReadAlignments,
         ostream & threadOut);
 
 #include "BlasrAlignImpl.hpp"
-#endif
