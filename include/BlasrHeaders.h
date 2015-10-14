@@ -107,6 +107,7 @@ using namespace std;
 #include "utils/FileOfFileNames.hpp"
 #include "utils/RegionUtils.hpp"
 #include "utils/TimeUtils.hpp"
+#include "utils/SMRTTitle.hpp"
 #include "qvs/QualityTransform.hpp"
 #include "files/ReaderAgglomerate.hpp"
 #include "files/CCSIterator.hpp"

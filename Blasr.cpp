@@ -833,8 +833,8 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData)
                 *mapData->outFilePtr,
                 *mapData->unalignedFilePtr,
                 params,
-#ifdef USE_PBBAM
                 subreads,
+#ifdef USE_PBBAM
                 bamWriterPtr,
 #endif
                 semaphores);
