@@ -35,10 +35,10 @@
 
 // Author: Mark Chaisson
 
-#include "BlasrMiscs.hpp"
-#include "BlasrUtils.hpp"
-#include "BlasrAlign.hpp"
-#include "RegisterBlasrOptions.h"
+#include "iblasr/BlasrMiscs.hpp"
+#include "iblasr/BlasrUtils.hpp"
+#include "iblasr/BlasrAlign.hpp"
+#include "iblasr/RegisterBlasrOptions.h"
 
 //#define USE_GOOGLE_PROFILER
 #ifdef USE_GOOGLE_PROFILER
