@@ -189,8 +189,8 @@ void PrintAllReadAlignments(ReadAlignments & allReadAlignments,
                             ostream & outFilePtr,
                             ostream & unalignedFilePtr,
                             MappingParameters & params,
-#ifdef USE_PBBAM
                             vector<SMRTSequence> & subreads,
+#ifdef USE_PBBAM
                             PacBio::BAM::BamWriter * bamWriterPtr,
 #endif
                             MappingSemaphores & semaphores);
