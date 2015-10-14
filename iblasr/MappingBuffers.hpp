@@ -38,12 +38,12 @@
 #define __BLASR_MAPPING_BUFFERS__
 
 #include <vector>
-#include "tuples/DNATuple.hpp"
-#include "tuples/TupleList.hpp"
-#include "algorithms/alignment/sdp/SDPFragment.hpp"
-#include "algorithms/anchoring/BasicEndpoint.hpp"
-#include "datastructures/anchoring/ClusterList.hpp"
-#include "datastructures/anchoring/MatchPos.hpp"
+#include <tuples/DNATuple.hpp>
+#include <tuples/TupleList.hpp>
+#include <algorithms/alignment/sdp/SDPFragment.hpp>
+#include <algorithms/anchoring/BasicEndpoint.hpp>
+#include <datastructures/anchoring/ClusterList.hpp>
+#include <datastructures/anchoring/MatchPos.hpp>
 
 using namespace std;
 

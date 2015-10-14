@@ -1,6 +1,6 @@
-#include "libconfig.h"
-#include "CommandLineParser.hpp"
-#include "datastructures/alignment/FilterCriteria.hpp"
+#include <libconfig.h>
+#include <CommandLineParser.hpp>
+#include <datastructures/alignment/FilterCriteria.hpp>
 #include <sstream>
 using namespace std;
 

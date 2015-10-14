@@ -3,17 +3,17 @@
 #include <assert.h>
 #include <math.h>
 
-#include "defs.h"
-#include "FASTAReader.hpp"
-#include "FASTASequence.hpp"
-#include "tuples/DNATuple.hpp"
-#include "tuples/TupleMetrics.hpp"
-#include "datastructures/alignment/Path.h"
-#include "datastructures/alignment/Alignment.hpp"
-#include "algorithms/alignment/AlignmentUtils.hpp"
-#include "format/StickAlignmentPrinter.hpp"
-#include "algorithms/alignment/SWAlign.hpp"
-#include "algorithms/alignment/SDPAlign.hpp"
+#include <defs.h>
+#include <FASTAReader.hpp>
+#include <FASTASequence.hpp>
+#include <tuples/DNATuple.hpp>
+#include <tuples/TupleMetrics.hpp>
+#include <datastructures/alignment/Path.h>
+#include <datastructures/alignment/Alignment.hpp>
+#include <algorithms/alignment/AlignmentUtils.hpp>
+#include <format/StickAlignmentPrinter.hpp>
+#include <algorithms/alignment/SWAlign.hpp>
+#include <algorithms/alignment/SDPAlign.hpp>
 
 /* 
  * Performs sparse dynamic programming (SDP) between pairs of sequences as they 
