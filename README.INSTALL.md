@@ -71,6 +71,16 @@ To build BLASR, you must have hdf 1.8.12 or above installed and
         make blasr
         ./blasr
 
+### CXXFLAGS
+
+* For optimized builds:
+
+    ./configure.py CXXFLAGS=-O3 ...
+
+* For debug builds:
+
+    ./configure.py CXXFLAGS=-g ...
+
 ## Other issues
 ### Static binaries
 If you want static binaries, drop `--shared` when you run configure.py. In that case, you
