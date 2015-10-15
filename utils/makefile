@@ -4,10 +4,11 @@ SRCDIR:=$(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 -include ${CURDIR}/../defines.mk
 include ${SRCDIR}/../rules.mk
 
+CXXFLAGS ?= -O3 -g
 CXXOPTS := -std=c++0x -pedantic \
            -Wall -Wuninitialized -Wno-div-by-zero \
            -MMD -MP -w -fpermissive
-CXXFLAGS += ${CXXOPTS} ${GCXXFLAGS}
+override CXXFLAGS += ${CXXOPTS} ${GCXXFLAGS}
 
 EXE = loadPulses pls2fasta samtoh5 samtom4 samFilter toAfg sawriter sdpMatcher
 

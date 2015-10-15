@@ -9,13 +9,13 @@ foo:
 	echo $(MAKEFILE_LIST)
 	echo ${SRCDIR}
 
-CXXFLAGS += -O3 -g
+CXXFLAGS ?= -O3 -g
 CXXOPTS += \
 		   -std=c++0x -pedantic \
            -Wall -Wuninitialized -Wno-div-by-zero \
            -MMD -MP -w -fpermissive
 GCXXFLAGS := -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -fno-omit-frame-pointer 
-CXXFLAGS += ${CXXOPTS} ${GCXXFLAGS}
+override CXXFLAGS += ${CXXOPTS} ${GCXXFLAGS}
 #INC_DIRS:=${LIBBLASR_INC} ${LIBPBIHDF_INC} ${LIBPBDATA_INC} ${PBBAM_INC} ${HTSLIB_INC} ${HDF5_INC} ${ZLIB_INC}
 #LIB_DIRS:=${LIBBLASR_LIB} ${LIBPBIHDF_LIB} ${LIBPBDATA_LIB} ${PBBAM_LIB} ${HTSLIB_LIB} ${HDF5_LIB} ${ZLIB_LIB}
 #LDLIBS := \
