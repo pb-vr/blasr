@@ -39,19 +39,19 @@ vpath %.cpp ${SRCDIR}
 
 init-submodule:
 	${MAKE} update-submodule
-        ${MAKE} configure-submodule
+	${MAKE} configure-submodule
 	${MAKE} build-submodule
 
 update-submodule:
 	git submodule update --init
 
 configure-submodule:
-        ${MAKE} -f ${SRCDIR}/sub.mk configure-submodule
+	${MAKE} -f ${SRCDIR}/sub.mk configure-submodule
 
 build-submodule:
 	${MAKE} -C libcpp
 
-clean-submodule
+distclean-submodule:
 	${RM} -r libcpp
 
 # The rules above must be run separately.

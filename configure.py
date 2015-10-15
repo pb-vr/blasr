@@ -94,7 +94,7 @@ def compose_defines_pacbio(envin):
     nondefaults = set([
             'CXX',
             'CXXFLAGS',
-            'NO_PBBAM',
+            'NOPBBAM',
             'LIBPBDATA_INC', 'LIBPBDATA_LIB', 'LIBPBDATA_LIBFLAGS',
             'LIBPBIHDF_INC', 'LIBPBIHDF_LIB', 'LIBPBIHDF_LIBFLAGS',
             'LIBBLASR_INC', 'LIBBLASR_LIB', 'LIBBLASR_LIBFLAGS',
@@ -174,7 +174,7 @@ def set_defs_defaults(env, nopbbam, with_szlib):
     if not nopbbam:
         defaults.update(pbbam_defaults)
     else:
-        defaults['NO_PBBAM'] = 1
+        defaults['NOPBBAM'] = 1
     szlib_defaults = {
         'SZLIB_LIBFLAGS': '-lsz',
         #'ZLIB_LIBFLAGS': '-lz', # probably needed, but provided elsewhere
