@@ -298,7 +298,6 @@ void MapReadsNonCCS(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapDa
     bwtPtr = mapData->bwtPtr;
     SeqBoundaryFtr<FASTQSequence> seqBoundary(&seqdb);
 
-
     vector<ReadInterval> subreadIntervals;
     vector<int>          subreadDirections;
     int bestSubreadIndex;
@@ -1361,10 +1360,12 @@ int main(int argc, char* argv[]) {
     if (reader->GetFileType() != HDFCCS and 
         reader->GetFileType() != HDFBase and
         reader->GetFileType() != HDFPulse and
-        reader->GetFileType() != BAM and
+        reader->GetFileType() != PBBAM and
+        reader->GetFileType() != PBDATASET and
         params.concordant) {
         cerr << "WARNING! Option concordant is only enabled when "
-             << "input reads are in PacBio bax/pls.h5 or bam format." << endl;
+             << "input reads are in PacBio bax/pls.h5, bam or "
+             << "dataset xml format." << endl;
         params.concordant = false;
     }
 
