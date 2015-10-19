@@ -119,6 +119,7 @@ void PrintAlignment(T_AlignmentCandidate &alignment,
                     AlignmentContext &alignmentContext,
                     ostream &outFile
 #ifdef USE_PBBAM
+                    , SMRTSequence &subread
                     , PacBio::BAM::BamWriter * bamWriterPtr
 #endif
                     );
@@ -129,6 +130,7 @@ void PrintAlignments(vector<T_AlignmentCandidate*> alignmentPtrs,
                      MappingParameters &params, ostream &outFile,
                      AlignmentContext alignmentContext,
 #ifdef USE_PBBAM
+                     SMRTSequence &subread,
                      PacBio::BAM::BamWriter * bamWriterPtr,
 #endif
                      MappingSemaphores & semaphores);

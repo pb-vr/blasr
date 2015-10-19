@@ -176,9 +176,9 @@ int GetIndexOfMedian(const vector<ReadInterval> & subreadIntervals)
 {
     vector<ReadInterval> intervals = subreadIntervals;
     size_t n = intervals.size() / 2;
-    nth_element(intervals.begin(), intervals.begin() + n, intervals.end(),
-                [](const ReadInterval & a, const ReadInterval & b) -> bool
-                {a.end - a.start < b.end - b.start;});
+    std::sort(intervals.begin(), intervals.end(),
+              [](const ReadInterval & a, const ReadInterval & b) 
+              -> bool {a.end - a.start < b.end - b.start;});
     auto it = std::find(subreadIntervals.begin(), subreadIntervals.end(), intervals[n]);
     int pos = int(std::distance(subreadIntervals.begin(), it));
     return pos;

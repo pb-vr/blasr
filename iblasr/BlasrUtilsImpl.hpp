@@ -953,6 +953,7 @@ void PrintAlignment(T_AlignmentCandidate &alignment,
                     AlignmentContext &alignmentContext,
                     ostream &outFile
 #ifdef USE_PBBAM
+                    , SMRTSequence & subread
                     , PacBio::BAM::BamWriter * bamWriterPtr
 #endif
                     ) {
@@ -971,7 +972,7 @@ void PrintAlignment(T_AlignmentCandidate &alignment,
     }
     else if (params.printFormat == BAM) {
 #ifdef USE_PBBAM
-      BAMOutput::PrintAlignment(alignment, fullRead, *bamWriterPtr, alignmentContext, params.samQVList, params.clipping, params.cigarUseSeqMatch);
+      BAMOutput::PrintAlignment(alignment, fullRead, subread, *bamWriterPtr, alignmentContext, params.samQVList, params.clipping, params.cigarUseSeqMatch);
 #else
       REQUIRE_PBBAM_ERROR();
 #endif
@@ -1013,6 +1014,7 @@ void PrintAlignments(vector<T_AlignmentCandidate*> alignmentPtrs,
                      MappingParameters &params, ostream &outFile,
                      AlignmentContext alignmentContext,
 #ifdef USE_PBBAM
+                     SMRTSequence &subread,
                      PacBio::BAM::BamWriter * bamWriterPtr,
 #endif
                      MappingSemaphores & semaphores) {
@@ -1064,6 +1066,7 @@ void PrintAlignments(vector<T_AlignmentCandidate*> alignmentPtrs,
     PrintAlignment(*alignmentPtrs[i], read,
                    params, alignmentContext, outFile
 #ifdef USE_PBBAM
+                   , subread
                    , bamWriterPtr
 #endif
                    );
@@ -1144,17 +1147,18 @@ void PrintAllReadAlignments(ReadAlignments & allReadAlignments,
       alignmentContext.rNext = "";
       alignmentContext.hasNextSubreadPos = false;
     }
-    SMRTSequence & sourceSubread = allReadAlignments.subreads[subreadIndex];
+    SMRTSequence * sourceSubread = &(allReadAlignments.subreads[subreadIndex]);
     if (subreads.size() == allReadAlignments.subreads.size()) {
-        sourceSubread = subreads[subreadIndex];
+        sourceSubread = &subreads[subreadIndex];
     }
     if (allReadAlignments.subreadAlignments[subreadIndex].size() > 0) {
         PrintAlignments(allReadAlignments.subreadAlignments[subreadIndex],
-                        sourceSubread,
+                        allReadAlignments.subreads[subreadIndex],
                         // for these alignments
                         params, outFilePtr,//*mapData->outFilePtr,
                         alignmentContext,
 #ifdef USE_PBBAM
+                        *sourceSubread,
                         bamWriterPtr,
 #endif
                         semaphores);
