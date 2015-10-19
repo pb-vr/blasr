@@ -175,11 +175,15 @@ void MakeSubreadIntervals(vector<SMRTSequence> & subreads,
 int GetIndexOfMedian(const vector<ReadInterval> & subreadIntervals)
 {
     vector<ReadInterval> intervals = subreadIntervals;
-    size_t n = intervals.size() / 2;
-    nth_element(intervals.begin(), intervals.begin() + n, intervals.end(),
-                [](const ReadInterval & a, const ReadInterval & b) -> bool
-                {a.end - a.start < b.end - b.start;});
-    auto it = std::find(subreadIntervals.begin(), subreadIntervals.end(), intervals[n]);
-    int pos = int(std::distance(subreadIntervals.begin(), it));
+    int n = int(subreadIntervals.size() / 2);
+    vector<UInt> lens;
+    lens.resize(subreadIntervals.size());
+    for (auto interval: subreadIntervals)
+        lens.push_back(interval.end - interval.start);
+    std::sort(lens.begin(), lens.end());
+    int pos = 0;
+    for (int pos = 0; pos < int(subreadIntervals.size()); pos++)
+        if (subreadIntervals[pos].end - subreadIntervals[pos].start == lens[n])
+            return pos;
     return pos;
 }
