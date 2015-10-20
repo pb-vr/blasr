@@ -562,9 +562,9 @@ public:
                 // Only support two clipping methods: soft or subread.
                 clipping = SAMOutput::subread;
             }
-            if (queryFileType != PBBAM and not enableHiddenPaths) {
+            if (queryFileType != PBBAM and queryFileType != PBDATASET and not enableHiddenPaths) {
                 // bax|fasta|fastq -> bam paths are turned off by default
-                cout << "ERROR, could not output alignments in BAM unless input reads are in PacBio BAM files." << endl;
+                cout << "ERROR, could not output alignments in BAM unless input reads are in PacBio BAM or DATASET files." << endl;
                 exit(1);
             }
             if (outFileName == "") {
