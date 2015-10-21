@@ -141,7 +141,6 @@ def update_defaults_for_os(env):
 
 def set_defs_defaults(env, nopbbam, with_szlib):
     defaults = {
-        'BLASR_INC': os.path.join(ROOT, 'include'),
         'LIBBLASR_INC':  os.path.join(ROOT, 'libcpp', 'alignment'),
         'LIBPBDATA_INC':  os.path.join(ROOT, 'libcpp', 'pbdata'),
         'LIBPBIHDF_INC':  os.path.join(ROOT, 'libcpp', 'hdf'),
@@ -199,7 +198,7 @@ def parse_args(args):
     parser.add_option('--no-pbbam', action='store_true',
             help='Avoid compiling anything which would need pbbam.')
     parser.add_option('--with-szlib', action='store_true',
-            help='If HDF5 was built with --with-szlib, then -lz is needed for static binaries.')
+            help='If HDF5 was built with --with-szlib, then -lsz is needed for static binaries.')
     parser.add_option('--submodules', action='store_true',
             help='Set variables to use our git-submodules, which must be pulled and built first. (Implies --no-pbbam.)')
     parser.add_option('--shared', action='store_true',
