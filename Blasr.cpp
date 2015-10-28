@@ -196,7 +196,7 @@ bool FetchReads(ReaderAgglomerate * reader,
                 int & associatedRandInt,
                 bool & stop)
 {
-    if (reader->GetFileType() != BAM or not params.concordant) {
+    if ((reader->GetFileType() != BAM and reader->GetFileType() != PBDATASET) or not params.concordant) {
         if (reader->GetFileType() == HDFCCS ||
             reader->GetFileType() == HDFCCSONLY) {
             if (GetNextReadThroughSemaphore(*reader, params, ccsRead, readGroupId, associatedRandInt, semaphores) == false) {
@@ -302,7 +302,7 @@ void MapReadsNonCCS(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapDa
     vector<int>          subreadDirections;
     int bestSubreadIndex;
 
-    if (mapData->reader->GetFileType() != BAM or not params.concordant) {
+    if ((mapData->reader->GetFileType() != BAM and mapData->reader->GetFileType() != PBDATASET) or not params.concordant) {
         MakePrimaryIntervals(mapData->regionTablePtr, smrtRead,
                              subreadIntervals, subreadDirections,
                              bestSubreadIndex, params);

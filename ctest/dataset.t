@@ -29,4 +29,36 @@ Test dataset with no filters (to make sure that an empty filter does not discard
   0
 
   $ $SAMTOOLS view $OUTDIR/nofilter.bam|wc -l
-  135
+  131
+
+
+Test dataset with -concordant is on
+  $ $EXEC $DATDIR/test_dataset/nofilter.subreadset.xml $DATDIR/bamConcordantRef.fasta -bam -concordant -bestn 1 -out $OUTDIR/datasetConcordant.bam -holeNumbers 1898 && echo $?
+  [INFO]* (glob)
+  [INFO]* (glob)
+  0
+
+  $ $SAMTOOLS view $OUTDIR/datasetConcordant.bam | cut -f 4
+  ??? (glob)
+  3?? (glob)
+  3?? (glob)
+  3?? (glob)
+  3?? (glob)
+  3?? (glob)
+  3?? (glob)
+  3?? (glob)
+  3?? (glob)
+  3?? (glob)
+  3?? (glob)
+  3?? (glob)
+  3?? (glob)
+  3?? (glob)
+  3?? (glob)
+  3?? (glob)
+  3?? (glob)
+  3?? (glob)
+  3?? (glob)
+  3?? (glob)
+  3?? (glob)
+  3?? (glob)
+  3?? (glob)
