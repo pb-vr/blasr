@@ -6,7 +6,7 @@ OUTDIR=$CURDIR/out
 STDDIR=$REMOTEDIR/stdout
 
 # Set up the executable: blasr.
-EXEC=$TESTDIR/../blasr
+EXEC=${BLASR_PATH}blasr
 
 # Define tmporary files
 TMP1=$OUTDIR/$$.tmp.out

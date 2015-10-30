@@ -1,4 +1,5 @@
 defines.mk
 *.d
 *.o
+*.err
 blasr

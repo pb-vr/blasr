@@ -31,6 +31,9 @@ SRCS := Blasr.cpp
 OBJS := ${SRCS:.cpp=.o}
 DEPS := ${SRCS:.cpp=.d}
 
+override BLASR_PATH=${SRCDIR}/
+export BLASR_PATH
+
 override LD_LIBRARY_PATH:=${LIBBLASR_LIB}:${LIBPBIHDF_LIB}:${LIBPBDATA_LIB}:${HDF5_LIB}:${HTSLIB_LIB}:${PBBAM_LIB}:${ZLIB_LIB}:${LD_LIBRARY_PATH}
 export LD_LIBRARY_PATH
 # Note: On macosx, this would be DYLD_LIBRARY_PATH.
@@ -66,20 +69,12 @@ makeutils:
 makeextrautils:
 	${MAKE} -C extrautils
 
-CTESTS := \
-ctest/affineAlign.t            ctest/bamOut.t    ctest/ccsH5.t            ctest/filtercriteria.t  ctest/m0-5.t             ctest/samNM.t \
-ctest/aggressiveIntervalCut.t  ctest/bug25328.t  ctest/concordant.t       ctest/fofn.t            ctest/multipart.t        ctest/useccsallBestN1.t \
-ctest/alignScore.t             ctest/bug25741.t  ctest/ecoli.t            ctest/hitpolicy.t       ctest/noSplitSubreads.t  ctest/useccsallLargeGenome.t\
-ctest/bamIn.t                  ctest/bug25766.t  ctest/fastMaxInterval.t  ctest/holeNumbers.t     ctest/open_fail.t        ctest/verbose.t
-
-SLOW_CTESTS := ctest/bug25328.t ctest/useccsallLargeGenome.t
-
 cramtests: blasr utils
-	cram -v --shell=/bin/bash ${CTESTS}
+	${MAKE} -f cram.mk cramtests
 	${MAKE} -C utils cramtests
 
 cramfast: blasr utils
-	cram -v --shell=/bin/bash $(filter-out ${SLOW_CTESTS},${CTESTS})
+	${MAKE} -f cram.mk cramfast
 	${MAKE} -C utils cramfast
 
 gtest: blasr
