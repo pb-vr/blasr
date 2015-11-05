@@ -29,7 +29,7 @@ Test dataset with no filters (to make sure that an empty filter does not discard
   0
 
   $ $SAMTOOLS view $OUTDIR/nofilter.bam|wc -l
-  131
+  130
 
 
 Test dataset with -concordant is on
