@@ -412,6 +412,11 @@ const string BlasrHelp(MappingParameters & params) {
 //             << " -v            Print some verbose information." << endl
 //             << " -V 2          Make verbosity more verbose.  Probably only useful for development." << endl
              << " -h            Print this help file." << endl << endl
+             << "In release v3.0.1 of BLASR, command-line options will use the " << endl
+             << "single dash/double dash convention: " << endl
+             << "Character options are preceded by a single dash. (Example: -v) " << endl
+             << "Word options are preceded by a double dash. (Example: --verbose) " << endl
+             << "Please modify your scripts accordingly when BLASR v3.0.1 is released. " << endl << endl
              << "To cite BLASR, please use: Chaisson M.J., and Tesler G., Mapping " << endl
              << "single molecule sequencing reads using Basic Local Alignment with " << endl
              << "Successive Refinement (BLASR): Theory and Application, BMC " << endl
@@ -426,7 +431,12 @@ const string BlasrConciseHelp(void) {
     ss << "blasr - a program to map reads to a genome" << endl
        << " usage: blasr reads genome " << endl
        << " Run with -h for a list of commands " << endl
-       << "          -help for verbose discussion of how to run blasr." << endl;
+       << "          -help for verbose discussion of how to run blasr." << endl << endl
+       << "In release v3.0.1 of BLASR, command-line options will use the " << endl
+       << "single dash/double dash convention: " << endl
+       << "Character options are preceded by a single dash. (Example: -v) " << endl
+       << "Word options are preceded by a double dash. (Example: --verbose) " << endl
+       << "Please modify your scripts accordingly when BLASR v3.0.1 is released. " << endl << endl;
     return ss.str();
 }
 
