@@ -19,7 +19,7 @@ mkdir -p $OUTDIR
 SAMTOOLS=/mnt/secondary/Smrtpipe/builds/Internal_Mainline_Nightly_LastSuccessfulBuild/analysis/bin/samtools
 
 #Update date
-UPDATEDATE=2015_11_05
+UPDATEDATE=2015_11_09
 
 # 2014_08_21 --> change 138516: added YS, YE, ZM tags
 # 2014_08_28 --> change 139176: Update SAM MD5 

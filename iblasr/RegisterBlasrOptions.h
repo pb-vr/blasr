@@ -54,7 +54,6 @@ void RegisterBlasrOptions(CommandLineParser & clp, MappingParameters & params) {
     clp.RegisterFlagOption("samplePaths", (bool*) &params.samplePaths, "");
     clp.RegisterFlagOption("noStoreMapQV", &params.storeMapQV, "");
     clp.RegisterFlagOption("nowarp", (bool*) &params.nowarp, "");
-    clp.RegisterFlagOption("noRefineAlign", (bool*) &params.refineAlign, "");
     clp.RegisterFlagOption("guidedAlign", (bool*)&params.useGuidedAlign, "");
     clp.RegisterFlagOption("useGuidedAlign", (bool*)&trashbinBool, "");
     clp.RegisterFlagOption("noUseGuidedAlign", (bool*)&params.useGuidedAlign, "");
@@ -120,6 +119,7 @@ void RegisterBlasrOptions(CommandLineParser & clp, MappingParameters & params) {
     clp.RegisterFlagOption("useccsall", &params.useAllSubreadsInCcs, "");
     clp.RegisterFlagOption("extendDenovoCCSSubreads", &params.extendDenovoCCSSubreads, "");
     clp.RegisterFlagOption("noRefineAlignments", &params.refineAlignments, "");
+    clp.RegisterFlagOption("refineConcordantAlignments", &params.refineConcordantAlignments, "");
     clp.RegisterIntOption("nCandidates", &params.nCandidates, "", CommandLineParser::NonNegativeInteger);
     clp.RegisterFlagOption("useTemp", (bool*) &params.tempDirectory, "");
     clp.RegisterFlagOption("noSplitSubreads", &params.mapSubreadsSeparately, "");
@@ -323,12 +323,6 @@ const string BlasrHelp(MappingParameters & params) {
              << "               Map all subreads of a zmw (hole) to where the longest full pass subread of the zmw " << endl
              << "               aligned to. This requires to use the region table and hq regions." << endl
              << "               This option only works when reads are in base or pulse h5 format." << endl
-             << "   -concordantTemplate(mediansubread)" << endl
-             << "               Select a full pass subread of a zmw as template for concordant mapping." << endl
-             << "               longestsubread - use the longest full pass subread" << endl
-             << "               mediansubread  - use the median length full pass subread" << endl
-             << "               typicalsubread - use the second longest full pass subread if length of" << endl
-             << "                                the longest full pass subread is an outlier" << endl
              << "   -fastMaxInterval(false)" << endl
              << "               Fast search maximum increasing intervals as alignment candidates. The search " << endl
              << "               is not as exhaustive as the default, but is much faster." << endl
@@ -342,6 +336,8 @@ const string BlasrHelp(MappingParameters & params) {
              << "  Options for Refining Hits." << endl
 //             << "   -indelRate i (0.30)" << endl
 //             << "               The approximate maximum rate to allow drifting from the diagonal." <<endl << endl
+             << "   -refineConcordantAlignments(false)" << endl
+             << "               Refine concordant alignments. It slightly increases alignment accuracy at cost of time." << endl
              << "   -sdpTupleSize K (11)" << endl
              << "               Use matches of length K to speed dynamic programming alignments.  This controls" <<endl
              << "               accuracy of assigning gaps in pairwise alignments once a mapping has been found,"<<endl

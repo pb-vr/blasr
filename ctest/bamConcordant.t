@@ -2,7 +2,7 @@ Set up
   $ . $TESTDIR/setup.sh
 
 Test using bam as input, use -concordant
-  $ $EXEC $DATDIR/test_bam/tiny_bam.fofn $DATDIR/bamConcordantRef.fasta -bam -concordant -bestn 1 -out $OUTDIR/bamConcordant.bam
+  $ $EXEC $DATDIR/test_bam/tiny_bam.fofn $DATDIR/bamConcordantRef.fasta -bam -concordant -refineConcordantAlignments -bestn 1 -out $OUTDIR/bamConcordant.bam
   [INFO]* (glob)
   [INFO]* (glob)
 

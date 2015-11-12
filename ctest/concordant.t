@@ -3,7 +3,7 @@ Set up
 
 Test -concordant
   $ rm -rf $OUTDIR/concordant_subset.sam
-  $ $EXEC $DATDIR/ecoli_lp.fofn $DATDIR/ecoli_reference.fasta -concordant -sam -out $OUTDIR/concordant_subset.sam -nproc 12 -holeNumbers 1-10000 -sa $DATDIR/ecoli_reference.sa
+  $ $EXEC $DATDIR/ecoli_lp.fofn $DATDIR/ecoli_reference.fasta -concordant -refineConcordantAlignments -sam -out $OUTDIR/concordant_subset.sam -nproc 12 -holeNumbers 1-10000 -sa $DATDIR/ecoli_reference.sa
   [INFO]* (glob)
   [INFO]* (glob)
   $ sed -n 6,110864p $OUTDIR/concordant_subset.sam > $OUTDIR/tmp1 
@@ -22,11 +22,12 @@ Test -concordant
 #2015_03_28  --> changelist 148101, 148080 updated read group id, 148100 updated TLEN
 #2015_04_09  --> changelist 148796, updated read group id
 #2015_04_25  --> changelist 149721, update CIGAR string, replace M with X=.
+#2015_04_25  --> changelist ?, force refine all concordant alignments
 
 Test -concordant FMR1 case (the 'typical subread' is selected as template for concordant mapping)
   $ FOFN=$DATDIR/FMR1_concordant.fofn
   $ REF=$DATDIR/FMR1_130CGG.fasta
-  $ $EXEC $FOFN $REF -concordant -out $OUTDIR/FMR1_zmw_37927.m4 -m 4 -holeNumbers 37927
+  $ $EXEC $FOFN $REF -concordant -refineConcordantAlignments -out $OUTDIR/FMR1_zmw_37927.m4 -m 4 -holeNumbers 37927
   [INFO]* (glob)
   [INFO]* (glob)
-  $ diff $OUTDIR/FMR1_zmw_37927.m4 $STDDIR/FMR1_zmw_37927.m4
+  $ diff $OUTDIR/FMR1_zmw_37927.m4 $STDDIR/$UPDATEDATE/FMR1_zmw_37927.m4

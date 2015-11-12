@@ -34,7 +34,6 @@ public:
     int sdpTupleSize;
     int match;
     int showAlign;
-    int refineAlign;
     bool useScoreCutoff;
     int maxScore;
     int argi;
@@ -138,6 +137,7 @@ public:
     //float averageMismatchScore;
     bool mapSubreadsSeparately;
     bool concordant;
+    bool refineConcordantAlignments;
     int  flankSize;
     bool useRegionTable;
     bool useHQRegionTable;
@@ -220,7 +220,6 @@ public:
         match = 0;
         mismatch = 0;
         showAlign = 1;
-        refineAlign = 1;
         useScoreCutoff = false;
         maxScore = -200;
         argi = 1;
@@ -305,6 +304,7 @@ public:
         ccsFofnFileName = "";
         mapSubreadsSeparately=true;
         concordant=false;
+        refineConcordantAlignments=false;
         flankSize=40;
         useRegionTable = true;
         useHQRegionTable=true;
@@ -449,6 +449,7 @@ public:
                 cout << "ERROR, unsupported concordantTemplate: " << concordantTemplate << endl;
                 exit(1);
             }
+            if (refineConcordantAlignments) {refineAlignments = true;}
         }
 
         if (sdpFilterType > 1) {
