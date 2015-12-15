@@ -61,7 +61,7 @@ void RegisterBlasrOptions(CommandLineParser & clp, MappingParameters & params) {
     clp.RegisterIntOption("bandSize", &params.bandSize, "", CommandLineParser::PositiveInteger);
     clp.RegisterIntOption("extendBandSize", &params.extendBandSize, "", CommandLineParser::PositiveInteger);
     clp.RegisterIntOption("guidedAlignBandSize", &params.guidedAlignBandSize, "", CommandLineParser::PositiveInteger);
-    clp.RegisterIntOption("maxAnchorsPerPosition", &params.anchorParameters.maxAnchorsPerPosition, "", CommandLineParser::PositiveInteger);
+    clp.RegisterIntOption("maxAnchorsPerPosition", (int*) &params.anchorParameters.maxAnchorsPerPosition, "", CommandLineParser::PositiveInteger);
     clp.RegisterIntOption("stopMappingOnceUnique", (int*) &params.anchorParameters.stopMappingOnceUnique, "", CommandLineParser::NonNegativeInteger);
     clp.RegisterStringOption("out", &params.outFileName, "");
     clp.RegisterIntOption("match", &params.match, "", CommandLineParser::Integer);
