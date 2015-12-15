@@ -6,7 +6,7 @@ include ${SRCDIR}/../rules.mk
 
 CXXFLAGS ?= -O3 -g
 CXXOPTS := -std=c++0x -pedantic \
-           -Wall -Wuninitialized -Wno-div-by-zero \
+           -Wall -Wextra -Wno-div-by-zero \
            -MMD -MP -w -fpermissive
 override CXXFLAGS += ${CXXOPTS} ${GCXXFLAGS}
 
