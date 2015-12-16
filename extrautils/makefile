@@ -5,12 +5,12 @@ SRCDIR:=$(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 include ${SRCDIR}/../rules.mk
 
 CXXOPTS := -std=c++0x -pedantic \
-           -Wall -Wuninitialized -Wno-div-by-zero \
-           -MMD -MP -w -fpermissive
+           -Wall -Wextra \
+           -MMD -MP -w
 CXXFLAGS += ${CXXOPTS} ${GCXXFLAGS}
 
 EXE = sa2bwt bwt2sa alchemy excrep evolve bsdb simpleShredder swMatcher \
-  samodify sals printTupleCountTable cmpH5StoreQualityByContext ccsh5tobam
+  samodify sals printTupleCountTable cmpH5StoreQualityByContext
 
 LD_LIBRARY_PATH=${HDF5_LIB}:${LIBBLASR_LIB}:${LIBPBIHDF_LIB}:${LIBPBDATA_LIB}
 export LD_LIBRARY_PATH
@@ -34,10 +34,9 @@ samodify: SAModify.o
 sals: SALS.o
 printTupleCountTable: PrintTupleCountTable.o
 cmpH5StoreQualityByContext: StoreQualityByContextFromCmpH5.o
-ccsh5tobam: CCSH5ToBam.o
 
 CTESTS := \
-ctest/alchemy.t  ctest/ccsh5tobam.t                  ctest/printTupleCountTable.t  ctest/sals.t      ctest/swmatcher.t \
+ctest/alchemy.t  ctest/printTupleCountTable.t  ctest/sals.t      ctest/swmatcher.t \
 ctest/bwt2sa.t   ctest/cmpH5StoreQualityByContext.t  ctest/sa2bwt.t                ctest/samodify.t
 
 
