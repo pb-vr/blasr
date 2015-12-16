@@ -9,7 +9,7 @@ CXXOPTS := -std=c++0x -pedantic \
            -MMD -MP -w
 CXXFLAGS += ${CXXOPTS} ${GCXXFLAGS}
 
-EXE = sa2bwt bwt2sa alchemy excrep evolve bsdb simpleShredder swMatcher \
+EXE = sa2bwt bwt2sa excrep evolve bsdb simpleShredder swMatcher \
   samodify sals printTupleCountTable cmpH5StoreQualityByContext
 
 LD_LIBRARY_PATH=${HDF5_LIB}:${LIBBLASR_LIB}:${LIBPBIHDF_LIB}:${LIBPBDATA_LIB}
@@ -24,7 +24,6 @@ ${EXE}:
 
 sa2bwt: SuffixArrayToBWT.o
 bwt2sa: BwtToSuffixArray.o
-alchemy: BasH5Simulator.o
 excrep: ExciseRepeats.o
 evolve: Evolve.o
 bsdb: BuildSequenceDB.o
@@ -36,7 +35,7 @@ printTupleCountTable: PrintTupleCountTable.o
 cmpH5StoreQualityByContext: StoreQualityByContextFromCmpH5.o
 
 CTESTS := \
-ctest/alchemy.t  ctest/printTupleCountTable.t  ctest/sals.t      ctest/swmatcher.t \
+ctest/printTupleCountTable.t  ctest/sals.t      ctest/swmatcher.t \
 ctest/bwt2sa.t   ctest/cmpH5StoreQualityByContext.t  ctest/sa2bwt.t                ctest/samodify.t
 
 
