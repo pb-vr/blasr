@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
     clp.RegisterStringOption("inFile", &inFileName, "Reference sequence", 0);
     clp.RegisterPreviousFlagsAsHidden();
     clp.RegisterIntOption("readLength", (int*) &readLength, "The length of reads to simulate.  The length is fixed.",
-            CommandLineParser::PositiveInteger, "Length of every read.", 0);
+            CommandLineParser::PositiveInteger, 0);
     clp.RegisterFloatOption("coverage", &coverage, "Total coverage (from which the number of reads is calculated",
             CommandLineParser::PositiveFloat, 0);
     clp.RegisterFlagOption("nonRandInit", &noRandInit, "Skip initializing the random number generator with time.");
