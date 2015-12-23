@@ -1447,6 +1447,7 @@ void AlignSubreadToAlignmentTarget(ReadAlignments & allReadAlignments,
             << ", passDirection " << passDirection
             << ", subreadInterval [" << subreadInterval.start
             << ", " << subreadInterval.end << ")" << endl
+            << "Exploded score " << explodedScore << endl
             << "StickPrintAlignment subread-reference alignment which has"
             << " the " << (sameAlignmentPassDirection?"same":"different")
             << " direction as the ccs-reference (or the "

@@ -958,7 +958,6 @@ void PrintAlignment(T_AlignmentCandidate &alignment,
 #endif
                     ) {
    try {
-    int lastBlock = alignment.blocks.size() - 1;
     if (params.printFormat == StickPrint) {
       PrintAlignmentStats(alignment, outFile);
       StickPrintAlignment(alignment,

@@ -11,10 +11,7 @@ class MappingSemaphores {
         sem_t writer;
         sem_t unaligned;
         sem_t hitCluster;
-        MappingSemaphores& operator=(MappingSemaphores &rhs) {
-                return *this;
-        }
-
+        
         void InitializeAll() {
                 sem_init(&reader, 0, 1);
                 sem_init(&writer, 0, 1);
@@ -29,10 +26,6 @@ class MappingSemaphores {
         sem_t *writer;
         sem_t *unaligned;
         sem_t *hitCluster;
-        MappingSemaphores& operator=(MappingSemaphores &rhs) {
-                return *this;
-        }
-
         void InitializeAll() {
                 reader     = sem_open("/reader",     O_CREAT, 0644, 1);
                 writer     = sem_open("/writer",     O_CREAT, 0644, 1);

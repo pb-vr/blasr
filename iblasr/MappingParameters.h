@@ -61,7 +61,7 @@ public:
     string indexFileName;
     string anchorFileName;
     string clusterFileName;
-    VectorIndex nBest;
+    int nBest;
     int printWindow;
     int doCondense;
     int do4BitComp;
