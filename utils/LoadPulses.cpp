@@ -103,8 +103,7 @@ void ExclusivelyAdd(const char *value, vector<string> &vect) {
 }
 
 bool AnyFieldRequiresFrameRate(vector<string> &fields) {
-    int i;
-    for (i = 0; i < fields.size(); i++ ) {
+    for (size_t i = 0; i < fields.size(); i++ ) {
         if (fields[i] == "PulseWidth" or
                 fields[i] == "IPD" or
                 fields[i] == "Light" or
@@ -207,7 +206,7 @@ vector<string> GetPulseMetrics() {
 // Return true if this metric can be computed from PulseCalls.
 bool IsPulseMetric(const string & metric) {
     vector<string> pulseMetrics = GetPulseMetrics();
-    for (int i = 0; i < pulseMetrics.size(); i++) {
+    for (size_t i = 0; i < pulseMetrics.size(); i++) {
         if (pulseMetrics[i] == metric) 
             return true;
     }
@@ -224,7 +223,7 @@ vector<string> GetMetricsToLoad(map<string, bool> & metricOptions) {
     // Get all supported metrics. 
     vector<string> supportedMetrics = GetAllSupportedMetrics();
     map<string, bool>::iterator metricIt;
-    for (int i = 0; i < supportedMetrics.size(); i++) {
+    for (size_t i = 0; i < supportedMetrics.size(); i++) {
         string metric = supportedMetrics[i];
         metricIt = metricOptions.find(metric);
         if (metricIt!=metricOptions.end() and metricIt->second) {
@@ -238,8 +237,7 @@ vector<string> GetMetricsToLoad(map<string, bool> & metricOptions) {
 void StoreDatasetFieldsFromPulseFields(MetricOptionsMap &fieldSet,
         RequirementMap &fieldRequirements, 
         vector<string> &datasetFields) {
-    int f;
-    int d;
+    size_t d;
     MetricOptionsMap::iterator optionsIt;
     for (optionsIt = fieldSet.begin(); optionsIt != fieldSet.end(); ++optionsIt) {
         if (optionsIt->second == true) {
@@ -258,8 +256,7 @@ void StoreDatasetFieldsFromPulseFields(MetricOptionsMap &fieldSet,
 void ParseMetricsList(string metricListString, MetricOptionsMap &metricOptions) {
     vector<string> metrics;
     Splice(metricListString, ",", metrics);
-    int m;
-    for  (m = 0; m < metrics.size(); m++) {
+    for  (size_t m = 0; m < metrics.size(); m++) {
         if (metricOptions.find(metrics[m]) != metricOptions.end()) {
             metricOptions[metrics[m]] = true;
         }
@@ -273,7 +270,7 @@ void ParseMetricsList(string metricListString, MetricOptionsMap &metricOptions) 
 // Set default metric options to true
 void SetDefaultMetricOptions(map<string, bool> & metricOptions) {
     vector<string> defaultMetrics = GetDefaultMetrics(); 
-    for (int i = 0; i < defaultMetrics.size(); i++) {
+    for (size_t i = 0; i < defaultMetrics.size(); i++) {
         metricOptions[defaultMetrics[i]] = true;
     }
 }
@@ -282,7 +279,7 @@ void SetDefaultMetricOptions(map<string, bool> & metricOptions) {
 // Initialize all supported metric options and set all to false
 void CreateMetricOptions(map<string, bool> &metricOptions) {
     vector<string> supportedMetrics = GetAllSupportedMetrics();
-    for (int i = 0; i < supportedMetrics.size(); i++) {
+    for (size_t i = 0; i < supportedMetrics.size(); i++) {
         metricOptions[supportedMetrics[i]] = false;
     }
 }
@@ -296,7 +293,7 @@ bool AreAllFieldsAvailable(
         const bool       & usePulseFile) {
     bool allAvailable = true;
 
-    for (int i = 0; i < requiredFields.size(); i++) {
+    for (size_t i = 0; i < requiredFields.size(); i++) {
         Field field = requiredFields[i];
         if (field.type == BasField) {
             if (!useBaseFile or !hdfBasReader.FieldIsIncluded(field.name)
@@ -429,7 +426,6 @@ UInt ComputeRequiredMemoryForThisField(
         HDFPlsReader   & hdfPlsReader,
         const bool     & useBaseFile,
         const bool     & usePulseFile) {
-    UInt memory = 0;
     if (thisField.type == BasField) {
         assert(useBaseFile);
         return hdfBasReader.GetFieldSize(thisField.name);
@@ -453,14 +449,15 @@ UInt ComputeRequiredMemory(
         HDFCmpFile<CmpAlignment> & cmpReader,
         UInt           & totalAlnLength) {
     UInt maxMemory = 0;
-    for (int i = 0; i < metricsToLoad.size(); i++) {
+    for (size_t i = 0; i < metricsToLoad.size(); i++) {
         UInt memoryForThisMetric = 0;
         vector<Field> fieldsToBeUsed;
         bool canBeComputed = CanThisMetricBeComputed(
                 metricsToLoad[i], hdfBasReader, hdfPlsReader,
                 useBaseFile, usePulseFile, fieldsToBeUsed);
+        (void)(canBeComputed);
 
-        for (int j = 0; j < fieldsToBeUsed.size(); j++) {
+        for (size_t j = 0; j < fieldsToBeUsed.size(); j++) {
             UInt memoryForThisField = ComputeRequiredMemoryForThisField(
                     fieldsToBeUsed[j], hdfBasReader, hdfPlsReader,
                     useBaseFile, usePulseFile);
@@ -562,6 +559,7 @@ void BuildLookupTable(
     //
     int refGroupId  = cmpFile.alnInfo.alignments[alignmentIndex].GetRefGroupId();
     int movieId     = cmpFile.alnInfo.alignments[alignmentIndex].GetMovieId();
+    (void)(movieId);
     UInt holeNumber = cmpFile.alnInfo.alignments[alignmentIndex].GetHoleNumber();
     int alnGroupId  = cmpFile.alnInfo.alignments[alignmentIndex].GetAlnGroupId();
 
@@ -689,6 +687,7 @@ void GetSourceRead(CmpFile      & cmpFile,
                    const string & alignedSequence,
                    SMRTSequence & sourceRead,   
                    unsigned int & numPasses) {
+    (void)(baseFile); (void)(pulseFile); (void)(alignedSequence);
 
     assert(!table.skip);
     //
@@ -752,9 +751,10 @@ void BuildLookupTablesAndMakeSane(
         const vector< pair<int,int> >    & toFrom,
         const set<uint32_t>              & moviePartHoleNumbers,
         vector<MovieAlnIndexLookupTable> & lookupTables) {
+    (void)(hdfPlsReader); (void)(hdfCcsReader); (void)(useCcsOnly); (void)(useBaseFile);
 
     lookupTables.resize(movieAlnIndex.size());
-    int movieAlignmentIndex = 0;
+    size_t movieAlignmentIndex = 0;
     for (movieAlignmentIndex = 0; movieAlignmentIndex < movieAlnIndex.size(); movieAlignmentIndex++) {
         BuildLookupTable(movieAlignmentIndex,
             cmpFile, 
@@ -858,8 +858,8 @@ void GroupLookupTables(
 
     vector<pair<UInt, UInt> > refGroupIndexReadGroupIndexPairs;
     UInt movieAlignmentIndex = 0;
-    UInt preRefGroupIndex    = 0;
-    UInt preReadGroupIndex   = 0;
+    size_t preRefGroupIndex     = 0;
+    size_t preReadGroupIndex    = 0;
     UInt pairFirst           = 0;
     bool isVeryFirstGroup    = true;
 
@@ -906,8 +906,8 @@ void GroupLookupTables(
 
 
     // Double check all assumptions are met
-    for (int i = 0; i < refGroupIndexReadGroupIndexPairs.size(); i++) {
-        for (int j = i+1; j < refGroupIndexReadGroupIndexPairs.size(); j++) {
+    for (size_t i = 0; i < refGroupIndexReadGroupIndexPairs.size(); i++) {
+        for (size_t j = i+1; j < refGroupIndexReadGroupIndexPairs.size(); j++) {
             // Assure that assumption (1) is met. If this assertion fails, 
             // then alignments in the input cmp.h5 are not grouped by
             // reference. Check /AlnInfo/AlnIndex dataset column 3.
@@ -915,8 +915,7 @@ void GroupLookupTables(
         }
     }
     assert(groupedLookupTablesIndexPairs.size() == refGroupIndexReadGroupIndexPairs.size());
-    int i ;
-    for (i = 0; i < groupedLookupTablesIndexPairs.size(); i++) {
+    for (size_t i = 0; i < groupedLookupTablesIndexPairs.size(); i++) {
         UInt firstIndex     = groupedLookupTablesIndexPairs[i].first;
         UInt lastIndex      = groupedLookupTablesIndexPairs[i].second;
         UInt refGroupIndex  = refGroupIndexReadGroupIndexPairs[i].first;
@@ -944,6 +943,7 @@ void CacheRequiredFieldsForMetric(
         const bool                  & useCcsOnly,
         vector<Field>               & cachedFields,
         const string                & curMetric) {
+    (void)(hdfCcsReader); (void)(useCcsOnly);
 
     vector<Field> fieldsToBeUsed;
     bool canBeComputed = CanThisMetricBeComputed( 
@@ -952,9 +952,9 @@ void CacheRequiredFieldsForMetric(
     assert(canBeComputed);
 
     // Cache all required fields 
-    for (int i = 0; i < fieldsToBeUsed.size(); i++) {
+    for (size_t i = 0; i < fieldsToBeUsed.size(); i++) {
         bool isFieldCached = false;
-        for (int j = 0; j < cachedFields.size(); j++) {
+        for (size_t j = 0; j < cachedFields.size(); j++) {
             if (fieldsToBeUsed[i] == cachedFields[j]) {
                 isFieldCached = true;
                 break;
@@ -997,7 +997,7 @@ void ClearCachedFields(
         vector<Field>              & cachedFields,
         const string               & curMetric,
         const string               & nextMetric) {
-
+    (void)(hdfCcsReader); (void)(useCcsOnly); (void)(curMetric);
  
     vector<Field> nextRequiredFields;
     if (nextMetric != "") {
@@ -1006,9 +1006,9 @@ void ClearCachedFields(
             useBaseFile, usePulseFile, nextRequiredFields); 
         assert(canBeComputed);
     }
-    for (int i = 0; i < cachedFields.size(); i++) {
+    for (size_t i = 0; i < cachedFields.size(); i++) {
         bool isRequiredForNextMetric = false;
-        for (int j = 0; j < nextRequiredFields.size(); j++) {
+        for (size_t j = 0; j < nextRequiredFields.size(); j++) {
             if (cachedFields[i] == nextRequiredFields[j]) {
                 isRequiredForNextMetric = true;
                 break;
@@ -1137,9 +1137,9 @@ void WriteMetric(
         vector<MovieAlnIndexLookupTable> & lookupTables,
         vector<pair<UInt, UInt> >        & groupedLookupTablesIndexPairs,
         const string                     & curMetric ) {
+    (void)(cmpFile); (void)(hdfCcsReader); (void)(useCcsOnly);
 
-    int movieAlignmentIndex = 0;
-    for (int index = 0; index < groupedLookupTablesIndexPairs.size(); index++) {
+    for (size_t index = 0; index < groupedLookupTablesIndexPairs.size(); index++) {
         // Group[index] contains all items in lookupTables[firstIndex...lastIndex)
         UInt firstIndex = groupedLookupTablesIndexPairs[index].first;
         UInt lastIndex  = groupedLookupTablesIndexPairs[index].second;
@@ -1263,13 +1263,12 @@ void WriteMetric(
             exit(1);
         }
 
-        for (movieAlignmentIndex = firstIndex; movieAlignmentIndex < lastIndex; movieAlignmentIndex++) {
+        for (size_t movieAlignmentIndex = firstIndex; movieAlignmentIndex < lastIndex; movieAlignmentIndex++) {
             MovieAlnIndexLookupTable & lookupTable   = lookupTables[movieAlignmentIndex];
             if (lookupTable.skip) continue;
 
             const UInt alignedSequenceLength         = lookupTable.offsetEnd - lookupTable.offsetBegin; 
             const UInt ungappedAlignedSequenceLength = lookupTable.queryEnd  - lookupTable.queryStart;
-            const UInt   & readIndex                 = lookupTable.readIndex;
             const UInt   & plsReadIndex              = lookupTable.plsReadIndex;
             const UInt   & readStart                 = lookupTable.readStart;
             const UInt   & readLength                = lookupTable.readLength;
@@ -1623,8 +1622,7 @@ void WriteMetricWhenStarted(
 //
 string MetricsToString(const vector<string> & metrics) {
     string ret = ""; 
-    int j = 0; 
-    for (int i = 0; i < metrics.size(); i++) {
+    for (size_t i = 0; i < metrics.size(); i++) {
         ret += metrics[i]; 
         if (i != metrics.size()-1) ret += ","; 
         if (i % 4 == 3) ret += "\n";
@@ -1676,8 +1674,6 @@ int main(int argc, char* argv[]) {
     AppendPerforceChangelist(PERFORCE_VERSION_STRING, versionStr);
 
     string cmpFileName, movieFileName;
-    int argi = 3;
-    int numMetrics = 8;
     map<string,bool> metricOptions;
     int maxElements = 0;
     //Maximum Memory allowed for bymetric is 6 GB
@@ -1725,7 +1721,7 @@ int main(int argc, char* argv[]) {
             "(default value: 4 GB). Use -byread if the limit is exceeded.",
             CommandLineParser::PositiveInteger);
     int metaNElements, rawChunkSize, rawNElements;
-    metaNElements = rawChunkSize = metaNElements = 0;
+    metaNElements = 0; rawChunkSize = 0; metaNElements = 0;
     clp.RegisterIntOption("metaNElements", & metaNElements,
             "Set number of elements in meta data cache for reading bas/bax/pls.h5 file.",
             CommandLineParser::PositiveInteger);
@@ -1788,7 +1784,7 @@ int main(int argc, char* argv[]) {
     HDFCCSReader<SMRTSequence> hdfCcsReader;
 
     vector<string> baseFileFields, pulseFileFields;
-    int fieldIndex;
+    size_t fieldIndex;
     bool useBaseFile = false, usePulseFile = false;
     for (fieldIndex = 0; fieldIndex < datasetFields.size(); fieldIndex++) {
         if (hdfBasReader.ContainsField(datasetFields[fieldIndex])) {
@@ -1955,8 +1951,7 @@ int main(int argc, char* argv[]) {
     // Load pulses from movies in order they appear in the input fofn.
     //
     int m;
-    int fofnMovieIndex;
-    for (fofnMovieIndex = 0; fofnMovieIndex < fofnMovieNames.size(); fofnMovieIndex++) {
+    for (size_t fofnMovieIndex = 0; fofnMovieIndex < fofnMovieNames.size(); fofnMovieIndex++) {
         bool byMetricForThisMovie = byMetric;
 
         if (cmpFile.readType == ReadType::CCS or useCcsOnly) {
@@ -1994,7 +1989,7 @@ int main(int argc, char* argv[]) {
 
         string cmpFileMovieName;
 
-        for (m = 0; m < cmpFile.movieInfo.name.size(); m++) {
+        for (m = 0; m < static_cast<int>(cmpFile.movieInfo.name.size()); m++) {
             //
             // First find the file name for the movie 'm'
             //
@@ -2012,7 +2007,7 @@ int main(int argc, char* argv[]) {
         // alignments were found between the input bas.h5 and the
         // reference.  That shouldn't happen.
         // 
-        if (m == cmpFile.movieInfo.name.size()) {
+        if (m == static_cast<int>(cmpFile.movieInfo.name.size())) {
             cout << "WARNING: Could not find any alignments for file " << movieFileNames[fofnMovieIndex] << endl;
             continue;
         }
@@ -2070,7 +2065,7 @@ int main(int argc, char* argv[]) {
         {
             UInt requiredMem = ComputeRequiredMemory(metricsToLoad, hdfBasReader, 
                     hdfPlsReader, useBaseFile, usePulseFile, cmpReader, totalAlnLength);
-            if (hdfBasReader.baseArray.arrayLength > hdfBasReader.maxAllocNElements or 
+            if (hdfBasReader.baseArray.arrayLength > static_cast<DSLength>(hdfBasReader.maxAllocNElements) or 
                 (usePulseFile and 
                  hdfPlsReader.GetStartFrameSize() > hdfPlsReader.maxAllocNElements) or
                 ((float)requiredMem / 1024 / 1024) > maxMemory) {
@@ -2114,7 +2109,6 @@ int main(int argc, char* argv[]) {
         //
         cout << "loading " <<  movieIndexSets[movieIndex].size() << " alignments for movie " << movieIndex << endl;
 
-        UInt i;
         if (byMetricForThisMovie) {
             //
             // Build lookup tables for all alignments which 
@@ -2174,7 +2168,7 @@ int main(int argc, char* argv[]) {
                 cachedFields.push_back(Field("NumEvent", PlsField));
             } 
 
-            for (int metricsToLoadIndex = 0; metricsToLoadIndex < metricsToLoad.size(); metricsToLoadIndex++) {
+            for (size_t metricsToLoadIndex = 0; metricsToLoadIndex < metricsToLoad.size(); metricsToLoadIndex++) {
                 string curMetric = metricsToLoad[metricsToLoadIndex];
                 // Metric "WhenStarted" should have been loaded before getting here.
                 if (curMetric == "WhenStarted") {
@@ -2252,14 +2246,12 @@ int main(int argc, char* argv[]) {
                 }
 
                 UInt & alignmentIndex = lookupTable.alignmentIndex;
-                int  & refGroupIndex  = lookupTable.refGroupIndex;
-                int  & readGroupIndex = lookupTable.readGroupIndex;
+                size_t  & refGroupIndex  = lookupTable.refGroupIndex;
+                size_t  & readGroupIndex = lookupTable.readGroupIndex;
                 UInt & holeNumber     = lookupTable.holeNumber;
-                int  & readIndex      = lookupTable.readIndex;
-                int  & queryStart     = lookupTable.queryStart;
-                int  & queryEnd       = lookupTable.queryEnd;
-                int  & readStart      = lookupTable.readStart;
-                int  & readLength     = lookupTable.readLength;
+                size_t  & readIndex   = lookupTable.readIndex;
+                UInt & queryStart     = lookupTable.queryStart;
+                UInt & queryEnd       = lookupTable.queryEnd;
                 UInt & offsetBegin    = lookupTable.offsetBegin;
                 UInt & offsetEnd      = lookupTable.offsetEnd;
 
@@ -2319,17 +2311,16 @@ int main(int argc, char* argv[]) {
                 vector<UChar> qvMetric;
                 vector<HalfWord> frameRateMetric;
                 vector<uint32_t> timeMetric;
-                int ungappedAlignedSequenceLength = alignedSequence.size();
+                UInt ungappedAlignedSequenceLength = alignedSequence.size();
                 assert(ungappedAlignedSequenceLength == queryEnd - queryStart);
 
-                int alignedSequenceLength = offsetEnd - offsetBegin;
+                UInt alignedSequenceLength = offsetEnd - offsetBegin;
                 readPulseMetric.resize(alignedSequenceLength+1);
                 qvMetric.resize(alignedSequenceLength+1);
                 frameRateMetric.resize(alignedSequenceLength+1);
                 timeMetric.resize(alignedSequenceLength+1);
 
                 UInt i;
-                UInt pi;
 
                 HDFCmpExperimentGroup* expGroup = cmpReader.refAlignGroups[refGroupIndex]->readGroups[readGroupIndex];
                 UInt alnArrayLength = expGroup->alignmentArray.size();
@@ -2413,7 +2404,7 @@ int main(int argc, char* argv[]) {
                     }
                     readDeletionTagMetric[i] = '\0';
                     for (i = 0; i < ungappedAlignedSequenceLength; i++ ) {
-                        assert(baseToAlignmentMap[i] < readDeletionTagMetric.size());
+                        assert(baseToAlignmentMap[i] < static_cast<int>(readDeletionTagMetric.size()));
                         readDeletionTagMetric[baseToAlignmentMap[i]] = sourceRead.deletionTag[queryStart+i];
                     }
                     readDeletionTagMetric[readDeletionTagMetric.size()-1] = 0;
