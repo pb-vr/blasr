@@ -25,8 +25,6 @@ override CXXFLAGS += ${CXXOPTS} ${GCXXFLAGS}
 
 # HDF5 needs -ldl, but mobs does not pass it in.
 
-CPPFLAGS:=-I${SRCDIR}/include ${CPPFLAGS}
-
 SRCS := Blasr.cpp
 OBJS := ${SRCS:.cpp=.o}
 DEPS := ${SRCS:.cpp=.d}
