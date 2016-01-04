@@ -64,7 +64,7 @@ bool IsGoodRead(const SMRTSequence & smrtRead,
     //
     if (smrtRead.highQualityRegionScore < params.minRawSubreadScore or
         (params.maxReadLength != 0 and smrtRead.length > UInt(params.maxReadLength)) or
-        (smrtRead.length < int(params.minReadLength))) {
+        (int(smrtRead.length) < params.minReadLength)) {
         return false;
     }
 
@@ -195,9 +195,9 @@ bool FetchReads(ReaderAgglomerate * reader,
                 int & associatedRandInt,
                 bool & stop)
 {
-    if ((reader->GetFileType() != FileType::BAM and reader->GetFileType() != FileType::PBDATASET) or not params.concordant) {
-        if (reader->GetFileType() == HDFCCS ||
-            reader->GetFileType() == HDFCCSONLY) {
+    if ((reader->GetFileType() != FileType::PBBAM and reader->GetFileType() != FileType::PBDATASET) or not params.concordant) {
+        if (reader->GetFileType() == FileType::HDFCCS ||
+            reader->GetFileType() == FileType::HDFCCSONLY) {
             if (GetNextReadThroughSemaphore(*reader, params, ccsRead, readGroupId, associatedRandInt, semaphores) == false) {
                 stop = true;
                 return false;
@@ -300,7 +300,7 @@ void MapReadsNonCCS(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapDa
     vector<int>          subreadDirections;
     int bestSubreadIndex;
 
-    if ((mapData->reader->GetFileType() != BAM and mapData->reader->GetFileType() != PBDATASET) or not params.concordant) {
+    if ((mapData->reader->GetFileType() != FileType::PBBAM and mapData->reader->GetFileType() != FileType::PBDATASET) or not params.concordant) {
         MakePrimaryIntervals(mapData->regionTablePtr, smrtRead,
                              subreadIntervals, subreadDirections,
                              bestSubreadIndex, params);
@@ -1288,7 +1288,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Check whether use ccs only.
-    if (reader->GetFileType() == HDFCCSONLY) {
+    if (reader->GetFileType() == FileType::HDFCCSONLY) {
        params.useAllSubreadsInCcs = false;
        params.useCcs = params.useCcsOnly = true;
     }
@@ -1346,11 +1346,11 @@ int main(int argc, char* argv[]) {
     //  }
     // }
 
-    if (reader->GetFileType() != HDFCCS and
-        reader->GetFileType() != HDFBase and
-        reader->GetFileType() != HDFPulse and
-        reader->GetFileType() != PBBAM and
-        reader->GetFileType() != PBDATASET and
+    if (reader->GetFileType() != FileType::HDFCCS and
+        reader->GetFileType() != FileType::HDFBase and
+        reader->GetFileType() != FileType::HDFPulse and
+        reader->GetFileType() != FileType::PBBAM and
+        reader->GetFileType() != FileType::PBDATASET and
         params.concordant) {
         cerr << "WARNING! Option concordant is only enabled when "
              << "input reads are in PacBio bax/pls.h5, bam or "

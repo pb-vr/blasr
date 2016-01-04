@@ -1860,7 +1860,7 @@ int main(int argc, char* argv[]) {
     for (movieIndex = 0; movieIndex < nMovies; movieIndex++) {
         FileType fileType;
         BaseSequenceIO::DetermineFileTypeByExtension(movieFileNames[movieIndex], fileType, true);
-        if (fileType == HDFCCSONLY) {
+        if (fileType == FileType::HDFCCSONLY) {
             useCcsOnly = true;
         }
     }

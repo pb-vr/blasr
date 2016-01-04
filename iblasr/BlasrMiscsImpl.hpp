@@ -200,4 +200,5 @@ int GetIndexOfConcordantTemplate(const vector<ReadInterval> & subreadIntervals)
             }
         }
     }
+    return 0;
 }
