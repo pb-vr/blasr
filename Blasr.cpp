@@ -64,7 +64,7 @@ bool IsGoodRead(const SMRTSequence & smrtRead,
     //
     if (smrtRead.highQualityRegionScore < params.minRawSubreadScore or
         (params.maxReadLength != 0 and smrtRead.length > UInt(params.maxReadLength)) or
-        (smrtRead.length < params.minReadLength)) {
+        (int(smrtRead.length) < params.minReadLength)) {
         return false;
     }
 
@@ -161,12 +161,11 @@ void MakePrimaryIntervals(RegionTable * regionTablePtr,
 void MakePrimaryIntervals(vector<SMRTSequence> & subreads,
                           vector<ReadInterval> & subreadIntervals,
                           vector<int> & subreadDirections,
-                          int & bestSubreadIndex,
-                          MappingParameters & params)
+                          int & bestSubreadIndex)
 {
     MakeSubreadIntervals(subreads, subreadIntervals);
     CreateDirections(subreadDirections, subreadIntervals.size());
-    bestSubreadIndex = GetIndexOfConcordantTemplate(subreadIntervals); 
+    bestSubreadIndex = GetIndexOfConcordantTemplate(subreadIntervals);
 }
 
 
@@ -196,9 +195,9 @@ bool FetchReads(ReaderAgglomerate * reader,
                 int & associatedRandInt,
                 bool & stop)
 {
-    if ((reader->GetFileType() != BAM and reader->GetFileType() != PBDATASET) or not params.concordant) {
-        if (reader->GetFileType() == HDFCCS ||
-            reader->GetFileType() == HDFCCSONLY) {
+    if ((reader->GetFileType() != FileType::PBBAM and reader->GetFileType() != FileType::PBDATASET) or not params.concordant) {
+        if (reader->GetFileType() == FileType::HDFCCS ||
+            reader->GetFileType() == FileType::HDFCCSONLY) {
             if (GetNextReadThroughSemaphore(*reader, params, ccsRead, readGroupId, associatedRandInt, semaphores) == false) {
                 stop = true;
                 return false;
@@ -277,7 +276,6 @@ void MapReadsNonCCS(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapDa
                     MappingBuffers & mappingBuffers,
                     SMRTSequence & smrtRead,
                     SMRTSequence & smrtReadRC,
-                    CCSSequence & ccsRead,
                     vector<SMRTSequence> & subreads,
                     MappingParameters & params,
                     const int & associatedRandInt,
@@ -302,14 +300,14 @@ void MapReadsNonCCS(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapDa
     vector<int>          subreadDirections;
     int bestSubreadIndex;
 
-    if ((mapData->reader->GetFileType() != BAM and mapData->reader->GetFileType() != PBDATASET) or not params.concordant) {
+    if ((mapData->reader->GetFileType() != FileType::PBBAM and mapData->reader->GetFileType() != FileType::PBDATASET) or not params.concordant) {
         MakePrimaryIntervals(mapData->regionTablePtr, smrtRead,
                              subreadIntervals, subreadDirections,
                              bestSubreadIndex, params);
     } else {
         MakePrimaryIntervals(subreads,
                              subreadIntervals, subreadDirections,
-                             bestSubreadIndex, params);
+                             bestSubreadIndex);
     }
 
     // Flop all directions if direction of the longest subread is 1.
@@ -328,7 +326,7 @@ void MapReadsNonCCS(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapDa
         endIndex   = min(endIndex, bestSubreadIndex + 1);
 
         if (params.verbosity >= 1) {
-            cout << "Concordant template subread index: " << bestSubreadIndex << ", " 
+            cout << "Concordant template subread index: " << bestSubreadIndex << ", "
                  << smrtRead.HoleNumber() << "/" << subreadIntervals[bestSubreadIndex] << endl;
         }
     }
@@ -339,8 +337,7 @@ void MapReadsNonCCS(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapDa
     allReadAlignments.Resize(subreadIntervals.size());
     allReadAlignments.alignMode = Subread;
 
-    DNALength intvIndex;
-    for (intvIndex = startIndex; intvIndex < endIndex; intvIndex++) {
+    for (int intvIndex = startIndex; intvIndex < endIndex; intvIndex++) {
         SMRTSequence subreadSequence, subreadSequenceRC;
         MakeSubreadOfInterval(subreadSequence, smrtRead,
                 subreadIntervals[intvIndex], params);
@@ -442,10 +439,10 @@ void MapReadsNonCCS(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapDa
         // for printing
         // delete all AC which are in complement of SelectedAlignmemntPtrs vector
         // namely (SelectedAlignmentPtrs/alignmentPtrs)
-        for (int ii = 0; ii < alignmentPtrs.size(); ii++)
+        for (size_t ii = 0; ii < alignmentPtrs.size(); ii++)
         {
             int found =0;
-            for (int jj = 0; jj < selectedAlignmentPtrs.size(); jj++)
+            for (size_t jj = 0; jj < selectedAlignmentPtrs.size(); jj++)
             {
                 if (alignmentPtrs[ii] == selectedAlignmentPtrs[jj] )
                 {
@@ -476,7 +473,7 @@ void MapReadsNonCCS(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapDa
                                  seqdb, genome, params.flankSize);
             }
 
-            for (intvIndex = 0; intvIndex < subreadIntervals.size(); intvIndex++) {
+            for (int intvIndex = 0; intvIndex < int(subreadIntervals.size()); intvIndex++) {
                 if (intvIndex == startIndex) continue;
                 int passDirection = subreadDirections[intvIndex];
                 int passStartBase = subreadIntervals[intvIndex].start;
@@ -498,7 +495,7 @@ void MapReadsNonCCS(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapDa
                     allReadAlignments.SetSequence(intvIndex, smrtRead);
                 }
 
-                for (int alnIndex = 0; alnIndex < selectedAlignmentPtrs.size(); alnIndex++) {
+                for (size_t alnIndex = 0; alnIndex < selectedAlignmentPtrs.size(); alnIndex++) {
                     T_AlignmentCandidate * alignment = selectedAlignmentPtrs[alnIndex];
                     if (alignment->score > params.maxScore) break;
                     AlignSubreadToAlignmentTarget(allReadAlignments,
@@ -522,7 +519,7 @@ void MapReadsNonCCS(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapDa
                 } // End of aligning this subread to each selected alignment.
                 subread.Free();
             } // End of aligning each subread to where the template subread aligned to.
-            for(int alignmentIndex = 0; alignmentIndex < selectedAlignmentPtrs.size();
+            for(size_t alignmentIndex = 0; alignmentIndex < selectedAlignmentPtrs.size();
                     alignmentIndex++) {
                 if (selectedAlignmentPtrs[alignmentIndex])
                     delete selectedAlignmentPtrs[alignmentIndex];
@@ -605,7 +602,7 @@ void MapReadsCCS(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData,
     }
     else if (readIsCCS) { // if -useccsall or -useccs
         // Flank alignment candidates to both ends.
-        for(int alignmentIndex = 0; alignmentIndex < selectedAlignmentPtrs.size();
+        for(size_t alignmentIndex = 0; alignmentIndex < selectedAlignmentPtrs.size();
                 alignmentIndex++) {
             FlankTAlignedSeq(selectedAlignmentPtrs[alignmentIndex],
                     seqdb, genome, params.flankSize);
@@ -667,12 +664,11 @@ void MapReadsCCS(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData,
             // The unrolled alignment should be relative to the entire read.
             allReadAlignments.SetSequence(subreadIndex, ccsRead.unrolledRead);
 
-            int alignmentIndex;
             //
             // Align this subread to all the positions that the de novo
             // sequence has aligned to.
             //
-            for (alignmentIndex = 0; alignmentIndex < selectedAlignmentPtrs.size(); alignmentIndex++) {
+            for (size_t alignmentIndex = 0; alignmentIndex < selectedAlignmentPtrs.size(); alignmentIndex++) {
                 T_AlignmentCandidate *alignment = selectedAlignmentPtrs[alignmentIndex];
                 if (alignment->score > params.maxScore) break;
                 AlignSubreadToAlignmentTarget(allReadAlignments,
@@ -691,10 +687,10 @@ void MapReadsCCS(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData,
     // for printing
     // delete all AC which are in complement of SelectedAlignmemntPtrs vector
     // namely (SelectedAlignmentPtrs/alignmentPtrs)
-    for (int ii = 0; ii < alignmentPtrs.size(); ii++)
+    for (size_t ii = 0; ii < alignmentPtrs.size(); ii++)
     {
         int found =0;
-        for (int jj = 0; jj < selectedAlignmentPtrs.size(); jj++)
+        for (size_t jj = 0; jj < selectedAlignmentPtrs.size(); jj++)
         {
             if (alignmentPtrs[ii] == selectedAlignmentPtrs[jj] )
             {
@@ -719,14 +715,12 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData)
     TupleCountTable<T_GenomeSequence, DNATuple> ct;
     SequenceIndexDatabase<FASTQSequence> seqdb;
     T_GenomeSequence    genome;
-    BWT *bwtPtr;
 
     mapData->ShallowCopySuffixArray(sarray);
     mapData->ShallowCopyReferenceSequence(genome);
     mapData->ShallowCopySequenceIndexDatabase(seqdb);
     mapData->ShallowCopyTupleCountTable(ct);
 
-    bwtPtr = mapData->bwtPtr;
     SeqBoundaryFtr<FASTQSequence> seqBoundary(&seqdb);
 
     int numAligned = 0;
@@ -787,7 +781,7 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData)
         if (readIsCCS == false and params.mapSubreadsSeparately) {
             // (not readIsCCS and not -noSplitSubreads)
             MapReadsNonCCS(mapData, mappingBuffers,
-                           smrtRead, smrtReadRC, ccsRead, subreads,
+                           smrtRead, smrtReadRC, subreads,
                            params, associatedRandInt,
                            allReadAlignments, threadOut);
        } // End of if (readIsCCS == false and params.mapSubreadsSeparately).
@@ -846,10 +840,7 @@ int main(int argc, char* argv[]) {
   // Configure parameters for refining alignments.
   //
   MappingParameters params;
-  ReverseCompressIndex index;
-  pid_t parentPID;
-  pid_t *pids;
-  
+
   CommandLineParser clp;
   clp.SetHelp(BlasrHelp(params));
   clp.SetConciseHelp(BlasrConciseHelp());
@@ -878,7 +869,7 @@ int main(int argc, char* argv[]) {
     cout << BlasrConciseHelp();
     exit(1); // A failure.
   }
-  
+
   int a, b;
   for (a = 0; a < 5; a++ ) {
     for (b = 0; b < 5; b++ ){
@@ -890,7 +881,7 @@ int main(int argc, char* argv[]) {
       }
     }
   }
-  
+
   if (params.scoreMatrixString != "") {
     if (StringToScoreMatrix(params.scoreMatrixString, SMRTDistanceMatrix) == false) {
       cout << "ERROR. The string " << endl
@@ -907,7 +898,7 @@ int main(int argc, char* argv[]) {
       exit(1);
     }
   }
-  
+
   cerr << "[INFO] " << GetTimestamp() << " [blasr] started." << endl;
   params.MakeSane();
 
@@ -922,7 +913,7 @@ int main(int argc, char* argv[]) {
   else {
     InitializeRandomGeneratorWithTime();
   }
-  
+
   //
   // Various aspects of timing are stored here.  However this isn't
   // quite finished.
@@ -948,13 +939,13 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  if (params.regionTableFileNames.size() != 0 and 
+  if (params.regionTableFileNames.size() != 0 and
       params.regionTableFileNames.size() != params.queryFileNames.size()) {
     cout << "Error, there are not the same number of region table files as input files." << endl;
     exit(1);
   }
 
-  // If reading a separate ccs fofn, there is a 1-1 corresponence 
+  // If reading a separate ccs fofn, there is a 1-1 corresponence
   // between ccs fofn and base file.
   if (params.readSeparateCcsFofn) {
     if (FileOfFileNames::IsFOFN(params.ccsFofnFileName)) {
@@ -964,13 +955,11 @@ int main(int argc, char* argv[]) {
       params.ccsFofnFileNames.push_back(params.ccsFofnFileName);
     }
   }
-  if (params.ccsFofnFileNames.size() != 0 and 
+  if (params.ccsFofnFileNames.size() != 0 and
       params.ccsFofnFileNames.size() != params.queryFileNames.size()) {
     cout << "Error, there are not the same number of ccs files as input files." << endl;
     exit(1);
   }
-  
-  parentPID = getpid();
 
   SequenceIndexDatabase<FASTASequence> seqdb;
   SeqBoundaryFtr<FASTASequence> seqBoundary(&seqdb);
@@ -990,14 +979,14 @@ int main(int argc, char* argv[]) {
   // Make sure the reads file exists and can be opened before
   // trying to read any of the larger data structures.
   //
-  
+
 
   FASTASequence   fastaGenome;
   T_Sequence      genome;
   FASTAReader     genomeReader;
 
-  // 
-  // The genome is in normal FASTA, or condensed (lossy homopolymer->unipolymer) 
+  //
+  // The genome is in normal FASTA, or condensed (lossy homopolymer->unipolymer)
   // format.  Both may be read in using a FASTA reader.
   //
   if (!genomeReader.Init(params.genomeFileName)) {
@@ -1023,8 +1012,7 @@ int main(int argc, char* argv[]) {
   //
   // The genome may have extra spaces in the fasta name. Get rid of those.
   //
-  VectorIndex t;
-  for (t = 0; t < fastaGenome.titleLength; t++ ){
+  for (int t = 0; t < fastaGenome.titleLength; t++ ){
     if (fastaGenome.title[t] == ' ') {
       fastaGenome.titleLength = t;
       fastaGenome.title[t] = '\0';
@@ -1042,8 +1030,6 @@ int main(int argc, char* argv[]) {
   DNASuffixArray sarray;
   TupleCountTable<T_GenomeSequence, DNATuple> ct;
 
-  int listTupleSize;
-  
   ofstream outFile;
   outFile.exceptions(ostream::failbit);
   ofstream unalignedOutFile;
@@ -1084,7 +1070,7 @@ int main(int argc, char* argv[]) {
         else {
           params.listTupleSize = sarray.lookupPrefixLength;
         }
-        if (params.minMatchLength < sarray.lookupPrefixLength) {
+        if (params.minMatchLength < int(sarray.lookupPrefixLength)) {
           cerr << "WARNING. The value of -minMatch " << params.minMatchLength << " is less than the smallest searched length of " << sarray.lookupPrefixLength << ".  Setting -minMatch to " << sarray.lookupPrefixLength << "." << endl;
           params.minMatchLength = sarray.lookupPrefixLength;
         }
@@ -1097,7 +1083,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  if (params.minMatchLength < sarray.lookupPrefixLength) {
+  if (params.minMatchLength < int(sarray.lookupPrefixLength)) {
     cerr << "WARNING. The value of -minMatch " << params.minMatchLength << " is less than the smallest searched length of " << sarray.lookupPrefixLength << ".  Setting -minMatch to " << sarray.lookupPrefixLength << "." << endl;
     params.minMatchLength = sarray.lookupPrefixLength;
   }
@@ -1105,12 +1091,11 @@ int main(int argc, char* argv[]) {
   //
   // It is required to have a tuple count table
   // for estimating the background frequencies
-  // for word matching. 
+  // for word matching.
   // If one is specified on the command line, simply read
-  // it in.  If not, this is operating under the mode 
+  // it in.  If not, this is operating under the mode
   // that everything is computed from scratch.
   //
-  long l;
   TupleMetrics saLookupTupleMetrics;
   if (params.useCountTable) {
     ifstream ctIn;
@@ -1129,8 +1114,8 @@ int main(int argc, char* argv[]) {
     ofstream titleTableOut;
     CrucialOpen(params.titleTableName, titleTableOut);
     //
-    // When using a sequence index database, the title table is simply copied 
-    // from the sequencedb. 
+    // When using a sequence index database, the title table is simply copied
+    // from the sequencedb.
     //
     if (params.useSeqDB) {
       titleTable.Copy(seqdb.names, seqdb.nSeqPos-1);
@@ -1139,7 +1124,7 @@ int main(int argc, char* argv[]) {
     else {
       //
       // No seqdb, so there is just one sequence. Still the user specified a title
-      // table, so just the first sequence in the fasta file should be used. 
+      // table, so just the first sequence in the fasta file should be used.
       //
       titleTable.Copy(&fastaGenome.title, 1);
       titleTable.ResetTableToIntegers(&genome.title, &genome.titleLength, 1);
@@ -1167,7 +1152,7 @@ int main(int argc, char* argv[]) {
   ofstream metricsOut, lcpBoundsOut;
   ofstream anchorFileStrm;
   ofstream clusterOut, *clusterOutPtr;
- 
+
   if (params.anchorFileName != "") {
     CrucialOpen(params.anchorFileName, anchorFileStrm, std::ios::out);
   }
@@ -1186,7 +1171,7 @@ int main(int argc, char* argv[]) {
         CrucialOpen(params.outFileName, outFileStrm, std::ios::out);
         outFilePtr = &outFileStrm;
       } // otherwise, use bamWriter and initialize it later
-  } 
+  }
 
   if (params.printHeader) {
       switch(params.printFormat) {
@@ -1206,7 +1191,7 @@ int main(int argc, char* argv[]) {
     CrucialOpen(params.unalignedFileName, unalignedFile, std::ios::out);
     unalignedFilePtr = &unalignedFile;
   }
-  
+
   if (params.metricsFileName != "") {
     CrucialOpen(params.metricsFileName, metricsOut);
   }
@@ -1215,7 +1200,7 @@ int main(int argc, char* argv[]) {
     CrucialOpen(params.lcpBoundsFileName, lcpBoundsOut);
     //    lcpBoundsOut << "pos depth width lnwidth" << endl;
   }
-  
+
   //
   // Configure the mapping database.
   //
@@ -1240,7 +1225,6 @@ int main(int argc, char* argv[]) {
   //
   // Start the mapping jobs.
   //
-  int readsFileIndex = 0;
   if (params.subsample < 1) {
     InitializeRandomGeneratorWithTime();
     reader = new ReaderAgglomerate(params.subsample);
@@ -1251,7 +1235,7 @@ int main(int argc, char* argv[]) {
   //  In case the input is fasta, make all bases in upper case.
   reader->SetToUpper();
 
-  
+
   regionTableReader = new HDFRegionTableReader;
   RegionTable regionTable;
   //
@@ -1264,14 +1248,14 @@ int main(int argc, char* argv[]) {
 
   string commandLineString; // Restore command.
   clp.CommandLineToString(argc, argv, commandLineString);
-  
+
   if (params.printSAM or params.printBAM) {
       string so = "UNKNOWN"; // sorting order;
       string version = GetVersion(); //blasr version;
-      SAMHeaderPrinter shp(so, seqdb, 
-              params.queryFileNames, params.queryReadType, 
-              params.samQVList, "BLASR", version, 
-              commandLineString); 
+      SAMHeaderPrinter shp(so, seqdb,
+              params.queryFileNames, params.queryReadType,
+              params.samQVList, "BLASR", version,
+              commandLineString);
       string headerString = shp.ToString();// SAM/BAM header
       if (params.printSAM) {
           *outFilePtr << headerString;
@@ -1283,28 +1267,28 @@ int main(int argc, char* argv[]) {
 #else
       REQUIRE_PBBAM_ERROR();
 #endif
-      } 
+      }
   }
 
-  for (readsFileIndex = 0; readsFileIndex < params.queryFileNames.size(); readsFileIndex++ ){ 
+  for (size_t readsFileIndex = 0; readsFileIndex < params.queryFileNames.size(); readsFileIndex++ ){
     params.readsFileIndex = readsFileIndex;
     //
     // Configure the reader to use the correct read and region
     // file names.
-    // 
+    //
     reader->SetReadFileName(params.queryFileNames[params.readsFileIndex]);
 
     //
     // Initialize using already set file names.
     //
-    int initReturnValue = reader->Initialize();    
+    int initReturnValue = reader->Initialize();
     if (initReturnValue <= 0) {
         cerr << "WARNING! Could not open file " << params.queryFileNames[params.readsFileIndex] << endl;
         continue;
     }
 
     // Check whether use ccs only.
-    if (reader->GetFileType() == HDFCCSONLY) {
+    if (reader->GetFileType() == FileType::HDFCCSONLY) {
        params.useAllSubreadsInCcs = false;
        params.useCcs = params.useCcsOnly = true;
     }
@@ -1342,7 +1326,7 @@ int main(int argc, char* argv[]) {
     //  Check to see if there is a region table. If there is a separate
     //  region table, use that (over the region table in the bas
     // file).  If there is a region table in the bas file, use that,
-    // without having to specify a region table on the command line. 
+    // without having to specify a region table on the command line.
     //
     if (params.useRegionTable) {
       regionTable.Reset();
@@ -1352,21 +1336,21 @@ int main(int argc, char* argv[]) {
 
     //
     // Check to see if there is a separate ccs fofn. If there is a separate
-    // ccs fofn, use that over the one in the bas file. 
+    // ccs fofn, use that over the one in the bas file.
     //
     //if (params.readSeparateCcsFofn and params.useCcs) {
     //  if (reader->SetCCS(params.ccsFofnFileNames[params.readsFileIndex]) == 0) {
-    //    cout << "ERROR! Could not read the ccs file " 
+    //    cout << "ERROR! Could not read the ccs file "
     //         << params.ccsFofnFileNames[params.readsFileIndex] << endl;
     //    exit(1);
     //  }
     // }
 
-    if (reader->GetFileType() != HDFCCS and 
-        reader->GetFileType() != HDFBase and
-        reader->GetFileType() != HDFPulse and
-        reader->GetFileType() != PBBAM and
-        reader->GetFileType() != PBDATASET and
+    if (reader->GetFileType() != FileType::HDFCCS and
+        reader->GetFileType() != FileType::HDFBase and
+        reader->GetFileType() != FileType::HDFPulse and
+        reader->GetFileType() != FileType::PBBAM and
+        reader->GetFileType() != FileType::PBDATASET and
         params.concordant) {
         cerr << "WARNING! Option concordant is only enabled when "
              << "input reads are in PacBio bax/pls.h5, bam or "
@@ -1386,7 +1370,7 @@ int main(int argc, char* argv[]) {
 
       assert (initReturnValue > 0);
       if (params.nProc == 1) {
-        mapdb[0].Initialize(&sarray, &genome, &seqdb, &ct, &index, params, reader, &regionTable, 
+        mapdb[0].Initialize(&sarray, &genome, &seqdb, &ct, params, reader, &regionTable,
                             outFilePtr, unalignedFilePtr, &anchorFileStrm, clusterOutPtr);
         mapdb[0].bwtPtr = &bwt;
         if (params.fullMetricsFileName != "") {
@@ -1404,12 +1388,12 @@ int main(int argc, char* argv[]) {
       }
       else {
         pthread_t *threads = new pthread_t[params.nProc];
-        for (procIndex = 0; procIndex < params.nProc; procIndex++ ){ 
+        for (procIndex = 0; procIndex < params.nProc; procIndex++ ){
           //
           // Initialize thread-specific parameters.
           //
- 
-          mapdb[procIndex].Initialize(&sarray, &genome, &seqdb, &ct, &index, params, reader, &regionTable, 
+
+          mapdb[procIndex].Initialize(&sarray, &genome, &seqdb, &ct,  params, reader, &regionTable,
                                       outFilePtr, unalignedFilePtr, &anchorFileStrm, clusterOutPtr);
           mapdb[procIndex].bwtPtr      = &bwt;
           if (params.fullMetricsFileName != "") {
@@ -1448,7 +1432,7 @@ int main(int argc, char* argv[]) {
       }
     reader->Close();
   }
-  
+
   if (!reader) {delete reader; reader = NULL;}
 
   fastaGenome.Free();

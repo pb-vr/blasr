@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
   // The SAM convention uppercases and normalizes before computing the MD5. 
   // For cmp.h5, we compute the MD5 on the sequence 'as is'.
   // 
-  for(int i = 0; i < alignmentSet.references.size(); i++) {
+  for(size_t i = 0; i < alignmentSet.references.size(); i++) {
       MakeMD5((const char*)&references[i].seq[0], 
               (unsigned int)references[i].length, alignmentSet.references[i].md5);
   }
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
   map<string, string>::iterator it;
   assert(references.size() == alignmentSet.references.size());
   if (!useShortRefName) {
-      for (int i = 0; i < references.size(); i++) {
+      for (size_t i = 0; i < references.size(); i++) {
           string shortRefName = alignmentSet.references[i].GetSequenceName();
           string fullRefName(references[i].title); 
           if (shortRefNameToFull.find(shortRefName) != shortRefNameToFull.end()) {
@@ -198,8 +198,7 @@ int main(int argc, char* argv[]) {
     // o.w., the value will be assigned as moleculeID.
     alignmentSetAdapter.StoreAlignmentCandidateList(convertedAlignments, cmpFile, -1, copyQVs);
 
-    int a;
-    for (a = 0; a < convertedAlignments.size(); a++) {
+    for (size_t a = 0; a < convertedAlignments.size(); a++) {
       convertedAlignments[a].FreeSubsequences();
     }
   }

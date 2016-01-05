@@ -186,18 +186,19 @@ int GetIndexOfConcordantTemplate(const vector<ReadInterval> & subreadIntervals)
         else return 0;
     } else { 
         // Zmw has more than two subreads, look for the median-length subread
-        // in subreadIntervals[1:-1].
+        // in subreadIntervals[1:-1]. The first and last subreads are not
+        // considered because they are usually non-full-pass.
         vector<ReadInterval> intervals;
         intervals.insert(intervals.begin(), subreadIntervals.begin() + 1, subreadIntervals.end() - 1);
         std::sort(intervals.begin(), intervals.end(), 
                   [](const ReadInterval& a, const ReadInterval& b)->bool
                   {return a.Length() < b.Length();});
         const ReadInterval & template_interval = intervals[int(intervals.size()/2)];
-        for (const ReadInterval & interval: subreadIntervals) {
-        for (int pos = 1; pos < subreadIntervals.size() -1; pos ++)
+        for (int pos = 1; pos < int(subreadIntervals.size()) -1; pos ++) {
             if (subreadIntervals[pos] == template_interval) {
                 return pos;
             }
         }
     }
+    return 0;
 }

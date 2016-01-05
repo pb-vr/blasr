@@ -13,7 +13,7 @@ CXXFLAGS ?= -O3 -g
 CXXOPTS += \
 		   -std=c++0x -pedantic \
            -Wall -Wextra -Wno-div-by-zero \
-           -MMD -MP -w
+           -MMD -MP
 GCXXFLAGS := -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -fno-omit-frame-pointer 
 override CXXFLAGS += ${CXXOPTS} ${GCXXFLAGS}
 #INC_DIRS:=${LIBBLASR_INC} ${LIBPBIHDF_INC} ${LIBPBDATA_INC} ${PBBAM_INC} ${HTSLIB_INC} ${HDF5_INC} ${ZLIB_INC}

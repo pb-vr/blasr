@@ -49,6 +49,7 @@ int main(int argc, char* argv[]) {
     int sdpIndel = indel;
     int sdpIns = 5;
     int sdpDel = 5;
+    (void)(sdpIndel); (void)(sdpIns); (void)(sdpDel); // not yet used.
     AlignmentType alignType = Global;
     while (argi < argc) {
         if (strcmp(argv[argi], "-indelRate") == 0) {

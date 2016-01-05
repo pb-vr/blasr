@@ -6,7 +6,7 @@ include ${SRCDIR}/../rules.mk
 
 CXXOPTS := -std=c++0x -pedantic \
            -Wall -Wextra \
-           -MMD -MP -w
+           -MMD -MP
 CXXFLAGS += ${CXXOPTS} ${GCXXFLAGS}
 
 EXE = sa2bwt bwt2sa excrep evolve bsdb simpleShredder swMatcher \

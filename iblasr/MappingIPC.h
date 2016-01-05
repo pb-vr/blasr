@@ -79,7 +79,6 @@ public:
     void Initialize(T_SuffixArray *saP, T_GenomeSequence *refP,
             SequenceIndexDatabase<FASTASequence> *seqDBP,
             TupleCountTable<T_GenomeSequence, T_Tuple> *ctabP,
-            ReverseCompressIndex *rciP,
             MappingParameters &paramsP,
             ReaderAgglomerate *readerP,
             RegionTable *regionTableP,

@@ -314,6 +314,7 @@ bool CheckForSufficientMatch(T_Sequence &read,
                              vector<T_AlignmentCandidate*> &alignmentPtrs,
                              MappingParameters &params)
 {
+    (void)(read);
     if (alignmentPtrs.size() > 0 and alignmentPtrs[0]->score < params.maxScore) {
         return true;
     }
@@ -476,6 +477,7 @@ int RemoveLowQualityAlignments(T_Sequence &read,
                                vector<T_AlignmentCandidate*> &alignmentPtrs,
                                MappingParameters &params)
 {
+    (void)(read);
     if (params.verbosity > 0) {
         cout << "checking at least " << alignmentPtrs.size() << " alignments to see if they are accurate." << endl;
     }
@@ -623,6 +625,7 @@ void RefineAlignment(vector<T_Sequence*> &bothQueryStrands,
                      MappingParameters &params,
                      MappingBuffers &mappingBuffers)
 {
+    (void)(genome);
     FASTQSequence qSeq;
     DNASequence   tSeq;
     DistanceMatrixScoreFunction<DNASequence, FASTQSequence> distScoreFn(
@@ -863,7 +866,6 @@ void RefineAlignment(vector<T_Sequence*> &bothQueryStrands,
         VectorIndex lastSDPBlock = alignmentCandidate.blocks.size() - 1;
 
         if (alignmentCandidate.blocks.size() > 0) {
-            DNALength prevLength =  alignmentCandidate.tAlignedSeqLength -= alignmentCandidate.tPos;
             alignmentCandidate.tAlignedSeqLength = (alignmentCandidate.blocks[lastSDPBlock].tPos
                     + alignmentCandidate.blocks[lastSDPBlock].length
                     - alignmentCandidate.blocks[0].tPos);
@@ -876,7 +878,6 @@ void RefineAlignment(vector<T_Sequence*> &bothQueryStrands,
         alignmentCandidate.qAlignedSeqPos    += alignmentCandidate.qPos;
 
         if (alignmentCandidate.blocks.size() > 0) {
-            DNALength prevLength =  alignmentCandidate.qAlignedSeqLength -= alignmentCandidate.qPos;
             alignmentCandidate.qAlignedSeqLength = (alignmentCandidate.blocks[lastSDPBlock].qPos
                     + alignmentCandidate.blocks[lastSDPBlock].length
                     - alignmentCandidate.blocks[0].qPos);
@@ -939,7 +940,7 @@ SelectAlignmentsToPrint(vector<T_AlignmentCandidate*> alignmentPtrs,
   for (auto ptr: alignmentPtrs) {
       if (params.filterCriteria.Satisfy(ptr)) {
           filtered.push_back(ptr);
-          if (filtered.size() == params.nBest) break;
+          if (int(filtered.size()) == params.nBest) break;
       }
   }
 
@@ -958,7 +959,6 @@ void PrintAlignment(T_AlignmentCandidate &alignment,
 #endif
                     ) {
    try {
-    int lastBlock = alignment.blocks.size() - 1;
     if (params.printFormat == StickPrint) {
       PrintAlignmentStats(alignment, outFile);
       StickPrintAlignment(alignment,

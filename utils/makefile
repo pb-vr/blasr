@@ -7,7 +7,7 @@ include ${SRCDIR}/../rules.mk
 CXXFLAGS ?= -O3 -g
 CXXOPTS := -std=c++0x -pedantic \
            -Wall -Wextra \
-           -MMD -MP -w
+           -MMD -MP
 override CXXFLAGS += ${CXXOPTS} ${GCXXFLAGS}
 
 EXE = loadPulses pls2fasta samtoh5 samtom4 samFilter toAfg sawriter sdpMatcher

@@ -159,7 +159,7 @@ void ConvertTitlesToTitleTableIndices(vector<FASTASequence> & references,
         string & titleTableName) {
     TitleTable tt;
     tt.Read(titleTableName);
-    for(int i = 0; i < references.size(); i++) {
+    for(size_t i = 0; i < references.size(); i++) {
         string title = references[i].GetTitle();
         int idx = -1;
         if (tt.Lookup(title, idx)) {
@@ -201,7 +201,7 @@ bool CheckAdapterOnly(GFFFile & adapterGffFile, //Adapter gff file
     // Reconstruct ref id in the format "ref00000?".
     string refNameId(buf);
     int FUZZY_OVERLAP = 20;
-    for(int eindex = 0; eindex < adapterGffFile.entries.size();
+    for(size_t eindex = 0; eindex < adapterGffFile.entries.size();
             eindex++) { 
         GFFEntry & entry = adapterGffFile.entries[eindex];
         // Convert each GFF record from 1-based inclusive to 
@@ -218,7 +218,7 @@ bool CheckAdapterOnly(GFFFile & adapterGffFile, //Adapter gff file
             }
             if (not (eend < alignment.GenomicTBegin() or
                  estart > alignment.GenomicTEnd())) {
-                int lengthUnion = max(eend, alignment.GenomicTEnd()) -
+                UInt lengthUnion = max(eend, alignment.GenomicTEnd()) -
                                   min(estart, alignment.GenomicTBegin());
                 if (lengthUnion < eend - estart + FUZZY_OVERLAP) {
                     return true;
@@ -350,11 +350,9 @@ int main(int argc, char* argv[]) {
     }
 
     // Open output file.
-    ostream * outFilePtr = &cout;
 	ofstream outFileStrm;
 	if (outFileName != "") {
 		CrucialOpen(outFileName, outFileStrm, std::ios::out);
-		outFilePtr = &outFileStrm;
 	}
     
     GFFFile adapterGffFile;
@@ -405,7 +403,7 @@ int main(int argc, char* argv[]) {
     clp.CommandLineToString(argc, argv, commandLineString);
     allHeaders.push_back("@PG\tID:SAMFILTER\tVN:" + versionString + \
                          "\tCL:" + program + " " + commandLineString);
-    for (int i = 0; i < allHeaders.size(); i++) {
+    for (size_t i = 0; i < allHeaders.size(); i++) {
         outFileStrm << allHeaders[i] << endl;
     }
 
@@ -419,7 +417,7 @@ int main(int argc, char* argv[]) {
 
     // Map reference name obtained from SAM file to indices
     map<string, int> refNameToIndex;
-    for (int i = 0; i < references.size(); i++) {
+    for (size_t i = 0; i < references.size(); i++) {
         string refName = alignmentSet.references[i].GetSequenceName();
         refNameToIndex[refName] = i;
     }
@@ -428,7 +426,7 @@ int main(int argc, char* argv[]) {
     // Store the alignments.
     //
     SAMAlignment samAlignment;
-    int alignIndex = 0; 
+    size_t alignIndex = 0; 
 
     //
     // For 150K, each chip produces about 300M sequences 

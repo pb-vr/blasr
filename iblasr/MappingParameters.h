@@ -61,7 +61,7 @@ public:
     string indexFileName;
     string anchorFileName;
     string clusterFileName;
-    VectorIndex nBest;
+    int nBest;
     int printWindow;
     int doCondense;
     int do4BitComp;
@@ -411,7 +411,7 @@ public:
 
         // -useQuality can not be used in combination with a fasta input
         if (!ignoreQualities) {
-            if (queryFileType == Fasta) {
+            if (queryFileType == FileType::Fasta) {
                 cout<<"ERROR, you can not use -useQuality option when any of the input reads files are in multi-fasta format."<<endl;
                 exit(1);
             }
@@ -509,7 +509,7 @@ public:
         if (nouseDetailedSDPAlignment == false) {
             detailedSDPAlignment = true;
         }
-        if (anchorParameters.maxLCPLength != 0 and anchorParameters.maxLCPLength < anchorParameters.minMatchLength) {
+        if (anchorParameters.maxLCPLength != 0 and int(anchorParameters.maxLCPLength) < int(anchorParameters.minMatchLength)) {
             cerr << "ERROR: maxLCPLength is less than minLCPLength, which will result in no hits." << endl;
         }
         if (subsample < 1 and stride > 1) {
@@ -561,7 +561,7 @@ public:
                 // Only support two clipping methods: soft or subread.
                 clipping = SAMOutput::subread;
             }
-            if (queryFileType != PBBAM and queryFileType != PBDATASET and not enableHiddenPaths) {
+            if (queryFileType != FileType::PBBAM and queryFileType != FileType::PBDATASET and not enableHiddenPaths) {
                 // bax|fasta|fastq -> bam paths are turned off by default
                 cout << "ERROR, could not output alignments in BAM unless input reads are in PacBio BAM or DATASET files." << endl;
                 exit(1);
@@ -623,10 +623,10 @@ public:
     }
 
     ReadType::ReadTypeEnum DetermineQueryReadType() {
-        if (useCcsOnly or queryFileType == HDFCCSONLY) {
+        if (useCcsOnly or queryFileType == FileType::HDFCCSONLY) {
             return ReadType::CCS;
         }
-        if (queryFileType == PBBAM) {
+        if (queryFileType == FileType::PBBAM) {
             // Read type in BAM may be CCS, SUBREAD, HQREGION or POLYMERASE.
             // Determine it later.
             return ReadType::UNKNOWN;

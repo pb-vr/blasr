@@ -30,15 +30,12 @@ int main(int argc, char* argv[]) {
 	bool trimByRegion, maskByRegion;
 	trimByRegion = false;
 	maskByRegion = false;
-	int argi = 3;
 	RegionTable regionTable;
 	string regionsFOFNName = "";
 	vector<string> regionFileNames;
 	bool splitSubreads = true;
 	int minSubreadLength = 0;
 	bool addSimulatedData = false;
-	bool printSimulatedCoordinate = false;
-	bool printSimulatedSequenceIndex = false;
   bool printFastq = false;
   bool printCcs   = false;
   int  lineLength = 50;
@@ -97,13 +94,12 @@ int main(int argc, char* argv[]) {
     
 	ofstream fastaOut;
 	CrucialOpen(fastaOutName, fastaOut);
-	int plsFileIndex;
 	HDFRegionTableReader hdfRegionReader;
     sort(holeNumbers.begin(), holeNumbers.end());
 
     vector<int> pls2rgn = MapPls2Rgn(plsFileNames, regionFileNames);
    
-    for (plsFileIndex = 0; plsFileIndex < plsFileNames.size(); plsFileIndex++) {
+    for (size_t plsFileIndex = 0; plsFileIndex < plsFileNames.size(); plsFileIndex++) {
         if (trimByRegion or maskByRegion or splitSubreads) {
             hdfRegionReader.Initialize(regionFileNames[pls2rgn[plsFileIndex]]);
             hdfRegionReader.ReadTable(regionTable);
@@ -222,13 +218,11 @@ int main(int argc, char* argv[]) {
       //
       // Output all subreads as separate sequences.
       //
-      int intvIndex;
       SMRTSequence bestSubreadSequence;
       int bestSubreadScore = -1;
       int bestSubreadIndex = 0;
-      int bestSubreadStart = 0, bestSubreadEnd = 0;
       SMRTSequence bestSubread;
-      for (intvIndex = 0; intvIndex < subreadIntervals.size(); intvIndex++) {
+      for (size_t intvIndex = 0; intvIndex < subreadIntervals.size(); intvIndex++) {
         SMRTSequence subreadSequence, subreadSequenceRC;
 					
         subreadSequence.SubreadStart(subreadIntervals[intvIndex].start);
@@ -244,7 +238,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (subreadSequence.SubreadStart() >= subreadSequence.SubreadEnd() or 
-            subreadSequence.SubreadEnd() - subreadSequence.SubreadStart() <= minSubreadLength) {
+            subreadSequence.SubreadEnd() - subreadSequence.SubreadStart() <= DNALength(minSubreadLength)) {
           //
           // There is no high qualty portion of this subread. Skip it.
           //
@@ -299,6 +293,7 @@ int main(int argc, char* argv[]) {
           int subreadWeightedScore = subreadSequence.length * hqRegionScore;
           if (subreadWeightedScore > bestSubreadScore) {
             bestSubreadIndex = intvIndex;
+            (void)(bestSubreadIndex);
             bestSubread = subreadSequence;
             bestSubreadScore = subreadWeightedScore;
           }

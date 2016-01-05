@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
     map<string, string>::iterator it;
     assert(references.size() == alignmentSet.references.size());
     if (!useShortRefName) {
-        for (int i = 0; i < references.size(); i++) {
+        for (size_t i = 0; i < references.size(); i++) {
             string shortRefName = alignmentSet.references[i].GetSequenceName();
             string fullRefName(references[i].title); 
             if (shortRefNameToFull.find(shortRefName) != shortRefNameToFull.end()) {
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
 
     // Map reference name obtained from SAM file to indices
     map<string, int> refNameToIndex;
-    for (int i = 0; i < references.size(); i++) {
+    for (size_t i = 0; i < references.size(); i++) {
         string refName = alignmentSet.references[i].GetSequenceName();
         refNameToIndex[refName] = i;
     }
@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
     // Store the alignments.
     //
     SAMAlignment samAlignment;
-    int alignIndex = 0; 
+    size_t alignIndex = 0; 
 
     //
     // For 150K, each chip produces about 300M sequences 
