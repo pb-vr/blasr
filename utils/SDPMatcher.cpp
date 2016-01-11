@@ -43,6 +43,7 @@ int main(int argc, char* argv[]) {
     int indel = 3;
     int match = 0;
     int printSW = 0;
+    int printSimilarity = 0;
     int refineAlignments = 1;
     int showalign = 0;
     int fixedTarget = 0;
@@ -86,6 +87,9 @@ int main(int argc, char* argv[]) {
         else if (strcmp(argv[argi], "-fixedtarget") == 0) {
             fixedTarget = 1;
         }
+        else if (strcmp(argv[argi], "-printSimilarity") == 0) {
+            printSimilarity = 1;
+        }
         else {
             PrintUsage();
             cout << "Bad option: " << argv[argi] << endl;
@@ -120,7 +124,10 @@ int main(int argc, char* argv[]) {
         targetReader.GetNext(target);
     }
 
-    cout << "qid,tid,qstart,qend,qlen,tstart,tend,tlen,score" << endl;
+    cout << "qid,tid,qstart,qend,qlen,tstart,tend,tlen,score";
+    if (printSimilarity) cout << ",pctSimilarity";
+    cout << endl;
+    
     while (queryReader.GetNext(query) and 
            (fixedTarget or targetReader.GetNext(target))) {
         
@@ -137,6 +144,8 @@ int main(int argc, char* argv[]) {
                               refineAlignments,
                               false,
                               0);
+
+        ComputeAlignmentStats(alignment, query.seq, target.seq, distScoreFn);
 
         if (alignScore > 0){ // in rare cases the SDP returns positive. 
             alignScore = 0;  // this makes it more like a true local alignment
@@ -158,7 +167,10 @@ int main(int argc, char* argv[]) {
              << alignment.qPos << "," << alignment.QEnd()   << "," 
              << query.length  << "," << alignment.tPos << "," 
              << alignment.TEnd()   << "," << target.length << "," 
-             << alignScore << endl;
+             << alignScore;
+        if (printSimilarity) 
+             cout << "," << alignment.pctSimilarity;
+        cout << endl;
 
         ++seqIndex;
     }
