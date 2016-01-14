@@ -143,7 +143,7 @@ void MakeVirtualRead(SMRTSequence & smrtRead,
                      const vector<SMRTSequence> & subreads)
 {
     assert(subreads.size() > 0);
-    DNALength hqStart = 0, hqEnd = 0;
+    DNALength hqStart = static_cast<DNALength>(-1), hqEnd = 0;
     for(auto subread: subreads) {
         hqStart = min(DNALength(subread.SubreadStart()), hqStart);
         hqEnd   = max(DNALength(subread.SubreadEnd()),   hqEnd);
