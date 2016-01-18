@@ -12,7 +12,7 @@ foo:
 CXXFLAGS ?= -O3 -g
 CXXOPTS += \
 		   -std=c++0x -pedantic \
-           -Wall -Wextra -Wno-div-by-zero \
+           -Wall -Wextra -Wno-div-by-zero -Wno-overloaded-virtual \
            -MMD -MP
 GCXXFLAGS := -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free -fno-omit-frame-pointer 
 override CXXFLAGS += ${CXXOPTS} ${GCXXFLAGS}

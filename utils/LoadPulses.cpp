@@ -390,7 +390,7 @@ void CanMetricsBeComputed(
     for (metricIt = metricOptions.begin(); metricIt != metricOptions.end(); ++metricIt) {
         string metricName = metricIt->first;
         if (metricName == "") {
-            metricIt->second == false;
+            metricIt->second = false;
         }
 
         if (metricIt->second == false) {
