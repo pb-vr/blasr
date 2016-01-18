@@ -60,7 +60,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
         //
         // Look to see if only the anchors are printed.
         if (params.anchorFileName != "") {
-            int i;
+            size_t i;
             if (params.nProc > 1) {
 #ifdef __APPLE__
                 sem_wait(semaphores.writer);
@@ -114,7 +114,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
         //
         DNALength squareRefLength = read.length * 1.25 + params.limsAlign;
         if (params.limsAlign != 0) {
-            int fi;
+            size_t fi;
             for (fi = 0; fi < mappingBuffers.matchPosList.size(); fi++) {
                 if (mappingBuffers.matchPosList[fi].t >= squareRefLength) { break; }
             }
@@ -152,8 +152,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
                 ofstream dotPlotOut;
                 string dotPlotName = string(read.title) + ".anchors";
                 CrucialOpen(dotPlotName, dotPlotOut, std::ios::out);
-                int mp;
-                for (mp = 0; mp < mappingBuffers.matchPosList.size(); mp++ ){
+                for (size_t mp = 0; mp < mappingBuffers.matchPosList.size(); mp++ ){
                     dotPlotOut << mappingBuffers.matchPosList[mp].q << " " << mappingBuffers.matchPosList[mp].t << " " << mappingBuffers.matchPosList[mp].l << " " << endl;
                 }
                 dotPlotOut.close();
@@ -268,8 +267,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
                     << seqBoundary((*topIntIt).start) << " " << seqBoundary((*topIntIt).end) << " "
                     << (*topIntIt).pValue << endl;
                 if (params.verbosity > 2) {
-                    int m;
-                    for (m = 0; m < (*topIntIt).matches.size(); m++) {
+                    for (size_t m = 0; m < (*topIntIt).matches.size(); m++) {
                         cout << " (" << (*topIntIt).matches[m].q << ", " << (*topIntIt).matches[m].t << ", " << (*topIntIt).matches[m].l << ") ";
                     }
                     cout << endl;
@@ -391,7 +389,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
     //
 
     if (alignmentPtrs.size() > 0) {
-        int clusterIndex;
+        size_t clusterIndex;
         //
         // Compute some stats on the read.  For now this is fixed but will
         // be updated on the fly soon.
@@ -769,7 +767,6 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
         //
 
         int intervalSize = 0;
-        int m;
         //
         // Check to see if the matches to the genome are sufficiently
         // dense to allow them to be used instead of having to redo
@@ -777,7 +774,7 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
         //
 
         // First count how much of the read matches the genome exactly.
-        for (m = 0; m < intvIt->matches.size(); m++) { intervalSize += intvIt->matches[m].l;}
+        for (size_t m = 0; m < intvIt->matches.size(); m++) { intervalSize += intvIt->matches[m].l;}
 
         int subreadLength = forrev[(*intvIt).GetStrandIndex()]->SubreadEnd() - forrev[(*intvIt).GetStrandIndex()]->SubreadStart();
         if ((1.0*intervalSize) / subreadLength < params.sdpBypassThreshold and !params.emulateNucmer) {
@@ -791,7 +788,7 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
                 // Run SDP alignment only between the genomic anchors,
                 // including the genomic anchors as part of the alignment.
                 //
-                int m;
+                size_t m;
 
                 vector<ChainedMatchPos> *matches;
                 vector<ChainedMatchPos> rcMatches;
@@ -916,7 +913,7 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
                         // alignment.
                         //
                         if (alignmentInGap.blocks.size() > 0) {
-                            int b;
+                            size_t b;
                             //
                             // Configure this block to be relative to the beginning
                             // of the aligned substring.
@@ -957,8 +954,8 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
                 // Modify the block positions so that they are offset by 0.
                 alignment->tPos = alignment->blocks[0].tPos;
                 alignment->qPos = alignment->blocks[0].qPos;
-                int b;
-                int blocksSize = alignment->blocks.size();
+                size_t b;
+                size_t blocksSize = alignment->blocks.size();
                 for (b = 0; b < blocksSize ; b++) {
                     assert(alignment->tPos <= alignment->blocks[b].tPos);
                     assert(alignment->qPos <= alignment->blocks[b].qPos);
@@ -996,7 +993,7 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
             //
             // The anchors used to anchor the sequence are sufficient to extend the alignment.
             //
-            int m;
+            size_t m;
             for (m = 0; m < (*intvIt).matches.size(); m++ ){
                 Block block;
                 block.qPos = (*intvIt).matches[m].q - alignment->qAlignedSeqPos;

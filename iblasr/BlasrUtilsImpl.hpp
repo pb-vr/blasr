@@ -477,12 +477,11 @@ int RemoveLowQualityAlignments(T_Sequence &read,
                                vector<T_AlignmentCandidate*> &alignmentPtrs,
                                MappingParameters &params)
 {
-    (void)(read);
+    PB_UNUSED(read);
     if (params.verbosity > 0) {
         cout << "checking at least " << alignmentPtrs.size() << " alignments to see if they are accurate." << endl;
     }
-    UInt i;
-    for (i = 0; i < MIN(params.nCandidates, alignmentPtrs.size()); i++) {
+    for (size_t i = 0; i < MIN(static_cast<size_t>(params.nCandidates), alignmentPtrs.size()); i++) {
         if (params.verbosity > 0) {
             cout << "Quality check  " << i << " " << alignmentPtrs[i]->score << endl;
         }
@@ -500,8 +499,7 @@ int RemoveLowQualityAlignments(T_Sequence &read,
             if (params.verbosity  > 0) {
                 cout << alignmentPtrs[i]->qName << " alignment " << i << " is too low of a score." << alignmentPtrs[i]->score << endl;
             }
-            int deletedIndex = i;
-            for (; deletedIndex < alignmentPtrs.size(); deletedIndex++) {
+            for (size_t deletedIndex = i; deletedIndex < alignmentPtrs.size(); deletedIndex++) {
                 delete alignmentPtrs[deletedIndex];
                 alignmentPtrs[deletedIndex] = NULL;
             }
