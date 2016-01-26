@@ -88,7 +88,6 @@ int main(int argc, char* argv[]) {
 
     ofstream fastaOut;
     CrucialOpen(outputFileName, fastaOut);
-    int plsFileIndex;
     HDFRegionTableReader hdfRegionReader;
     AfgBasWriter afgWriter;
     if (useUniformQV){
@@ -97,7 +96,7 @@ int main(int argc, char* argv[]) {
 
     afgWriter.Initialize(outputFileName);
 
-    for (plsFileIndex = 0; plsFileIndex < inputFileNames.size(); plsFileIndex++) {
+    for (size_t plsFileIndex = 0; plsFileIndex < inputFileNames.size(); plsFileIndex++) {
         if (splitSubreads) {
             hdfRegionReader.Initialize(regionFileNames[plsFileIndex]);
             hdfRegionReader.ReadTable(regionTable);
@@ -113,19 +112,18 @@ int main(int argc, char* argv[]) {
         reader.Initialize(inputFileNames[plsFileIndex]);
         CCSSequence seq; 
         int seqIndex = 0;
-        int numRecords = 0;
         vector<ReadInterval> subreadIntervals;
         while (reader.GetNext(seq)){ 
             ++seqIndex;
 
             if (useUniformQV && seq.qual.data != NULL){
-                for (int qvIndex = 0; qvIndex < seq.length; qvIndex++){
+                for (DNALength qvIndex = 0; qvIndex < seq.length; qvIndex++){
                     seq.qual[qvIndex] = uniformQV;
                 }
             }
 
             if (splitSubreads == false) {
-                if (seq.length >= minSubreadLength) {
+                if (seq.length >= static_cast<DNALength>(minSubreadLength)) {
                     afgWriter.Write(seq);
                 }
                 seq.Free();
@@ -151,16 +149,16 @@ int main(int argc, char* argv[]) {
             }
 
 
-            for (int intvIndex = 0; intvIndex < subreadIntervals.size(); intvIndex++) {
+            for (size_t intvIndex = 0; intvIndex < subreadIntervals.size(); intvIndex++) {
                 SMRTSequence subreadSequence;
                 
-                int subreadStart = subreadIntervals[intvIndex].start > hqReadStart ? 
-                                   subreadIntervals[intvIndex].start : hqReadStart;
-                int subreadEnd   = subreadIntervals[intvIndex].end < hqReadEnd ?
-                                   subreadIntervals[intvIndex].end : hqReadEnd;
-                int subreadLength = subreadEnd - subreadStart;
+                DNALength subreadStart = static_cast<DNALength>(subreadIntervals[intvIndex].start) > hqReadStart ? 
+                                   static_cast<DNALength>(subreadIntervals[intvIndex].start) : hqReadStart;
+                DNALength subreadEnd   = static_cast<DNALength>(subreadIntervals[intvIndex].end) < hqReadEnd ?
+                                   static_cast<DNALength>(subreadIntervals[intvIndex].end) : hqReadEnd;
+                DNALength subreadLength = subreadEnd - subreadStart;
 
-                if (subreadLength < minSubreadLength) continue;
+                if (subreadLength < DNALength(minSubreadLength)) continue;
 
                 subreadSequence.SubreadStart(subreadStart);
                 subreadSequence.SubreadEnd  (subreadEnd);

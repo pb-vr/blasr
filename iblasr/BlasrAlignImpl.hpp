@@ -15,13 +15,11 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
              MappingIPC *mapData,
              MappingSemaphores & semaphores)
 {
-
     bool matchFound;
     WeightedIntervalSet topIntervals(params.nCandidates);
-    int numKeysMatched=0, rcNumKeysMatched=0;
+    int numKeysMatched=0, rcNumKeysMatched=0; (void)(numKeysMatched); (void)(rcNumKeysMatched);
     int expand = params.minExpand;
     metrics.clocks.total.Tick();
-    int nTotalCells = 0;
     int forwardNumBasesMatched = 0, reverseNumBasesMatched = 0;
     do {
         matchFound = false;
@@ -62,7 +60,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
         //
         // Look to see if only the anchors are printed.
         if (params.anchorFileName != "") {
-            int i;
+            size_t i;
             if (params.nProc > 1) {
 #ifdef __APPLE__
                 sem_wait(semaphores.writer);
@@ -116,7 +114,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
         //
         DNALength squareRefLength = read.length * 1.25 + params.limsAlign;
         if (params.limsAlign != 0) {
-            int fi;
+            size_t fi;
             for (fi = 0; fi < mappingBuffers.matchPosList.size(); fi++) {
                 if (mappingBuffers.matchPosList[fi].t >= squareRefLength) { break; }
             }
@@ -150,15 +148,11 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
         RemoveOverlappingAnchors(mappingBuffers.rcMatchPosList);
 
         if (params.pValueType == 0) {
-            int original = mappingBuffers.matchPosList.size();
-
-            int numMerged = 0;
             if (params.printDotPlots) {
                 ofstream dotPlotOut;
                 string dotPlotName = string(read.title) + ".anchors";
                 CrucialOpen(dotPlotName, dotPlotOut, std::ios::out);
-                int mp;
-                for (mp = 0; mp < mappingBuffers.matchPosList.size(); mp++ ){
+                for (size_t mp = 0; mp < mappingBuffers.matchPosList.size(); mp++ ){
                     dotPlotOut << mappingBuffers.matchPosList[mp].q << " " << mappingBuffers.matchPosList[mp].t << " " << mappingBuffers.matchPosList[mp].l << " " << endl;
                 }
                 dotPlotOut.close();
@@ -183,7 +177,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
                     topIntervals, genome, read, intervalSearchParameters,
                     &mappingBuffers.globalChainEndpointBuffer,
                     mappingBuffers.clusterList,
-                    accumPValue, accumWeight, accumNBases, read.title);
+                    accumPValue, accumWeight, accumNBases);
             // Uncomment when the version of the weight functor needs the sequence.
 
             mappingBuffers.clusterList.ResetCoordinates();
@@ -196,7 +190,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
                     topIntervals, genome, readRC, intervalSearchParameters,
                     &mappingBuffers.globalChainEndpointBuffer,
                     mappingBuffers.revStrandClusterList,
-                    accumPValue, accumWeight, accumNBases, read.title);
+                    accumPValue, accumWeight, accumNBases);
         }
         else if (params.pValueType == 1) {
             FindMaxIncreasingInterval(Forward,
@@ -209,8 +203,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
                     topIntervals, genome, read, intervalSearchParameters,
                     &mappingBuffers.globalChainEndpointBuffer,
                     mappingBuffers.clusterList,
-                    accumPValue, accumWeight, accumNBases,
-                    read.title);
+                    accumPValue, accumWeight, accumNBases);
 
 
             mappingBuffers.clusterList.ResetCoordinates();
@@ -222,8 +215,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
                     topIntervals, genome, readRC, intervalSearchParameters,
                     &mappingBuffers.globalChainEndpointBuffer,
                     mappingBuffers.revStrandClusterList,
-                    accumPValue, accumWeight, accumNBases,
-                    read.title);
+                    accumPValue, accumWeight, accumNBases);
         }
         else if (params.pValueType == 2) {
             FindMaxIncreasingInterval(Forward,
@@ -236,8 +228,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
                     topIntervals, genome, read, intervalSearchParameters,
                     &mappingBuffers.globalChainEndpointBuffer,
                     mappingBuffers.clusterList,
-                    accumPValue, accumWeight, accumNBases,
-                    read.title);
+                    accumPValue, accumWeight, accumNBases);
 
             mappingBuffers.clusterList.ResetCoordinates();
             FindMaxIncreasingInterval(Reverse, mappingBuffers.rcMatchPosList,
@@ -248,8 +239,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
                     topIntervals, genome, readRC, intervalSearchParameters,
                     &mappingBuffers.globalChainEndpointBuffer,
                     mappingBuffers.revStrandClusterList,
-                    accumPValue, accumWeight, accumNBases,
-                    read.title);
+                    accumPValue, accumWeight, accumNBases);
         }
 
         mappingBuffers.clusterList.numBases.insert(mappingBuffers.clusterList.numBases.end(),
@@ -277,8 +267,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
                     << seqBoundary((*topIntIt).start) << " " << seqBoundary((*topIntIt).end) << " "
                     << (*topIntIt).pValue << endl;
                 if (params.verbosity > 2) {
-                    int m;
-                    for (m = 0; m < (*topIntIt).matches.size(); m++) {
+                    for (size_t m = 0; m < (*topIntIt).matches.size(); m++) {
                         cout << " (" << (*topIntIt).matches[m].q << ", " << (*topIntIt).matches[m].t << ", " << (*topIntIt).matches[m].l << ") ";
                     }
                     cout << endl;
@@ -393,13 +382,6 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
         RemoveOverlappingAlignments(alignmentPtrs, params);
     }
 
-    if (params.forPicard) {
-        int a;
-        for (a = 0; a < alignmentPtrs.size(); a++ ) {
-            alignmentPtrs[a]->OrderGapsByType();
-        }
-    }
-
     //
     // Look to see if the number of anchors found for this read match
     // what is expected given the expected distribution of number of
@@ -407,7 +389,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
     //
 
     if (alignmentPtrs.size() > 0) {
-        int clusterIndex;
+        size_t clusterIndex;
         //
         // Compute some stats on the read.  For now this is fixed but will
         // be updated on the fly soon.
@@ -422,13 +404,13 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
         // Handle this by bounding the min match by the smallest and
         // largest values for which there are precomputed statistics.
 
-        int boundedMinWordMatchLength = min(max(params.minMatchLength, anchorMinKValues[0]), anchorMinKValues[1]);
+        int boundedMinWordMatchLength = min(max(params.minMatchLength, PacBio::AnchorDistributionTable::anchorMinKValues[0]), PacBio::AnchorDistributionTable::anchorMinKValues[1]);
 
         //
         // Do a similar bounding for match length and accuracy.
         //
-        int boundedMatchLength  = min(max((int) alignmentPtrs[0]->qAlignedSeq.length, anchorReadLengths[0]), anchorReadLengths[1]);
-        int boundedPctSimilarity = min(max((int)alignmentPtrs[0]->pctSimilarity, anchorReadAccuracies[0]), anchorReadAccuracies[1]);
+        int boundedMatchLength  = min(max((int) alignmentPtrs[0]->qAlignedSeq.length, PacBio::AnchorDistributionTable::anchorReadLengths[0]), PacBio::AnchorDistributionTable::anchorReadLengths[1]);
+        int boundedPctSimilarity = min(max((int)alignmentPtrs[0]->pctSimilarity, PacBio::AnchorDistributionTable::anchorReadAccuracies[0]), PacBio::AnchorDistributionTable::anchorReadAccuracies[1]);
 
         lookupValue = LookupAnchorDistribution(boundedMatchLength, boundedMinWordMatchLength, boundedPctSimilarity,
                 meanAnchorsPerRead, sdAnchorsPerRead, meanAnchorBasesPerRead, sdAnchorBasesPerRead);
@@ -443,8 +425,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
         int numSignificantClusters = 0;
         int totalSignificantClusterSize = 0;
         int maxClusterSize = 0;
-        int maxClusterIndex = 0;
-        int numAlnAnchorBases, numAlnAnchors, scaledMaxClusterSize;
+        int numAlnAnchorBases, numAlnAnchors;
         alignmentPtrs[0]->ComputeNumAnchors(boundedMinWordMatchLength, numAlnAnchors, numAlnAnchorBases);
         int totalAnchorBases = 0;
         if (numAlnAnchorBases > meanAnchorBasesPerRead + sdAnchorBasesPerRead) {
@@ -455,17 +436,14 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
                 for (clusterIndex = 0; clusterIndex < mappingBuffers.clusterList.numBases.size(); clusterIndex++) {
                     if (mappingBuffers.clusterList.numBases[clusterIndex] > maxClusterSize) {
                         maxClusterSize = mappingBuffers.clusterList.numBases[clusterIndex];
-                        maxClusterIndex = clusterIndex;
                     }
                 }
                 int scaledExpectedClusterSize = maxClusterSize / ((float)numAlnAnchorBases) * minExpAnchorBases;
                 for (clusterIndex = 0; clusterIndex < mappingBuffers.clusterList.numBases.size(); clusterIndex++) {
-                    bool isSignificant = false;
                     if (mappingBuffers.clusterList.numBases[clusterIndex] >= scaledExpectedClusterSize) {
                         //          cout << mappingBuffers.clusterList.numBases[clusterIndex] << " " << scaledExpectedClusterSize << " " << meanAnchorBasesPerRead << " " << sdAnchorBasesPerRead << endl;
                         ++numSignificantClusters;
                         totalSignificantClusterSize += meanAnchorBasesPerRead;
-                        isSignificant = true;
                     }
                     //
                     // The following output block is useful in debugging mapqv
@@ -477,9 +455,7 @@ void MapRead(T_Sequence &read, T_Sequence &readRC, T_RefSequence &genome,
             }
 
             if (lookupValue == 0) {
-                int scaledMaxClusterSize;
                 alignmentPtrs[0]->ComputeNumAnchors(params.minMatchLength, numAlnAnchors, numAlnAnchorBases);
-                scaledMaxClusterSize = (  ((float)numAlnAnchorBases )/ meanAnchorBasesPerRead) * maxClusterSize;
             }
         }
 
@@ -584,6 +560,7 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
         MappingParameters &params,
         MappingBuffers &mappingBuffers,
         int procId) {
+    (void)(mutationCostMatrix); (void)(ins); (void)(del); (void)(procId);
 
     vector<T_QuerySequence*> forrev;
     forrev.resize(2);
@@ -628,11 +605,12 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
         DNALength matchIntervalStart, matchIntervalEnd;
         matchIntervalStart = (*intvIt).start;
         matchIntervalEnd   = (*intvIt).end;
-
         bool readOverlapsContigStart    = false;
         bool readOverlapsContigEnd      = false;
         int  startOverlappedContigIndex = 0;
         int  endOverlappedContigIndex   = 0;
+        (void)(readOverlapsContigStart); (void)(readOverlapsContigEnd); (void)(startOverlappedContigIndex); (void)(endOverlappedContigIndex);
+
         if (params.verbosity > 0) {
             cout << "aligning interval : " << read.length << " " << (*intvIt).start << " "
                 << (*intvIt).end  << " " << (*intvIt).qStart << " " << (*intvIt).qEnd
@@ -649,9 +627,7 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
         // If the end is past the end boundary of the read, similarly move
         // the window boundary to the end of the read boundary.
 
-        DNALength tAlignedContigStart = 0;
         int seqDBIndex = 0;
-
 
         //
         // Stretch the alignment interval so that it is close to where
@@ -791,7 +767,6 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
         //
 
         int intervalSize = 0;
-        int m;
         //
         // Check to see if the matches to the genome are sufficiently
         // dense to allow them to be used instead of having to redo
@@ -799,7 +774,7 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
         //
 
         // First count how much of the read matches the genome exactly.
-        for (m = 0; m < intvIt->matches.size(); m++) { intervalSize += intvIt->matches[m].l;}
+        for (size_t m = 0; m < intvIt->matches.size(); m++) { intervalSize += intvIt->matches[m].l;}
 
         int subreadLength = forrev[(*intvIt).GetStrandIndex()]->SubreadEnd() - forrev[(*intvIt).GetStrandIndex()]->SubreadStart();
         if ((1.0*intervalSize) / subreadLength < params.sdpBypassThreshold and !params.emulateNucmer) {
@@ -813,7 +788,7 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
                 // Run SDP alignment only between the genomic anchors,
                 // including the genomic anchors as part of the alignment.
                 //
-                int m;
+                size_t m;
 
                 vector<ChainedMatchPos> *matches;
                 vector<ChainedMatchPos> rcMatches;
@@ -898,7 +873,6 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
                     int tGap, qGap;
                     tGap = (*matches)[m+1].t - ((*matches)[m].t + (*matches)[m].l);
                     qGap = (*matches)[m+1].q - ((*matches)[m].q + (*matches)[m].l);
-                    float gapRatio = (1.0*tGap)/qGap;
 
                     if (tGap > 0 and qGap > 0) {
                         DNALength tPos, qPos;
@@ -907,7 +881,6 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
                         tSubSeq.ReferenceSubstring(tAlignedSeq, tPos, tGap);
                         qSubSeq.ReferenceSubstring(alignment->qAlignedSeq, qPos, qGap);
                         Alignment alignmentInGap;
-                        int alignScore;
 
                         /*
                            The following code is experimental code for trying to do
@@ -919,14 +892,14 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
                         if (params.separateGaps == true and
                                 qSubSeq.length > 0 and tSubSeq.length > 0 and
                                 ( (1.0*qSubSeq.length)/tSubSeq.length  < 0.25 )) {
-                            alignScore = OneGapAlign(qSubSeq, tSubSeq, distScoreFn, mappingBuffers, alignmentInGap);
+                            OneGapAlign(qSubSeq, tSubSeq, distScoreFn, mappingBuffers, alignmentInGap);
                         }
                         else {
                             /*
                                This is the 'normal/default' way to align between
                                gaps.  It is more well tested than OneGapAlign.
                                */
-                            alignScore = SDPAlign(qSubSeq, tSubSeq, distScoreFn, params.sdpTupleSize,
+                            SDPAlign(qSubSeq, tSubSeq, distScoreFn, params.sdpTupleSize,
                                     params.sdpIns, params.sdpDel, params.indelRate*2,
                                     alignmentInGap, mappingBuffers, Global,
                                     params.detailedSDPAlignment,
@@ -940,7 +913,7 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
                         // alignment.
                         //
                         if (alignmentInGap.blocks.size() > 0) {
-                            int b;
+                            size_t b;
                             //
                             // Configure this block to be relative to the beginning
                             // of the aligned substring.
@@ -981,8 +954,8 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
                 // Modify the block positions so that they are offset by 0.
                 alignment->tPos = alignment->blocks[0].tPos;
                 alignment->qPos = alignment->blocks[0].qPos;
-                int b;
-                int blocksSize = alignment->blocks.size();
+                size_t b;
+                size_t blocksSize = alignment->blocks.size();
                 for (b = 0; b < blocksSize ; b++) {
                     assert(alignment->tPos <= alignment->blocks[b].tPos);
                     assert(alignment->qPos <= alignment->blocks[b].qPos);
@@ -1020,7 +993,7 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
             //
             // The anchors used to anchor the sequence are sufficient to extend the alignment.
             //
-            int m;
+            size_t m;
             for (m = 0; m < (*intvIt).matches.size(); m++ ){
                 Block block;
                 block.qPos = (*intvIt).matches[m].q - alignment->qAlignedSeqPos;
@@ -1213,7 +1186,6 @@ void AlignIntervals(T_TargetSequence &genome, T_QuerySequence &read, T_QuerySequ
                     // length are in sync.  This needs to go.
                     //
                     if (alignment->blocks.size() > 0) {
-                        int lastBlock = alignment->blocks.size() - 1;
                         alignment->qAlignedSeqLength = alignment->qAlignedSeq.length;
                         alignment->tAlignedSeqLength = alignment->tAlignedSeq.length;
                     }
@@ -1454,6 +1426,7 @@ void AlignSubreadToAlignmentTarget(ReadAlignments & allReadAlignments,
             << ", passDirection " << passDirection
             << ", subreadInterval [" << subreadInterval.start
             << ", " << subreadInterval.end << ")" << endl
+            << "Exploded score " << explodedScore << endl
             << "StickPrintAlignment subread-reference alignment which has"
             << " the " << (sameAlignmentPassDirection?"same":"different")
             << " direction as the ccs-reference (or the "
@@ -1475,7 +1448,6 @@ void AlignSubreadToAlignmentTarget(ReadAlignments & allReadAlignments,
         ComputeAlignmentStats(exploded, subread.seq,
                 alignedRefSequence.seq,
                 distScoreFn2);
-        //SMRTDistanceMatrix, params.indel, params.indel);
         if (exploded.score <= params.maxScore) {
             //
             // The coordinates of the alignment should be
@@ -1512,6 +1484,13 @@ void AlignSubreadToAlignmentTarget(ReadAlignments & allReadAlignments,
             // Save this alignment for printing later.
             //
             T_AlignmentCandidate *alignmentPtr = new T_AlignmentCandidate;
+            // Refine concordant alignments
+            if (params.refineConcordantAlignments) {
+                vector<SMRTSequence*> vquery;
+                vquery.push_back(&unrolledRead);
+                RefineAlignment(vquery, alignedRefSequence, exploded, params, mappingBuffers);
+            }
+
             *alignmentPtr = exploded;
             allReadAlignments.AddAlignmentForSeq(subreadIndex, alignmentPtr);
         } // End of exploded score <= maxScore.

@@ -11,7 +11,7 @@ Define tmporary files
 Make OUTDIR
   $ mkdir -p $OUTDIR
 
-  $ $EXEC $OUTDIR/ecoli_tuple.table $DATDIR/ecoli_reference.fasta 
+  $ $EXEC $OUTDIR/ecoli_tuple.table 8 $DATDIR/ecoli_reference.fasta 
   $ echo $?
   0
 

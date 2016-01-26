@@ -24,3 +24,11 @@ cramslow:
 
 cramtests:
 	cram -v --shell=/bin/bash ${FAST_CTESTS} ${MILD_CTESTS} ${SLOW_CTESTS}
+
+cramqu:
+	for test in ${FAST_CTESTS}; do \
+		qsub -pe smp 15 -V -cwd -b y -N cramqu $@cram -v --shell=bin/bash $$test;\
+	done
+
+clean:
+	rm -f cramqu.* ctest/*.err

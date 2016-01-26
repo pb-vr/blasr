@@ -1,15 +1,16 @@
 INCDIRS := \
 	${LIBBLASR_INC} \
-	${LIBPBDATA_INC} \
 	${LIBPBIHDF_INC} \
+	${LIBPBDATA_INC}
+SYSINCDIRS := \
 	${PBBAM_INC} \
 	${HDF5_INC} \
 	${HTSLIB_INC} \
 	${BOOST_INC}
 LIBDIRS := \
 	${LIBBLASR_LIB} \
-	${LIBPBDATA_LIB} \
 	${LIBPBIHDF_LIB} \
+	${LIBPBDATA_LIB} \
 	${PBBAM_LIB} \
 	${HDF5_LIB} \
 	${HTSLIB_LIB} \
@@ -19,8 +20,8 @@ LIBDIRS := \
 LDLIBS+= \
 	${LIBPBIHDF_LIBFLAGS} \
 	${LIBBLASR_LIBFLAGS} \
-	${LIBPBDATA_LIBFLAGS} \
 	${LIBPBIHDF_LIBFLAGS} \
+	${LIBPBDATA_LIBFLAGS} \
 	${PBBAM_LIBFLAGS} \
 	${HDF5_LIBFLAGS} \
 	${HTSLIB_LIBFLAGS} \
@@ -32,4 +33,5 @@ LDLIBS+= \
 # We repeat LIBPBIHDF_LIBFLAGS because of a circular dependency. See #77.
 
 CPPFLAGS+=$(patsubst %,-I%,${INCDIRS})
+CPPFLAGS+=$(patsubst %,-isystem%,${SYSINCDIRS})
 LDFLAGS+=$(patsubst %,-L%,${LIBDIRS})

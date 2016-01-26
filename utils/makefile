@@ -6,8 +6,8 @@ include ${SRCDIR}/../rules.mk
 
 CXXFLAGS ?= -O3 -g
 CXXOPTS := -std=c++0x -pedantic \
-           -Wall -Wuninitialized -Wno-div-by-zero \
-           -MMD -MP -w -fpermissive
+           -Wall -Wextra -Wno-overloaded-virtual \
+           -MMD -MP
 override CXXFLAGS += ${CXXOPTS} ${GCXXFLAGS}
 
 EXE = loadPulses pls2fasta samtoh5 samtom4 samFilter toAfg sawriter sdpMatcher

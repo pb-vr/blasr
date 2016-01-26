@@ -8,7 +8,11 @@
 
 * To sync your code with the latest git code base:
 
-        git pull -u origin master && git submodule update --init
+        git pull --rebase origin master && git submodule update --init
+
+* To update the submodule:
+
+        make update-submodule
 
 ### Requirements
 
@@ -36,6 +40,10 @@ To build BLASR, you must have hdf 1.8.12 or above installed and
   You may pass arguments to `configure.py` as above, or you may export them from command line:
   
         export HDF5_INC=path_to_your_hdf5_include && export HDF5_LIB=path_to_your_hdf5_lib
+
+* To configure submodule:
+
+    make configure-submodule
 
 ### Build
 

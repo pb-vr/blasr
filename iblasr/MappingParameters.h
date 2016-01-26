@@ -34,7 +34,6 @@ public:
     int sdpTupleSize;
     int match;
     int showAlign;
-    int refineAlign;
     bool useScoreCutoff;
     int maxScore;
     int argi;
@@ -62,7 +61,7 @@ public:
     string indexFileName;
     string anchorFileName;
     string clusterFileName;
-    VectorIndex nBest;
+    int nBest;
     int printWindow;
     int doCondense;
     int do4BitComp;
@@ -138,6 +137,7 @@ public:
     //float averageMismatchScore;
     bool mapSubreadsSeparately;
     bool concordant;
+    bool refineConcordantAlignments;
     int  flankSize;
     bool useRegionTable;
     bool useHQRegionTable;
@@ -173,7 +173,7 @@ public:
     int   globalDeletionPrior;
     bool  outputByThread;
     int   recurseOver;
-    bool  forPicard;
+    bool  allowAdjacentIndels;
     bool  separateGaps;
     string scoreMatrixString;
     bool  printDotPlots;
@@ -220,7 +220,6 @@ public:
         match = 0;
         mismatch = 0;
         showAlign = 1;
-        refineAlign = 1;
         useScoreCutoff = false;
         maxScore = -200;
         argi = 1;
@@ -305,6 +304,7 @@ public:
         ccsFofnFileName = "";
         mapSubreadsSeparately=true;
         concordant=false;
+        refineConcordantAlignments=false;
         flankSize=40;
         useRegionTable = true;
         useHQRegionTable=true;
@@ -346,7 +346,7 @@ public:
         globalDeletionPrior = 13;
         outputByThread = false;
         recurseOver = 10000;
-        forPicard = false;
+        allowAdjacentIndels = false;
         separateGaps = false;
         scoreMatrixString = "";
         printDotPlots = false;
@@ -411,7 +411,7 @@ public:
 
         // -useQuality can not be used in combination with a fasta input
         if (!ignoreQualities) {
-            if (queryFileType == Fasta) {
+            if (queryFileType == FileType::Fasta) {
                 cout<<"ERROR, you can not use -useQuality option when any of the input reads files are in multi-fasta format."<<endl;
                 exit(1);
             }
@@ -449,6 +449,7 @@ public:
                 cout << "ERROR, unsupported concordantTemplate: " << concordantTemplate << endl;
                 exit(1);
             }
+            if (refineConcordantAlignments) {refineAlignments = true;}
         }
 
         if (sdpFilterType > 1) {
@@ -508,7 +509,7 @@ public:
         if (nouseDetailedSDPAlignment == false) {
             detailedSDPAlignment = true;
         }
-        if (anchorParameters.maxLCPLength != 0 and anchorParameters.maxLCPLength < anchorParameters.minMatchLength) {
+        if (anchorParameters.maxLCPLength != 0 and int(anchorParameters.maxLCPLength) < int(anchorParameters.minMatchLength)) {
             cerr << "ERROR: maxLCPLength is less than minLCPLength, which will result in no hits." << endl;
         }
         if (subsample < 1 and stride > 1) {
@@ -526,7 +527,6 @@ public:
         }
         if (printSAM) {
             printFormat = SAM;
-            forPicard = true;
         }
         //
         // Parse the clipping.
@@ -554,7 +554,6 @@ public:
 #else
             cigarUseSeqMatch = true; // ALWAYS true for BAM
             printFormat = BAM;
-            forPicard = true;
             printSAM = false;
             samQVList.SetDefaultQV();
             printSAMQV = true;
@@ -562,7 +561,7 @@ public:
                 // Only support two clipping methods: soft or subread.
                 clipping = SAMOutput::subread;
             }
-            if (queryFileType != PBBAM and queryFileType != PBDATASET and not enableHiddenPaths) {
+            if (queryFileType != FileType::PBBAM and queryFileType != FileType::PBDATASET and not enableHiddenPaths) {
                 // bax|fasta|fastq -> bam paths are turned off by default
                 cout << "ERROR, could not output alignments in BAM unless input reads are in PacBio BAM or DATASET files." << endl;
                 exit(1);
@@ -624,10 +623,10 @@ public:
     }
 
     ReadType::ReadTypeEnum DetermineQueryReadType() {
-        if (useCcsOnly or queryFileType == HDFCCSONLY) {
+        if (useCcsOnly or queryFileType == FileType::HDFCCSONLY) {
             return ReadType::CCS;
         }
-        if (queryFileType == PBBAM) {
+        if (queryFileType == FileType::PBBAM) {
             // Read type in BAM may be CCS, SUBREAD, HQREGION or POLYMERASE.
             // Determine it later.
             return ReadType::UNKNOWN;
