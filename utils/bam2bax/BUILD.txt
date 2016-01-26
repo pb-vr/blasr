@@ -1,0 +1,46 @@
+Build instructions for developers:
+Assuming that blasr and blaser_libcpp is placed under //depot/software/smrtanalysis/bioinformatics/ext/pi
+
+  $ cd <bam2bax>
+  $ module load boost
+  $ mkdir build; cd build; cmake ..
+  $ make
+  $ ../tests/bin/test_bam2bax # to test bam2bax exe
+
+Build instructions for users:
+  $ cd <bam2bax>
+  $ mkdir build; cd build; 
+  $ cmake -DPacBioBAM_INCLUDE_DIRS=<path_to_include_dir> \
+      -DHTSLIB_INCLUDE_DIRS=<path_to_include_dir> \
+      -DPacBioBAM_LIBRARIES=<path_to_lib_so_or_a> \
+      -DHTSLIB_LIBRARIES=<path_to_lib_so_or_a> \
+      -DPBDATA_INCLUDE_DIRS=<path_to_include_dir> 
+      -DPBDATA_LIBRARIES=<path_to_lib_so_or_a> \
+      -DPBIHDF_INCLUDE_DIRS=<path_to_include_dir> 
+      -DPBIHDF_LIBRARIES=<path_to_lib_so_or_a> \
+      -DBLASR_INCLUDE_DIRS=<path_to_include_dir> 
+      -DBLASR_LIBRARIES=<path_to_lib_so_or_a> \
+      -DHDF5_INCLUDE_DIRS=<path_to_include_dir> 
+      -DHDF5_CPP_LIBRARIES=<path_to_lib_so_or_a> \
+      -DHDF5_LIBRARIES=<path_to_lib_so_or_a> \
+      -DBam2Bax_EXE_LINKER_FLAGS="-Wl,--no-as-needed -ldl -pthread -lrt " \
+
+  $ make
+  $ ../tests/bin/test_bam2bax # to test bam2bax exe
+
+# e.g.,
+#cmake -DPacBioBAM_INCLUDE_DIRS=$smrtanalysis/bioinformatics/lib/cpp/pbbam/include \
+#      -DHTSLIB_INCLUDE_DIRS=$smrtanalysis/bioinformatics/lib/cpp/htslib \
+#      -DPacBioBAM_LIBRARIES=$smrtanalysis/bioinformatics/lib/cpp/pbbam/lib/libpbbam.a \
+#      -DHTSLIB_LIBRARIES=$smrtanalysis/bioinformatics/lib/cpp/htslib/libhts.a \
+#      -DPBDATA_INCLUDE_DIRS=$smrtanalysis/bioinformatics/ext/pi/blasr/libcpp/pbdata \
+#      -DPBDATA_LIBRARIES=$smrtanalysis/bioinformatics/ext/pi/blasr/libcpp/pbdata/libpbdata.a \
+#      -DPBIHDF_INCLUDE_DIRS=$smrtanalysis/bioinformatics/ext/pi/blasr/libcpp/hdf \
+#      -DPBIHDF_LIBRARIES=$smrtanalysis/bioinformatics/ext/pi/blasr/libcpp/hdf/libpbihdf.a \
+#      -DBLASR_INCLUDE_DIRS=$smrtanalysis/bioinformatics/ext/pi/blasr/libcpp/alignment/ \
+#      -DBLASR_LIBRARIES=$smrtanalysis/bioinformatics/ext/pi/blasr/libcpp/alignment/libblasr.a \
+#      -DHDF5_INCLUDE_DIRS=$smrtanalysis/prebuilt.out/hdf5/hdf5-1.8.12/ubuntu-1404/include \
+#      -DHDF5_CPP_LIBRARIES=$smrtanalysis/prebuilt.out/hdf5/hdf5-1.8.12/ubuntu-1404/lib/libhdf5_cpp.a \
+#      -DHDF5_LIBRARIES=$smrtanalysis/prebuilt.out/hdf5/hdf5-1.8.12/ubuntu-1404/lib/libhdf5.a \
+#      -DBam2Bax_EXE_LINKER_FLAGS="-Wl,--no-as-needed -ldl -pthread -lrt " \
+#      ../
