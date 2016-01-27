@@ -1,0 +1,15 @@
+Build instructions for developers:
+
+  $ cd <postprimary>
+  $ module load boost
+  $ mkdir build; cd build; cmake ..
+  $ make
+  $ ../tests/bin/test_postprimary # to test the library before proceeding 
+
+Assuming still in the postprimary/build dir, move on to bax2bam:
+
+  $ cd ../../bax2bam 
+  $ mkdir build; cd build; cmake ..
+  $ make
+  $ ../tests/bin/test_bax2bam # to test bax2bam exe
+
