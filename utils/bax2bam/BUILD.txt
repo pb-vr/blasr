@@ -1,0 +1,10 @@
+Build instructions for developers:
+Assuming that blasr and blaser_libcpp is placed under //depot/software/smrtanalysis/bioinformatics/ext/pi
+
+  $ cd <bax2bam>
+  $ module load boost
+  $ mkdir build; cd build; cmake ..
+  $ make
+  $ ../tests/bin/test_bax2bam # to test bax2bam exe
+
+
