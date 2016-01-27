@@ -156,7 +156,7 @@ PacBio::BAM::VirtualRegionType RegionTypeAdapter::ToVirtualRegionType(RegionType
     else if (rt == BarCode)
         return PacBio::BAM::VirtualRegionType::BARCODE;
     else
-        assert("Unable to convert RegionType to VirtualRegionType." == false);
+        assert("Unable to convert RegionType to VirtualRegionType." == NULL);
 }
 
 
