@@ -27,7 +27,9 @@ set(SOURCES
     ${Bam2BaxTest_H}
     ${Bam2BaxTest_CPP}
 )
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Bam2Bax_CXX_FLAGS}")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${Bam2Bax_EXE_LINKER_FLAGS}")
 
 add_executable(test_bam2bax ${SOURCES})
 
