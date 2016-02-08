@@ -7,6 +7,7 @@ Assuming that blasr and blaser_libcpp is placed under //depot/software/smrtanaly
   $ make
   $ ../tests/bin/test_bam2bax # to test bam2bax exe
 
+
 Build instructions for users:
   $ cd <bam2bax>
   $ mkdir build; cd build; 
@@ -24,6 +25,7 @@ Build instructions for users:
       -DHDF5_CPP_LIBRARIES=<path_to_lib_so_or_a> \
       -DHDF5_LIBRARIES=<path_to_lib_so_or_a> \
       -DBam2Bax_EXE_LINKER_FLAGS="-Wl,--no-as-needed -ldl -pthread -lrt " \
+      ../
 
   $ make
   $ ../tests/bin/test_bam2bax # to test bam2bax exe

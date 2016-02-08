@@ -19,6 +19,17 @@ vpath %.cpp ${SRCDIR}
 
 all: ${EXE}
 
+bam2bax: ${CURDIR}/bam2bax/bin/bam2bax
+
+${CURDIR}/bam2bax/bin/bam2bax:
+	@cd ${CURDIR}/bam2bax && make all
+
+bax2bam: ${CURDIR}/bax2bam/bin/bax2bam
+
+${CURDIR}/bax2bam/bin/bax2bam:
+	@cd ${CURDIR}/bax2bam && make all
+
+
 ${EXE}:
 	${CXX} -o $@ $< ${CXXFLAGS} ${CPPFLAGS} -MF"${@:%=%.d}" ${STATIC} ${LDFLAGS} ${LDLIBS}
 
@@ -46,3 +57,5 @@ cramfast: ${EXE}
 clean: 
 	@rm -f ${EXE}
 	@rm -f *.d *.o
+	@cd ${CURDIR}/bam2bax && make clean && cd ${CURDIR}
+	@cd ${CURDIR}/bax2bam && make clean && cd ${CURDIR}
