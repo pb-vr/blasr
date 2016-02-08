@@ -44,8 +44,8 @@ target_link_libraries(bax2bam
     ${BLASR_LIBRARIES}
     ${PBIHDF_LIBRARIES}
     ${PBDATA_LIBRARIES} 
-    ${HDF5_LIBRARIES}
     ${HDF5_CPP_LIBRARIES}
+    ${HDF5_LIBRARIES}
     ${PacBioBAM_LIBRARIES}
     ${HTSLIB_LIBRARIES}
     ${ZLIB_LIBRARIES}
