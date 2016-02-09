@@ -44,6 +44,7 @@ public:
     QVScale qvScaleType;
     vector<string> readsFileNames; // = queryFileNames, genomeFileName
     vector<string> queryFileNames;
+    vector<string> scrapsFileNames; // needed for noSplitSubread flag in PBBAM, deriived from queryFileNames 
     string genomeFileName;
     // Query file type: FASTA/FASTQ/HDF*/PBBAM,
     // Note that mixed query file types is not allowed.
@@ -406,6 +407,35 @@ public:
             if (fileType != queryFileType) {
                 cout << "ERROR, mixed query file types is not allowed." << endl;
                 exit(1);
+            }
+        }
+
+        // if unrolled(Polymerase) read mode, and extension is .bam, need to derive scraps file name 
+        // rules 
+        // 1. string.subreads.bam -> string.scraps.bam substitute subreads to scraps
+        // 2. string.bam ->  string.scraps.bam   insert .scraps before .bam
+        // TODO loop over query check for each
+        // not needed for xml since scraps specified explicetely
+        //
+        if (not mapSubreadsSeparately && (queryFileType == FileType::PBBAM) ) {
+            const string dsubdb = ".subreads.bam";
+            const string dbam = ".bam"; 
+            // loop over all subread files and fill the vector or scraps files
+            for (size_t i = 0; i < queryFileNames.size(); i++) {
+                scrapsFileNames.push_back(queryFileNames[i]); 
+                size_t dsubdb_pos = scrapsFileNames[i].find(dsubdb); // find .subreads.bam 
+                if (dsubdb_pos != std::string::npos) {  
+                    // TODO check that .subreads.bam is LAST occurence
+                    // replace subreads.bam with scraps.bam
+                    scrapsFileNames[i].replace(dsubdb_pos,dsubdb.length(),".scraps.bam");
+                }
+                else { 
+                    // insert scraps before .bam"
+                    // actually we can just replace last 4 characters
+                    // fix later
+                    size_t dbam_pos = scrapsFileNames[0].find(dbam); // find .bam  
+                    scrapsFileNames[i].replace(dbam_pos,dbam.length(),".scraps.bam");
+                }
             }
         }
 
