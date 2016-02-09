@@ -169,7 +169,7 @@ void MakePrimaryIntervals(vector<SMRTSequence> & subreads,
 }
 
 
-/// Scan the next read from input.  This may either be a CCS read,
+/// Scan the next read from input.  This may either be a CCS read, unrolled (Polymerase) read,
 /// or regular read (though this may be aligned in whole, or by
 /// subread).
 /// \params[in] reader: FASTA/FASTQ/BAX.H5/CCS.H5/BAM file reader
@@ -322,6 +322,7 @@ void MapReadsNonCCS(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapDa
 
     if (params.concordant) {
         // Only the longest subread will be aligned in the first round.
+        // VR , change the comment
         startIndex = max(startIndex, bestSubreadIndex);
         endIndex   = min(endIndex, bestSubreadIndex + 1);
 
@@ -455,9 +456,12 @@ void MapReadsNonCCS(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapDa
         subreadSequence.Free();
         subreadSequenceRC.Free();
     } // End of looping over subread intervals within [startIndex, endIndex).
+ 
 
     if (params.verbosity >= 3)
         allReadAlignments.Print(threadOut);
+
+    // If not concordant , all done
 
     if (params.concordant) {
         allReadAlignments.read = smrtRead;
@@ -528,6 +532,11 @@ void MapReadsNonCCS(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapDa
     } // End of if params.concordant
 }
 
+//
+// invoked for mapping entire ZMW as a single entity
+// either for CCS reads : all subreads of a ZMW collapsed/merged into a single read 
+// or Polymerase reads  : all subreads of a ZMW stitched into a single read  
+//
 void MapReadsCCS(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData,
                  MappingBuffers & mappingBuffers,
                  SMRTSequence & smrtRead,
@@ -585,6 +594,9 @@ void MapReadsCCS(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData,
     // all other are secondary.
     //
 
+    //
+    // Here unrolled reads are aligned
+    //
     if (readIsCCS == false or params.useCcsOnly) {
         // if -noSplitSubreads or -useccsdenovo.
         //
@@ -600,6 +612,9 @@ void MapReadsCCS(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData,
         }
         allReadAlignments.SetSequence(0, smrtRead);
     }
+    //
+    // Here CCS reads are aligned
+    //
     else if (readIsCCS) { // if -useccsall or -useccs
         // Flank alignment candidates to both ends.
         for(size_t alignmentIndex = 0; alignmentIndex < selectedAlignmentPtrs.size();
@@ -767,6 +782,10 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData)
 
         smrtRead.MakeRC(smrtReadRC);
 
+        // important 
+        // 1. CCS and unrolled mode are mutually exclusive
+        // 2. Reverse Complement Read is generated fort CCS only
+        //
         if (readIsCCS) {
             ccsRead.unrolledRead.MakeRC(unrolledReadRC);
         }
@@ -778,6 +797,14 @@ void MapReads(MappingData<T_SuffixArray, T_GenomeSequence, T_Tuple> *mapData)
         ReadAlignments allReadAlignments;
         allReadAlignments.read = smrtRead;
 
+        // currently 3 ways of mapping
+        // regular, CCS , and Polymerase (unrolled)
+        //
+        // for regular subreads MapReadsNonCCS
+        // for mapping ZMW as a whole (CCS or Polymerase) MapReadsCCS
+        // For the future , change the name of functions  to be more desriptive 
+        // noSplitSubreads is in essense unrolled - Polymerase read mode
+        //
         if (readIsCCS == false and params.mapSubreadsSeparately) {
             // (not readIsCCS and not -noSplitSubreads)
             MapReadsNonCCS(mapData, mappingBuffers,
@@ -1278,10 +1305,29 @@ int main(int argc, char* argv[]) {
     //
     reader->SetReadFileName(params.queryFileNames[params.readsFileIndex]);
 
+    // if PBBAM , need to construct scrap file name and check if exist  
     //
     // Initialize using already set file names.
     //
-    int initReturnValue = reader->Initialize();
+
+
+
+    // unrolled Need to pass unrolled option
+    // unrolled If not PBDATASET also need to construct scrap file name and
+    // test if it exists in the same directory, if not exit with error message 
+    //
+    int initReturnValue;
+    
+    if ( ( (reader->GetFileType() == FileType::PBDATASET) || (reader->GetFileType() == FileType::PBBAM)) and not params.mapSubreadsSeparately) {
+        
+        if ( reader->GetFileType() == FileType::PBBAM ) {
+            reader->SetScrapsFileName(params.scrapsFileNames[params.readsFileIndex]);
+        }
+        initReturnValue = reader->Initialize(true);
+    }
+    else {
+        initReturnValue = reader->Initialize();
+    }
     if (initReturnValue <= 0) {
         cerr << "WARNING! Could not open file " << params.queryFileNames[params.readsFileIndex] << endl;
         continue;
