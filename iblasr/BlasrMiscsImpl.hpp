@@ -139,31 +139,6 @@ int CountZero(unsigned char *ptr, int length)
     return nZero;
 }
 
-void MakeVirtualRead(SMRTSequence & smrtRead,
-                     const vector<SMRTSequence> & subreads)
-{
-    assert(subreads.size() > 0);
-    DNALength hqStart = static_cast<DNALength>(-1), hqEnd = 0;
-    for(auto subread: subreads) {
-        hqStart = min(DNALength(subread.SubreadStart()), hqStart);
-        hqEnd   = max(DNALength(subread.SubreadEnd()),   hqEnd);
-    }
-    smrtRead.Free();
-    smrtRead.Allocate(hqEnd);
-    memset(smrtRead.seq, 'N', sizeof(char) * hqEnd);
-    smrtRead.lowQualityPrefix = hqStart;
-    smrtRead.lowQualitySuffix = smrtRead.length - hqEnd;
-    smrtRead.highQualityRegionScore = subreads[0].highQualityRegionScore;
-    smrtRead.HoleNumber(subreads[0].HoleNumber());
-    stringstream ss;
-    ss << SMRTTitle(subreads[0].GetTitle()).MovieName() << "/" << subreads[0].HoleNumber();
-    smrtRead.CopyTitle(ss.str());
-    for (auto subread: subreads) {
-        memcpy(&smrtRead.seq[subread.SubreadStart()],
-               &subread.seq[0], sizeof(char) * subread.length);
-    }
-}
-
 void MakeSubreadIntervals(vector<SMRTSequence> & subreads,
                           vector<ReadInterval> & subreadIntervals)
 {
