@@ -44,11 +44,6 @@ void MakeSubreadRC(SMRTSequence & subreadSequenceRC,
                    SMRTSequence & subreadSequence,
                    SMRTSequence & smrtRead);
 
-// Make a virtual SMRTSequence (polymerase reads) given all subreads.
-// NO QVs will be copied at this point.
-void MakeVirtualRead(SMRTSequence & smrtRead,
-                     const vector<SMRTSequence> & subreads);
-
 // Construct subreads invervals from subreads
 void MakeSubreadIntervals(vector<SMRTSequence> & subreads,
                           vector<ReadInterval> & subreadIntervals);

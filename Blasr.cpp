@@ -263,7 +263,7 @@ bool FetchReads(ReaderAgglomerate * reader,
             }
         }
         if (subreads.size() != 0) {
-            MakeVirtualRead(smrtRead, subreads);
+            smrtRead.MadeFromSubreadsAsPolymerase(subreads);
             return true;
         }
         else {
