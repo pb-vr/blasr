@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef __linux__
+#ifdef __GLIBC__
 #  include <mcheck.h>
 #endif
 #include <string>
@@ -12,7 +12,9 @@
 #include <stdlib.h>
 #include <time.h>
 #include <signal.h>
-#include <execinfo.h>
+#if defined(__GLIBC__) || defined(__APPLE__)
+#  include <execinfo.h>
+#endif
 
 #define MAX_PHRED_SCORE 254
 #define MAPQV_END_ALIGN_WIGGLE 5
