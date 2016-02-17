@@ -3,3 +3,11 @@ defines.mk
 *.o
 *.err
 blasr
+/utils/bam2bax/build/
+/utils/bam2bax/bin/
+/utils/bam2bax/tests/bin/
+/utils/bam2bax/tests/src/TestData.h
+/utils/bax2bam/build/
+/utils/bax2bam/bin/
+/utils/bax2bam/tests/bin/
+/utils/bax2bam/tests/src/TestData.h

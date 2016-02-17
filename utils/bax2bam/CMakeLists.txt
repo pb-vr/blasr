@@ -2,7 +2,7 @@
 # CMake build script for Bax2Bam executable.
 ########################################################################
 
-project(Bax2Bam CXX C)
+project(Bax2Bam)
 cmake_minimum_required(VERSION 2.8)
 
 # project version
