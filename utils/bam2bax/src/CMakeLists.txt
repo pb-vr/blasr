@@ -54,6 +54,7 @@ target_link_libraries(bam2bax
     ${PacBioBAM_LIBRARIES}
     ${HTSLIB_LIBRARIES}
     ${ZLIB_LIBRARIES}
+    -lrt
 )
 
 add_executable(bam2plx ${BAM2PLX_SOURCES} )
@@ -69,4 +70,5 @@ target_link_libraries(bam2plx
     ${PacBioBAM_LIBRARIES}
     ${HTSLIB_LIBRARIES}
     ${ZLIB_LIBRARIES}
+    -lrt
 )

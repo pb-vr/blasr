@@ -48,6 +48,7 @@ target_link_libraries(test_bax2bam
     ${HTSLIB_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT} # quirky pthreads
+    -lrt
 )
 # add_test(test_bax2bam test_bax2bam)
 add_test(
