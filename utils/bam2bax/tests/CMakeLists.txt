@@ -36,6 +36,10 @@ add_executable(test_bam2bax ${SOURCES})
 set_target_properties(test_bam2bax PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${Bam2Bax_TestsDir}/bin
 )
+if (NOT APPLE)
+    set(MY_LIBRT -lrt)
+else()
+endif()
 target_link_libraries(test_bam2bax
     gtest
     gtest_main
@@ -48,7 +52,7 @@ target_link_libraries(test_bam2bax
     ${HTSLIB_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT} # quirky pthreads
-    -lrt
+    ${MY_LIBRT}
 )
 
 add_test(

@@ -45,6 +45,10 @@ add_executable(bam2bax ${BAM2BAX_SOURCES})
 set_target_properties(bam2bax PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${Bam2Bax_BinDir}
 )
+if (NOT APPLE)
+    set(MY_LIBRT -lrt)
+else()
+endif()
 target_link_libraries(bam2bax
     ${BLASR_LIBRARIES}
     ${PBIHDF_LIBRARIES}
@@ -54,7 +58,7 @@ target_link_libraries(bam2bax
     ${PacBioBAM_LIBRARIES}
     ${HTSLIB_LIBRARIES}
     ${ZLIB_LIBRARIES}
-    -lrt
+    ${MY_LIBRT}
 )
 
 add_executable(bam2plx ${BAM2PLX_SOURCES} )
@@ -70,5 +74,5 @@ target_link_libraries(bam2plx
     ${PacBioBAM_LIBRARIES}
     ${HTSLIB_LIBRARIES}
     ${ZLIB_LIBRARIES}
-    -lrt
+    ${MY_LIBRT}
 )
