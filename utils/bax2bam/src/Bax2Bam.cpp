@@ -121,8 +121,8 @@ bool WriteDatasetXmlOutput(const Settings& settings,
         // Combine the scheme and filepath and store in the dataset
         mainBamFilepath = scheme + mainBamFilepath;
         ExternalResource mainBam{ "PacBio.SubreadFile.SubreadBamFile", mainBamFilepath };
-        ExternalResource mainPbi{ "PacBio.Index.PacBioIndex", mainBamFilepath + ".pbi" };
-        mainBam.ExternalResources().Add(mainPbi);
+        FileIndex mainPbi{ "PacBio.Index.PacBioIndex", mainBamFilepath + ".pbi" };
+        mainBam.FileIndices().Add(mainPbi);
 
         // maybe add scraps BAM (& PBI)
         if (!settings.scrapsBamFilename.empty()) {
@@ -143,8 +143,8 @@ bool WriteDatasetXmlOutput(const Settings& settings,
             }
 
             ExternalResource scrapsBam{ "PacBio.SubreadFile.ScrapsBamFile", scrapsBamFilepath };
-            ExternalResource scrapsPbi{ "PacBio.Index.PacBioIndex", scrapsBamFilepath + ".pbi" };
-            scrapsBam.ExternalResources().Add(scrapsPbi);
+            FileIndex scrapsPbi{ "PacBio.Index.PacBioIndex", scrapsBamFilepath + ".pbi" };
+            scrapsBam.FileIndices().Add(scrapsPbi);
             mainBam.ExternalResources().Add(scrapsBam);
         }
 
