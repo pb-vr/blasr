@@ -41,10 +41,12 @@
 #include "IConverter.h"
 #include "Settings.h"
 #include "HDFBasReader.hpp"
-#include <pbbam/Tag.h>
-#include <pbbam/ReadGroupInfo.h>
+#include <pbbam/BamFile.h>
 #include <pbbam/BamHeader.h>
 #include <pbbam/BamWriter.h>
+#include <pbbam/PbiFile.h>
+#include <pbbam/ReadGroupInfo.h>
+#include <pbbam/Tag.h>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <libgen.h>
@@ -851,20 +853,21 @@ fallback:
     }
     settings_.movieName = (*movieNames.cbegin());
 
-    // Use the movie name to initialize the ReadGroupIds
-    settings_.readGroupId       = MakeReadGroupId(MovieName(), HeaderReadType());
-    settings_.scrapsReadGroupId = MakeReadGroupId(MovieName(), ScrapsReadType());
+    // Use the movie name to initialize the ReadGroupId
+    settings_.readGroupId = MakeReadGroupId(MovieName(), HeaderReadType());
 
     // initialize output file(s)
     if (settings_.outputBamPrefix.empty())
         settings_.outputBamPrefix = settings_.movieName;
-
     settings_.outputBamFilename = settings_.outputBamPrefix + OutputFileSuffix();
-    settings_.scrapsBamFilename = settings_.outputBamPrefix + ScrapsFileSuffix();
 
     // Separate single-output from dual-output jobs
     if (HeaderReadType() == "SUBREAD" || HeaderReadType() == "HQREGION")
     {
+        // setup scram BAM file info
+        settings_.scrapsReadGroupId = MakeReadGroupId(MovieName(), ScrapsReadType());
+        settings_.scrapsBamFilename = settings_.outputBamPrefix + ScrapsFileSuffix();
+
         // main conversion of BAX -> BAM records for dual-output jobs
         try {
             BamWriter writer(settings_.outputBamFilename, CreateHeader(HeaderReadType()));
@@ -881,7 +884,14 @@ fallback:
             return false;
         }
 
+        // make PBI files
+        PbiFile::CreateFrom(BamFile{ settings_.outputBamFilename });
+        PbiFile::CreateFrom(BamFile{ settings_.scrapsBamFilename });
+
     } else { 
+
+        assert(settings_.scrapsBamFilename.empty());
+
         // main conversion of BAX -> BAM records for single-output jobs
         try {
             BamWriter writer(settings_.outputBamFilename, CreateHeader(HeaderReadType()));
@@ -896,6 +906,9 @@ fallback:
             AddErrorMessage("failed to convert BAM file");
             return false;
         }
+
+        // make PBI file
+        PbiFile::CreateFrom(BamFile{ settings_.outputBamFilename });
     }
 
     // if we get here, return success

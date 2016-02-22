@@ -66,6 +66,11 @@ TEST(PolymeraseTest, EndToEnd_Single)
     const int result = RunBax2Bam(baxFilenames, "--polymeraseread");
     EXPECT_EQ(0, result);
 
+    {   // ensure PBI exists
+        const BamFile generatedBamFile(generatedBam);
+        EXPECT_TRUE(generatedBamFile.PacBioIndexExists());
+    }
+
     // open BAX reader on original data
     HDFBasReader baxReader;
     baxReader.IncludeField("Basecall");
@@ -260,6 +265,7 @@ TEST(PolymeraseTest, EndToEnd_Single)
         // cleanup
         baxReader.Close();
         RemoveFile(generatedBam);
+        RemoveFile(generatedBam + ".pbi");
 
     }); // EXPECT_NO_THROW
 }
