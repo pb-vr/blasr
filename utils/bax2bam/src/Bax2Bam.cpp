@@ -103,26 +103,52 @@ bool WriteDatasetXmlOutput(const Settings& settings,
         }
 
         const string scheme = "file://";
-        string fullOutputFilepath;
+        string mainBamFilepath;
 
         // If the output filename starts with a slash, assume it's the path
         if (boost::starts_with(settings.outputBamFilename, "/"))
         {
-            fullOutputFilepath = settings.outputBamFilename;
+            mainBamFilepath = settings.outputBamFilename;
         }
         else // otherwise build the path from the CWD
         { 
-            fullOutputFilepath = CurrentWorkingDir();
-            if (!fullOutputFilepath.empty())
-                fullOutputFilepath.append(1, '/');
-            fullOutputFilepath.append(settings.outputBamFilename);
+            mainBamFilepath = CurrentWorkingDir();
+            if (!mainBamFilepath.empty())
+                mainBamFilepath.append(1, '/');
+            mainBamFilepath.append(settings.outputBamFilename);
         }
 
         // Combine the scheme and filepath and store in the dataset
-        fullOutputFilepath = scheme + fullOutputFilepath;
-        ExternalResource mainBam{ "PacBio.SubreadFile.SubreadBamFile", fullOutputFilepath };
-        ExternalResource mainPbi{ "PacBio.Index.PacBioIndex", fullOutputFilepath + ".pbi" };
+        mainBamFilepath = scheme + mainBamFilepath;
+        ExternalResource mainBam{ "PacBio.SubreadFile.SubreadBamFile", mainBamFilepath };
+        ExternalResource mainPbi{ "PacBio.Index.PacBioIndex", mainBamFilepath + ".pbi" };
         mainBam.ExternalResources().Add(mainPbi);
+
+        // maybe add scraps BAM (& PBI)
+        if (!settings.scrapsBamFilename.empty()) {
+
+            string scrapsBamFilepath;
+
+            // If the output filename starts with a slash, assume it's the path
+            if (boost::starts_with(settings.scrapsBamFilename, "/"))
+            {
+                scrapsBamFilepath = settings.scrapsBamFilename;
+            }
+            else // otherwise build the path from the CWD
+            {
+                scrapsBamFilepath = CurrentWorkingDir();
+                if (!scrapsBamFilepath.empty())
+                    scrapsBamFilepath.append(1, '/');
+                scrapsBamFilepath.append(settings.scrapsBamFilename);
+            }
+
+            ExternalResource scrapsBam{ "PacBio.SubreadFile.ScrapsBamFile", scrapsBamFilepath };
+            ExternalResource scrapsPbi{ "PacBio.Index.PacBioIndex", scrapsBamFilepath + ".pbi" };
+            scrapsBam.ExternalResources().Add(scrapsPbi);
+            mainBam.ExternalResources().Add(scrapsBam);
+        }
+
+        // add resources to output dataset
         resources.Add(mainBam);
         dataset.ExternalResources(resources);
 
