@@ -70,6 +70,12 @@ TEST(HqRegionsTest, EndToEnd_Single)
     const int result = RunBax2Bam(baxFilenames, "--hqregion");
     EXPECT_EQ(0, result);
 
+    {   // ensure PBIs exist
+        const BamFile generatedBamFile(generatedBam);
+        const BamFile scrapsBamFile(scrapBam);
+        EXPECT_TRUE(generatedBamFile.PacBioIndexExists());
+        EXPECT_TRUE(scrapsBamFile.PacBioIndexExists());
+    }
 
     // open BAX reader on original data
     HDFBasReader baxReader;
@@ -445,5 +451,7 @@ TEST(HqRegionsTest, EndToEnd_Single)
         baxReader.Close();
         RemoveFile(generatedBam);
         RemoveFile(scrapBam);
+        RemoveFile(generatedBam + ".pbi");
+        RemoveFile(scrapBam + ".pbi");
     });
 }

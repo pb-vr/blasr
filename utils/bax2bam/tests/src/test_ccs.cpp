@@ -70,6 +70,11 @@ TEST(CcsTest, EndToEnd_Multiple)
     const int result = RunBax2Bam(baxFilenames, "--ccs");
     EXPECT_EQ(0, result);
 
+    {   // ensure PBI exists
+        const BamFile generatedBamFile(generatedBam);
+        EXPECT_TRUE(generatedBamFile.PacBioIndexExists());
+    }
+
     // open BAX reader on original data
     HDFCCSReader<CCSSequence> baxReader;
     baxReader.IncludeField("Basecall");
@@ -244,6 +249,7 @@ cleanup:
         // cleanup
         baxReader.Close();
         RemoveFile(generatedBam);
+        RemoveFile(generatedBam + ".pbi");
 
     }); // EXPECT_NO_THROW
 }
