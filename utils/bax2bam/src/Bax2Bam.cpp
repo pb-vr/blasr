@@ -120,7 +120,10 @@ bool WriteDatasetXmlOutput(const Settings& settings,
 
         // Combine the scheme and filepath and store in the dataset
         fullOutputFilepath = scheme + fullOutputFilepath;
-        resources.Add(ExternalResource("SubreadFile.SubreadBamFile",fullOutputFilepath));
+        ExternalResource mainBam{ "PacBio.SubreadFile.SubreadBamFile", fullOutputFilepath };
+        ExternalResource mainPbi{ "PacBio.Index.PacBioIndex", fullOutputFilepath + ".pbi" };
+        mainBam.ExternalResources().Add(mainPbi);
+        resources.Add(mainBam);
         dataset.ExternalResources(resources);
 
         // save to file 
