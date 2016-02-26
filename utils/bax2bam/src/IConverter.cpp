@@ -64,14 +64,16 @@ BamHeader IConverter::CreateHeader(const string& modeString)
     //     pb:<current PacBio BAM spec version>
     header.Version("1.5")
           .SortOrder("unknown")
-          .PacBioBamVersion("3.0.1");
+          .PacBioBamVersion("3.0.2");
 
     // @RG ID: <read group ID>
     //     DS: READTYPE=<HQREGION|POLYMERASE|SUBREAD>[;<Tag Manifest>;BINDINGKIT=<foo>;SEQUENCINGKIT=<bar>;BASECALLERVERSION=<42>]
     //     PL: PACBIO
     //     PU: <movieName>
     //
-    ReadGroupInfo rg(settings_.movieName, modeString);
+    const PlatformModelType platform = settings_.isSequelInput_ ? PlatformModelType::SEQUEL
+                                                                : PlatformModelType::RS;
+    ReadGroupInfo rg(settings_.movieName, modeString, platform);
     rg.BindingKit(bindingKit_)
       .SequencingKit(sequencingKit_)
       .BasecallerVersion(basecallerVersion_)

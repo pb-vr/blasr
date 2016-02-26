@@ -37,6 +37,7 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
+#include "pbbam/ReadGroupInfo.h"
 #include <string>
 #include <vector>
 
@@ -63,6 +64,7 @@ public:
         static const char* subreadMode_;
         static const char* ccsMode_;
         static const char* outputXml_;
+        static const char* sequelPlatform_;
     };
 
 public:
@@ -84,6 +86,9 @@ public:
 
     // mode
     Mode mode;
+
+    // platform
+    bool isSequelInput_;
 
     // features
     bool usingDeletionQV;
