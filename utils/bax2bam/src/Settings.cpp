@@ -45,10 +45,6 @@ using namespace std;
 
 namespace internal {
 
-static inline
-bool StartsWith(const string& input, const string& query)
-{ return input.find(query) != string::npos; }
-
 static
 vector<string> BaxFilenamesFromXml(const string& xmlFilename)
 {
@@ -125,9 +121,11 @@ const char* Settings::Option::pulseFeatures_  = "pulseFeatures";
 const char* Settings::Option::subreadMode_    = "subreadMode";
 const char* Settings::Option::ccsMode_        = "ccsMode";
 const char* Settings::Option::outputXml_      = "outputXml";
+const char* Settings::Option::sequelPlatform_ = "sequelPlatform";
 
 Settings::Settings(void)
     : mode(Settings::SubreadMode)
+    , isSequelInput_(false)
     , usingDeletionQV(true)
     , usingDeletionTag(true)
     , usingInsertionQV(true)
@@ -221,6 +219,10 @@ Settings Settings::FromCommandLine(optparse::OptionParser& parser,
     else
         settings.errors_.push_back("multiple modes selected");
 
+    // platform
+    settings.isSequelInput_ = options.is_set(Settings::Option::sequelPlatform_) ? options.get(Settings::Option::sequelPlatform_)
+                                                                                : false;
+
     // frame data encoding
     settings.losslessFrames = options.is_set(Settings::Option::losslessFrames_) ? options.get(Settings::Option::losslessFrames_)
                                                                                 : false;
@@ -267,10 +269,13 @@ Settings Settings::FromCommandLine(optparse::OptionParser& parser,
     else
         modeString = "ccs";
 
+    string platformString = settings.isSequelInput_ ? "Sequel" : "RS";
+
     cerr << "CommandLine: " << settings.program << " " << settings.args << endl
          << "Description: " << settings.description << endl
          << "Version:     " << settings.version << endl
          << "Mode:        " << modeString << endl
+         << "Platform:    " << platformString << endl
          << "DeletionQV?:      " << ( settings.usingDeletionQV ? "yes" : "no" ) << endl
          << "DeletionTag?:     " << ( settings.usingDeletionTag ? "yes" : "no" ) << endl
          << "InsertionQV?:     " << ( settings.usingInsertionQV ? "yes" : "no" ) << endl

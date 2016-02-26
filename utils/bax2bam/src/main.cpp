@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
     optparse::OptionParser parser;
     parser.description("bax2bam converts the legacy PacBio basecall format (bax.h5) into the BAM basecall format.");
     parser.prog("bax2bam");
-    parser.version("0.0.2");
+    parser.version("0.0.3");
     parser.add_version_option(true);
     parser.add_help_option(true);
 
@@ -76,6 +76,13 @@ int main(int argc, char* argv[])
            .help("Explicit output XML name. If none provided via this arg, bax2bam will use -o prefix (<prefix>.dataset.xml). "
                  "If that is not specified either, the output XML filename will be <moviename>.dataset.xml");
     parser.add_option_group(ioGroup);
+
+    auto platformGroup = optparse::OptionGroup(parser, "Input sequencing platform");
+    platformGroup.add_option("--sequel-input")
+                 .dest(Settings::Option::sequelPlatform_)
+                 .action("store_true")
+                 .help("Specify that input data is from Sequel. "
+                       "bax2bam will assume RS unless this option is specified");
 
     auto modeGroup = optparse::OptionGroup(parser, "Output read types (mutually exclusive:)");
     modeGroup.add_option("--subread")
