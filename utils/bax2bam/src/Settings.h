@@ -37,7 +37,6 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-#include "pbbam/ReadGroupInfo.h"
 #include <string>
 #include <vector>
 
