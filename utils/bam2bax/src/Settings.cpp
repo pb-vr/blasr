@@ -17,10 +17,6 @@ using namespace std;
 
 namespace internal {
 
-static inline
-bool StartsWith(const string& input, const string& query)
-{ return input.find(query) != string::npos; }
-
 static
 std::string GetMovienameFromFilename(const std::string & filename) {
     std::vector<std::string> tokens; 
