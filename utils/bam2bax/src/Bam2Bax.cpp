@@ -13,18 +13,6 @@
 
 using namespace std;
 
-namespace internal {
-static inline
-string CurrentWorkingDir(void)
-{
-    char result[FILENAME_MAX] = { };
-    if (getcwd(result, FILENAME_MAX) == nullptr)
-        return string();
-    return string(result);
-}
-
-} // namespace internal
-
 int Bam2Bax::Run(Settings& settings) {
 
     bool success = false;
