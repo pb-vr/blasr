@@ -201,7 +201,7 @@ TEST(SubreadsTest, EndToEnd_Multiple)
         const BamHeader& header = bamFile.Header();
         EXPECT_EQ(string("1.5"),     header.Version());
         EXPECT_EQ(string("unknown"), header.SortOrder());
-        EXPECT_EQ(string("3.0.1"),   header.PacBioBamVersion());
+        EXPECT_EQ(string("3.0.2"),   header.PacBioBamVersion());
         EXPECT_TRUE(header.Sequences().empty());
         EXPECT_TRUE(header.Comments().empty());
         ASSERT_FALSE(header.Programs().empty());
