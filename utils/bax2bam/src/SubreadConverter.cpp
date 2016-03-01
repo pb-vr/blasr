@@ -11,6 +11,7 @@
 #include <pbbam/BamWriter.h>
 
 #include <algorithm>
+#include <deque>
 
 #define MAX( A, B )     ( (A)>(B) ? (A) : (B) )
 #define MAX3( A, B, C ) MAX( MAX( A, B ), C )
@@ -45,27 +46,9 @@ struct SubreadInterval
     { }
 };
 
-inline
-bool RegionComparer(const RegionAnnotation& lhs, const RegionAnnotation& rhs)
-{
-    constexpr int HoleNumber  = RegionAnnotation::HOLENUMBERCOL;
-    constexpr int RegionType  = RegionAnnotation::REGIONTYPEINDEXCOL;
-    constexpr int RegionStart = RegionAnnotation::REGIONSTARTCOL;
-
-    if (lhs.row[HoleNumber] < rhs.row[HoleNumber])
-        return true;
-    else if (lhs.row[HoleNumber] == rhs.row[HoleNumber])
-    {
-        if (lhs.row[RegionType] < rhs.row[RegionType])
-            return true;
-        else if (lhs.row[RegionType] == rhs.row[RegionType])
-            return lhs.row[RegionStart] < rhs.row[RegionStart];
-    }
-    return false;
-}
-
-SubreadInterval ComputeSubreadIntervals(vector<SubreadInterval>* const intervals,
-                                        vector<SubreadInterval>* const adapters,
+static
+SubreadInterval ComputeSubreadIntervals(deque<SubreadInterval>* const intervals,
+                                        deque<SubreadInterval>* const adapters,
                                         RegionTable& regionTable,
                                         const unsigned holeNumber,
                                         const size_t readLength)
@@ -75,12 +58,13 @@ SubreadInterval ComputeSubreadIntervals(vector<SubreadInterval>* const intervals
 
     // clear the input first
     intervals->clear();
+    adapters->clear();
 
     // region annotations of a zmw
     RegionAnnotations zmwRegions = regionTable[holeNumber];
 
     // Has non-empty HQregion or not?
-    if (not zmwRegions.HasHQRegion())
+    if (!zmwRegions.HasHQRegion())
         return SubreadInterval(0, 0);
 
     size_t hqStart = zmwRegions.HQStart();
@@ -166,11 +150,10 @@ bool SubreadConverter::ConvertFile(HDFBasReader* reader,
     SMRTSequence smrtRecord;
     while (reader->GetNext(smrtRecord)) {
 
+        // compute subread & adapter intervals
         SubreadInterval hqInterval;
-        vector<SubreadInterval> subreadIntervals;
-        vector<SubreadInterval> adapterIntervals;
-
-        // loop over subreads
+        deque<SubreadInterval> subreadIntervals;
+        deque<SubreadInterval> adapterIntervals;
         try {
             hqInterval = ComputeSubreadIntervals(&subreadIntervals,
                                                  &adapterIntervals,
@@ -183,63 +166,189 @@ bool SubreadConverter::ConvertFile(HDFBasReader* reader,
             return false;
         }
 
-        // Write records for the subreads to the primary output BAM
-        const size_t endIndex = subreadIntervals.size();
-        for (size_t i = 0; i < endIndex; ++i) 
+        // sequencing ZMW
+        if (IsSequencingZmw(smrtRecord))
         {
-            const int     subreadStart = subreadIntervals[i].Start;
-            const int     subreadEnd   = subreadIntervals[i].End;
-            const uint8_t contextFlags = subreadIntervals[i].LocalContextFlags;
-
-            // skip invalid or 0-sized intervals
-            if (subreadEnd <= subreadStart)
-                continue;
-
-            if (!WriteSubreadRecord(smrtRecord, subreadStart, subreadEnd, 
-                                    ReadGroupId(), contextFlags, writer))
+            // write subreads to main BAM file
+            for (const SubreadInterval& interval : subreadIntervals)
             {
-                smrtRecord.Free();
-                return false;
-            }
-        }
-
-        // Write a record for any 5'-end LQ sequence
-        if (scrapsWriter && hqInterval.Start > 0) {
-            if (!WriteLowQualityRecord(smrtRecord, 0, hqInterval.Start, ScrapsReadGroupId(), scrapsWriter))
-            {
-                smrtRecord.Free();
-                return false;
-            }
-        } 
-
-        // Write records for the adapters to the scraps output BAM
-        if (scrapsWriter)
-        {
-            for (size_t i = 0; i < adapterIntervals.size(); ++i) {
-
-                const int adapterStart = adapterIntervals[i].Start;
-                const int adapterEnd   = adapterIntervals[i].End;
-
-                // skip invalid or 0-sized adapters
-                if (adapterEnd <= adapterStart)
+                // skip invalid or 0-sized intervals
+                if (interval.End <= interval.Start)
                     continue;
 
-                if (!WriteAdapterRecord(smrtRecord, adapterStart, adapterEnd, ScrapsReadGroupId(), scrapsWriter))
+                if (!WriteSubreadRecord(smrtRecord,
+                                        interval.Start,
+                                        interval.End,
+                                        ReadGroupId(),
+                                        static_cast<uint8_t>(interval.LocalContextFlags),
+                                        writer))
                 {
                     smrtRecord.Free();
                     return false;
                 }
             }
-        }
 
-        // Write a record for any 3'-end LQ sequence
-        if (scrapsWriter && hqInterval.End < smrtRecord.length) {
-            if (!WriteLowQualityRecord(smrtRecord, hqInterval.End, smrtRecord.length, ScrapsReadGroupId(), scrapsWriter))
+            // if scraps BAM file present
+            if (scrapsWriter)
             {
-                smrtRecord.Free();
-                return false;
+                // write 5-end LQ sequence
+                if (hqInterval.Start > 0)
+                {
+                    if (!WriteLowQualityRecord(smrtRecord,
+                                               0,
+                                               hqInterval.Start,
+                                               ScrapsReadGroupId(),
+                                               scrapsWriter))
+                    {
+                        smrtRecord.Free();
+                        return false;
+                    }
+                }
+
+                // write adapters
+                for (const SubreadInterval& interval : adapterIntervals) {
+
+                    // skip invalid or 0-sized adapters
+                    if (interval.End <= interval.Start)
+                        continue;
+
+                    if (!WriteAdapterRecord(smrtRecord,
+                                            interval.Start,
+                                            interval.End,
+                                            ScrapsReadGroupId(),
+                                            scrapsWriter))
+                    {
+                        smrtRecord.Free();
+                        return false;
+                    }
+                }
+
+                // write 3'-end LQ sequence
+                if (hqInterval.End < smrtRecord.length)
+                {
+                    if (!WriteLowQualityRecord(smrtRecord,
+                                               hqInterval.End,
+                                               smrtRecord.length,
+                                               ScrapsReadGroupId(),
+                                               scrapsWriter))
+                    {
+                        smrtRecord.Free();
+                        return false;
+                    }
+                }
             }
-        } 
+        } // sequencing ZMW
+
+        // non-sequencing ZMW
+        else
+        {
+            assert(!IsSequencingZmw(smrtRecord));
+
+            // only write these if scraps BAM present & we are in 'internal mode'
+            if (settings_.isInternal && scrapsWriter)
+            {
+                // write 5-end LQ sequence to scraps BAM
+                if (hqInterval.Start > 0)
+                {
+                    if (!WriteLowQualityRecord(smrtRecord,
+                                               0,
+                                               hqInterval.Start,
+                                               ScrapsReadGroupId(),
+                                               scrapsWriter))
+                    {
+                        smrtRecord.Free();
+                        return false;
+                    }
+                }
+
+                // write subreads & adapters to scraps BAM, sorted by query start
+                while (!subreadIntervals.empty() && !adapterIntervals.empty()) {
+
+                    const SubreadInterval& subread = subreadIntervals.front();
+                    const SubreadInterval& adapter = adapterIntervals.front();
+                    assert(subread.Start != adapter.Start);
+
+                    if (subread.Start < adapter.Start)
+                    {
+                        if (!WriteFilteredRecord(smrtRecord,
+                                                 subread.Start,
+                                                 subread.End,
+                                                 ScrapsReadGroupId(),
+                                                 static_cast<uint8_t>(subread.LocalContextFlags),
+                                                 scrapsWriter))
+                        {
+                            smrtRecord.Free();
+                            return false;
+                        }
+
+                        subreadIntervals.pop_front();
+                    }
+                    else
+                    {
+                        if (!WriteAdapterRecord(smrtRecord,
+                                                adapter.Start,
+                                                adapter.End,
+                                                ScrapsReadGroupId(),
+                                                scrapsWriter))
+                        {
+                            smrtRecord.Free();
+                            return false;
+                        }
+                        adapterIntervals.pop_front();
+                    }
+                }
+
+                // flush any traling subread intervals
+                while (!subreadIntervals.empty())
+                {
+                    assert(adapterIntervals.empty());
+                    const SubreadInterval& subread = subreadIntervals.front();
+                    if (!WriteFilteredRecord(smrtRecord,
+                                             subread.Start,
+                                             subread.End,
+                                             ScrapsReadGroupId(),
+                                             static_cast<uint8_t>(subread.LocalContextFlags),
+                                             scrapsWriter))
+                    {
+                        smrtRecord.Free();
+                        return false;
+                    }
+
+                    subreadIntervals.pop_front();
+                }
+
+                // flush any remaining adapter intervals
+                while (!adapterIntervals.empty())
+                {
+                    assert(subreadIntervals.empty());
+                    const SubreadInterval& adapter = adapterIntervals.front();
+                    if (!WriteAdapterRecord(smrtRecord,
+                                            adapter.Start,
+                                            adapter.End,
+                                            ScrapsReadGroupId(),
+                                            scrapsWriter))
+                    {
+                        smrtRecord.Free();
+                        return false;
+                    }
+                    adapterIntervals.pop_front();
+                }
+
+                // write 3'-end LQ sequence to scraps BAM
+                if (hqInterval.End < smrtRecord.length)
+                {
+                    if (!WriteLowQualityRecord(smrtRecord,
+                                               hqInterval.End,
+                                               smrtRecord.length,
+                                               ScrapsReadGroupId(),
+                                               scrapsWriter))
+                    {
+                        smrtRecord.Free();
+                        return false;
+                    }
+                }
+            }
+        } // non-sequencing ZMW
 
         smrtRecord.Free();
     }

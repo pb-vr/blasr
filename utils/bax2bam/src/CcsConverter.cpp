@@ -33,9 +33,6 @@ bool CcsConverter::ConvertFile(HdfCcsReader* reader,
 {
     assert(reader);
 
-    // initialize with default values (shared across all unmapped subreads)
-    BamRecordImpl bamRecord;
-
     // initialize read scores
     InitReadScores(reader);
 
@@ -44,7 +41,7 @@ bool CcsConverter::ConvertFile(HdfCcsReader* reader,
     while (reader->GetNext(smrtRecord)) {
 
         // Skip empty records
-        if (smrtRecord.length == 0)
+        if ((smrtRecord.length == 0) || !IsSequencingZmw(smrtRecord))
             continue;
 
         // attempt convert BAX to BAM

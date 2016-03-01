@@ -31,9 +31,6 @@ bool HqRegionConverter::ConvertFile(HDFBasReader* reader,
 {
     assert(reader);
 
-    // initialize with default values (shared across all unmapped subreads)
-    PacBio::BAM::BamRecordImpl bamRecord;
-
     // read region table info
     boost::scoped_ptr<HDFRegionTableReader> regionTableReader(new HDFRegionTableReader);
     RegionTable regionTable;
@@ -70,36 +67,110 @@ bool HqRegionConverter::ConvertFile(HDFBasReader* reader,
         }
 
         // Catch and repair 1-off errors in the HQ region
-        hqEnd = (hqEnd == static_cast<int>(smrtRecord.length)-1) ? smrtRecord.length : hqEnd;
+        hqEnd = (hqEnd == static_cast<int>(smrtRecord.length)-1) ? smrtRecord.length
+                                                                 : hqEnd;
 
-        // attempt convert BAX to BAM
-        if (hqStart < hqEnd)
+        // sequencing ZMW
+        if (IsSequencingZmw(smrtRecord))
         {
-            // attempt convert BAX to BAM
-            if (!WriteRecord(smrtRecord, hqStart, hqEnd, ReadGroupId(), writer))
+            // write HQRegion to main BAM file
+            if (hqStart < hqEnd)
             {
-                smrtRecord.Free();
-                return false;
+                if (!WriteRecord(smrtRecord,
+                                 hqStart,
+                                 hqEnd,
+                                 ReadGroupId(),
+                                 writer))
+                {
+                    smrtRecord.Free();
+                    return false;
+                }
+            }
+
+            // if scraps BAM file present
+            if (scrapsWriter)
+            {
+                // write 5'-end LQ sequence
+                if (hqStart > 0)
+                {
+                    if (!WriteLowQualityRecord(smrtRecord,
+                                               0,
+                                               hqStart,
+                                               ScrapsReadGroupId(),
+                                               scrapsWriter))
+                    {
+                        smrtRecord.Free();
+                        return false;
+                    }
+                }
+
+                // write 3'-end LQ sequence
+                if (static_cast<size_t>(hqEnd) < smrtRecord.length)
+                {
+                    if (!WriteLowQualityRecord(smrtRecord,
+                                               hqEnd,
+                                               smrtRecord.length,
+                                               ScrapsReadGroupId(),
+                                               scrapsWriter))
+                    {
+                        smrtRecord.Free();
+                        return false;
+                    }
+                }
             }
         }
 
-        // Write a record for any 5'-end LQ sequence
-        if (scrapsWriter &&  hqStart > 0) {
-            if (!WriteLowQualityRecord(smrtRecord, 0, hqStart, ScrapsReadGroupId(), scrapsWriter))
-            {
-                smrtRecord.Free();
-                return false;
-            }
-        } 
+        // non-sequencing ZMW
+        else
+        {
+            assert(!IsSequencingZmw(smrtRecord));
 
-        // Write a record for any 3'-end LQ sequence
-        if (scrapsWriter && static_cast<size_t>(hqEnd) < smrtRecord.length) {
-            if (!WriteLowQualityRecord(smrtRecord, hqEnd, smrtRecord.length, ScrapsReadGroupId(), scrapsWriter))
+            // only write these if scraps BAM present & we are in 'internal mode'
+            if (settings_.isInternal && scrapsWriter)
             {
-                smrtRecord.Free();
-                return false;
+                // write 5'-end LQ sequence
+                if (hqStart > 0)
+                {
+                    if (!WriteLowQualityRecord(smrtRecord,
+                                               0,
+                                               hqStart,
+                                               ScrapsReadGroupId(),
+                                               scrapsWriter))
+                    {
+                        smrtRecord.Free();
+                        return false;
+                    }
+                }
+
+                // write HQRegion to scraps BAM file
+                if (hqStart < hqEnd)
+                {
+                    if (!WriteFilteredRecord(smrtRecord,
+                                             hqStart,
+                                             hqEnd,
+                                             ScrapsReadGroupId(),
+                                             scrapsWriter))
+                    {
+                        smrtRecord.Free();
+                        return false;
+                    }
+                }
+
+                // write 3'-end LQ sequence
+                if (static_cast<size_t>(hqEnd) < smrtRecord.length)
+                {
+                    if (!WriteLowQualityRecord(smrtRecord,
+                                               hqEnd,
+                                               smrtRecord.length,
+                                               ScrapsReadGroupId(),
+                                               scrapsWriter))
+                    {
+                        smrtRecord.Free();
+                        return false;
+                    }
+                }
             }
-        } 
+        }
 
         smrtRecord.Free();
     }

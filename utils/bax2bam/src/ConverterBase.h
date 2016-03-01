@@ -61,6 +61,19 @@ protected:
                              const std::string& readGroupId,
                              PacBio::BAM::BamWriter* writer);
 
+    virtual bool WriteFilteredRecord(const RecordType& smrtRecord,
+                                     const int recordStart,
+                                     const int recordEnd,
+                                     const std::string& readGroupId,
+                                     PacBio::BAM::BamWriter* writer);
+
+    virtual bool WriteFilteredRecord(const RecordType& smrtRecord,
+                                     const int recordStart,
+                                     const int recordEnd,
+                                     const std::string& readGroupId,
+                                     const uint8_t contextFlags,
+                                     PacBio::BAM::BamWriter* writer);
+
     virtual bool WriteLowQualityRecord(const RecordType& smrtRecord,
                                        const int recordStart,
                                        const int recordEnd,
@@ -97,6 +110,8 @@ protected:
 
     virtual HdfReader* InitHdfReader(void);
     virtual void InitReadScores(HdfReader* reader) final;
+
+    virtual bool IsSequencingZmw(const RecordType& record) const final;
 
     virtual bool LoadChemistryFromMetadataXML(const std::string& baxFn,
                                               const std::string& movieName) final; 
@@ -139,7 +154,7 @@ protected:
 
     // store tags
     //
-    //     i: signed32, I: unsigned32, C: unsigned8
+    //     i: signed32, I: unsigned32, C: unsigned8, A: ASCII, Z: string
     //
     // qs:i - 0-based start of query in the polymerase read
     // qe:i - 0-based end of query in the polymerase read
@@ -154,7 +169,8 @@ protected:
     // st:Z - SubstitutionTag
     // ip:B,C *or* B,S - IPD (frames: 8-bit (lossy) or 16-bit (full)
     // pw:B,C *or* B,S - PulseWidth (frames: 8-bit (lossy) or 16-bit (full)
-    // sc:Z - Scrap-type
+    // sc:A - Scrap-type
+    // sz:A - ZMW classification
     //
     // RG:Z - standard SAM/BAM RG tag, contains the corresponding @RG:ID
     //
@@ -171,15 +187,20 @@ protected:
     static const std::string Tag_ip;
     static const std::string Tag_pw;
     static const std::string Tag_sc;
+    static const std::string Tag_sz;
     static const std::string Tag_RG;
 
     // store re-used tag values
     //
     // Adapter Tag    = Tag('A', ASCII_CHAR)
     // LowQuality Tag = Tag('L', ASCII_CHAR)
+    // Filtered Tag   = Tag('F', ASCII_CHAR)
+    // NormalZMW Tag  = Tag('N', ASCII_CHAR)
     //
     static const PacBio::BAM::Tag lowQualityTag_;
     static const PacBio::BAM::Tag adapterTag_;
+    static const PacBio::BAM::Tag filteredTag_;
+    static const PacBio::BAM::Tag normalZmwTag_;
 };
 
 // Static Tag-name initializers
@@ -210,13 +231,26 @@ const std::string ConverterBase<RecordType, HdfReader>::Tag_pw = "pw";
 template<typename RecordType, typename HdfReader>
 const std::string ConverterBase<RecordType, HdfReader>::Tag_sc = "sc";
 template<typename RecordType, typename HdfReader>
+const std::string ConverterBase<RecordType, HdfReader>::Tag_sz = "sz";
+template<typename RecordType, typename HdfReader>
 const std::string ConverterBase<RecordType, HdfReader>::Tag_RG = "RG";
 
 // Static Tag-Value initializers
 template<typename RecordType, typename HdfReader>
-const PacBio::BAM::Tag ConverterBase<RecordType, HdfReader>::lowQualityTag_ = PacBio::BAM::Tag('L', PacBio::BAM::TagModifier::ASCII_CHAR);
+const PacBio::BAM::Tag ConverterBase<RecordType, HdfReader>::lowQualityTag_ =
+        PacBio::BAM::Tag('L', PacBio::BAM::TagModifier::ASCII_CHAR);
+
 template<typename RecordType, typename HdfReader>
-const PacBio::BAM::Tag ConverterBase<RecordType, HdfReader>::adapterTag_ = PacBio::BAM::Tag('A', PacBio::BAM::TagModifier::ASCII_CHAR);
+const PacBio::BAM::Tag ConverterBase<RecordType, HdfReader>::adapterTag_ =
+        PacBio::BAM::Tag('A', PacBio::BAM::TagModifier::ASCII_CHAR);
+
+template<typename RecordType, typename HdfReader>
+const PacBio::BAM::Tag ConverterBase<RecordType, HdfReader>::filteredTag_ =
+        PacBio::BAM::Tag('F', PacBio::BAM::TagModifier::ASCII_CHAR);
+
+template<typename RecordType, typename HdfReader>
+const PacBio::BAM::Tag ConverterBase<RecordType, HdfReader>::normalZmwTag_ =
+        PacBio::BAM::Tag('N', PacBio::BAM::TagModifier::ASCII_CHAR);
 
 // Constructor
 template<typename RecordType, typename HdfReader>
@@ -456,6 +490,94 @@ bool ConverterBase<RecordType, HdfReader>::WriteRecord(const RecordType& smrtRec
 }
 
 template<typename RecordType, typename HdfReader>
+bool ConverterBase<RecordType, HdfReader>::WriteFilteredRecord(const RecordType& smrtRecord,
+                                                               const int recordStart,
+                                                               const int recordEnd,
+                                                               const std::string& readGroupId,
+                                                               PacBio::BAM::BamWriter* writer)
+{
+    // attempt convert BAX to BAM
+    if (!ConvertRecord(smrtRecord,
+                       recordStart,
+                       recordEnd,
+                       readGroupId,
+                       &bamRecord_))
+    {
+        return false;
+    }
+
+    // add scrap tags
+    if (!bamRecord_.AddTag(Tag_sz, normalZmwTag_))
+    {
+        AddErrorMessage("failed to add scrap's zmw classification tag");
+        return false;
+    }
+    if (!bamRecord_.AddTag(Tag_sc, filteredTag_))
+    {
+        AddErrorMessage("failed to add scrap's filtered tag");
+        return false;
+    }
+
+    // attempt write BAM to file
+    try {
+        writer->Write(bamRecord_);
+    } catch (std::exception&) {
+        AddErrorMessage("failed to write BAM record");
+        return false;
+    }
+
+    return true;
+}
+
+template<typename RecordType, typename HdfReader>
+bool ConverterBase<RecordType, HdfReader>::WriteFilteredRecord(const RecordType& smrtRecord,
+                                                               const int recordStart,
+                                                               const int recordEnd,
+                                                               const std::string& readGroupId,
+                                                               const uint8_t contextFlags,
+                                                               PacBio::BAM::BamWriter* writer)
+{
+    // attempt convert BAX to BAM
+    if (!ConvertRecord(smrtRecord,
+                       recordStart,
+                       recordEnd,
+                       readGroupId,
+                       &bamRecord_))
+    {
+        return false;
+    }
+
+    // add scrap tags
+    if (!bamRecord_.AddTag(Tag_sz, normalZmwTag_))
+    {
+        AddErrorMessage("failed to add scrap's zmw classification tag");
+        return false;
+    }
+    if (!bamRecord_.AddTag(Tag_sc, filteredTag_))
+    {
+        AddErrorMessage("failed to add scrap's filtered tag");
+        return false;
+    }
+
+    // add context tag
+    if (!bamRecord_.AddTag(Tag_cx, contextFlags))
+    {
+        AddErrorMessage("failed to add context flag tag");
+        return false;
+    }
+
+    // attempt write BAM to file
+    try {
+        writer->Write(bamRecord_);
+    } catch (std::exception&) {
+        AddErrorMessage("failed to write BAM record");
+        return false;
+    }
+
+    return true;
+}
+
+template<typename RecordType, typename HdfReader>
 bool ConverterBase<RecordType, HdfReader>::WriteLowQualityRecord(const RecordType& smrtRecord,
                                                                  const int recordStart,
                                                                  const int recordEnd,
@@ -472,10 +594,15 @@ bool ConverterBase<RecordType, HdfReader>::WriteLowQualityRecord(const RecordTyp
         return false;
     }
 
-    // Try to add the additional tag supplied by the caller
+    // add scrap tags
+    if (!bamRecord_.AddTag(Tag_sz, normalZmwTag_))
+    {
+        AddErrorMessage("failed to add scrap's zmw classification tag");
+        return false;
+    }
     if (!bamRecord_.AddTag(Tag_sc, lowQualityTag_))
     {
-        AddErrorMessage("failed to add low-quality tag");
+        AddErrorMessage("failed to add scrap's low-quality region tag");
         return false;
     }
 
@@ -507,10 +634,15 @@ bool ConverterBase<RecordType, HdfReader>::WriteAdapterRecord(const RecordType& 
         return false;
     }
 
-    // Try to add the additional tag supplied by the caller
+    // add scrap tags
+    if (!bamRecord_.AddTag(Tag_sz, normalZmwTag_))
+    {
+        AddErrorMessage("failed to add scrap's zmw classification tag");
+        return false;
+    }
     if (!bamRecord_.AddTag(Tag_sc, adapterTag_))
     {
-        AddErrorMessage("failed to add adapter tag");
+        AddErrorMessage("failed to add scrap's adapter tag");
         return false;
     }
 
@@ -643,6 +775,10 @@ void ConverterBase<RecordType, HdfReader>::InitReadScores(HdfReader* reader)
         }
     }
 }
+
+template<typename RecordType, typename HdfReader>
+bool ConverterBase<RecordType, HdfReader>::IsSequencingZmw(const RecordType& record) const
+{ return record.zmwData.holeStatus == 0; }
 
 template<typename RecordType, typename HdfReader>
 bool ConverterBase<RecordType, HdfReader>::LoadChemistryFromMetadataXML(

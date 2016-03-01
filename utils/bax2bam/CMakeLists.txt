@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 2.8)
 # project version
 set(Bax2Bam_MAJOR_VERSION 0)
 set(Bax2Bam_MINOR_VERSION 0)
-set(Bax2Bam_PATCH_VERSION 7)
+set(Bax2Bam_PATCH_VERSION 8)
 set(Bax2Bam_VERSION
   "${Bax2Bam_MAJOR_VERSION}.${Bax2Bam_MINOR_VERSION}.${Bax2Bam_PATCH_VERSION}"
 )

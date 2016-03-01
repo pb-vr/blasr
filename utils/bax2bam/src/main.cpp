@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
     optparse::OptionParser parser;
     parser.description("bax2bam converts the legacy PacBio basecall format (bax.h5) into the BAM basecall format.");
     parser.prog("bax2bam");
-    parser.version("0.0.3");
+    parser.version("0.0.8");
     parser.add_version_option(true);
     parser.add_help_option(true);
 
@@ -49,24 +49,24 @@ int main(int argc, char* argv[])
                  .help("Specify that input data is from Sequel. "
                        "bax2bam will assume RS unless this option is specified");
 
-    auto modeGroup = optparse::OptionGroup(parser, "Output read types (mutually exclusive:)");
-    modeGroup.add_option("--subread")
-             .dest(Settings::Option::subreadMode_)
-             .action("store_true")
-             .help("Output subreads (default)");
-    modeGroup.add_option("--hqregion")
-             .dest(Settings::Option::hqRegionMode_)
-             .action("store_true")
-             .help("Output HQ regions");
-    modeGroup.add_option("--polymeraseread")
-             .dest(Settings::Option::polymeraseMode_)
-             .action("store_true")
-             .help("Output full polymerase read");
-    modeGroup.add_option("--ccs")
-             .dest(Settings::Option::ccsMode_)
-             .action("store_true")
-             .help("Output CCS sequences");
-    parser.add_option_group(modeGroup);
+    auto readModeGroup = optparse::OptionGroup(parser, "Output read types (mutually exclusive)");
+    readModeGroup.add_option("--subread")
+                 .dest(Settings::Option::subreadMode_)
+                 .action("store_true")
+                 .help("Output subreads (default)");
+    readModeGroup.add_option("--hqregion")
+                 .dest(Settings::Option::hqRegionMode_)
+                 .action("store_true")
+                 .help("Output HQ regions");
+    readModeGroup.add_option("--polymeraseread")
+                 .dest(Settings::Option::polymeraseMode_)
+                 .action("store_true")
+                 .help("Output full polymerase read");
+    readModeGroup.add_option("--ccs")
+                 .dest(Settings::Option::ccsMode_)
+                 .action("store_true")
+                 .help("Output CCS sequences");
+    parser.add_option_group(readModeGroup);
 
     auto featureGroup = optparse::OptionGroup(parser, "Pulse feature options");
     featureGroup.group_description("Configure pulse features in the output BAM. Supported features include:\n"
@@ -92,11 +92,21 @@ int main(int argc, char* argv[])
                 .help("Store full, 16-bit IPD/PulseWidth data, instead of (default) downsampled, 8-bit encoding.");
     parser.add_option_group(featureGroup);
 
+    auto bamModeGroup = optparse::OptionGroup(parser, "Output BAM file type");
+    bamModeGroup.add_option("--internal")
+                .dest(Settings::Option::internalMode_)
+                .action("store_true")
+                .help("Output BAMs in internal mode. Currently this indicates that "
+                      "non-sequencing ZMWs should be included in the output scraps "
+                      "BAM file, if applicable."
+                      );
+    parser.add_option_group(bamModeGroup);
+
     // parse command line
     Settings settings = Settings::FromCommandLine(parser, argc, argv);
-    if (!settings.errors_.empty()) {
+    if (!settings.errors.empty()) {
         cerr << endl;
-        for (const auto e : settings.errors_)
+        for (const auto e : settings.errors)
             cerr << "ERROR: " << e << endl;
         cerr << endl;
         parser.print_help();
