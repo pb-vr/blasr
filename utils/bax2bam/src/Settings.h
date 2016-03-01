@@ -27,6 +27,7 @@ public:
         static const char* pulseFeatures_;
         static const char* subreadMode_;
         static const char* ccsMode_;
+        static const char* internalMode_;
         static const char* outputXml_;
         static const char* sequelPlatform_;
     };
@@ -50,9 +51,10 @@ public:
 
     // mode
     Mode mode;
+    bool isInternal;
 
     // platform
-    bool isSequelInput_;
+    bool isSequelInput;
 
     // features
     bool usingDeletionQV;
@@ -79,7 +81,7 @@ public:
     std::string scrapsReadGroupId;
 
     // command line parsing
-    std::vector<std::string> errors_;
+    std::vector<std::string> errors;
 };
 
 #endif // SETTINGS_H

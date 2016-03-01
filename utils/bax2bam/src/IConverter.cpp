@@ -36,7 +36,7 @@ BamHeader IConverter::CreateHeader(const string& modeString)
     //     PL: PACBIO
     //     PU: <movieName>
     //
-    const PlatformModelType platform = settings_.isSequelInput_ ? PlatformModelType::SEQUEL
+    const PlatformModelType platform = settings_.isSequelInput ? PlatformModelType::SEQUEL
                                                                 : PlatformModelType::RS;
     ReadGroupInfo rg(settings_.movieName, modeString, platform);
     rg.BindingKit(bindingKit_)

@@ -85,12 +85,14 @@ const char* Settings::Option::polymeraseMode_ = "polymeraseMode";
 const char* Settings::Option::pulseFeatures_  = "pulseFeatures";
 const char* Settings::Option::subreadMode_    = "subreadMode";
 const char* Settings::Option::ccsMode_        = "ccsMode";
+const char* Settings::Option::internalMode_   = "internalMode";
 const char* Settings::Option::outputXml_      = "outputXml";
 const char* Settings::Option::sequelPlatform_ = "sequelPlatform";
 
 Settings::Settings(void)
     : mode(Settings::SubreadMode)
-    , isSequelInput_(false)
+    , isInternal(false)
+    , isSequelInput(false)
     , usingDeletionQV(true)
     , usingDeletionTag(true)
     , usingInsertionQV(true)
@@ -151,7 +153,7 @@ Settings Settings::FromCommandLine(optparse::OptionParser& parser,
     }
 
     if (settings.inputBaxFilenames.empty())
-        settings.errors_.push_back("missing input BAX files.");
+        settings.errors.push_back("missing input BAX files.");
 
     // mode
     const bool isSubreadMode =
@@ -182,10 +184,14 @@ Settings Settings::FromCommandLine(optparse::OptionParser& parser,
         if (isCCS)            settings.mode = Settings::CCSMode;
     }
     else
-        settings.errors_.push_back("multiple modes selected");
+        settings.errors.push_back("multiple modes selected");
+
+    // internal file mode
+    settings.isInternal = options.is_set(Settings::Option::internalMode_) ? options.get(Settings::Option::internalMode_)
+                                                                          : false;
 
     // platform
-    settings.isSequelInput_ = options.is_set(Settings::Option::sequelPlatform_) ? options.get(Settings::Option::sequelPlatform_)
+    settings.isSequelInput = options.is_set(Settings::Option::sequelPlatform_) ? options.get(Settings::Option::sequelPlatform_)
                                                                                 : false;
 
     // frame data encoding
@@ -218,7 +224,7 @@ Settings Settings::FromCommandLine(optparse::OptionParser& parser,
             else if (feature == "SubstitutionQV")  settings.usingSubstitutionQV = true;
             else if (feature == "SubstitutionTag") settings.usingSubstitutionTag = true;
             else
-                settings.errors_.push_back(string("unknown pulse feature: ") + feature);
+                settings.errors.push_back(string("unknown pulse feature: ") + feature);
         }
     }
 

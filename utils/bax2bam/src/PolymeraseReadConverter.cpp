@@ -17,9 +17,6 @@ bool PolymeraseReadConverter::ConvertFile(HDFBasReader* reader,
 {
     assert(reader);
 
-    // initialize BamRecord with default values (shared across all reads)
-    PacBio::BAM::BamRecordImpl bamRecord;
-
     // initialize read scores
     InitReadScores(reader);
 
@@ -28,7 +25,7 @@ bool PolymeraseReadConverter::ConvertFile(HDFBasReader* reader,
     while (reader->GetNext(smrtRecord)) {
 
         // Skip empty records
-        if (smrtRecord.length == 0)
+        if ((smrtRecord.length == 0) || !IsSequencingZmw(smrtRecord))
             continue;
 
         // attempt convert BAX to BAM
