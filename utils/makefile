@@ -12,7 +12,7 @@ override CXXFLAGS += ${CXXOPTS} ${GCXXFLAGS}
 
 EXE = loadPulses pls2fasta samtoh5 samtom4 samFilter toAfg sawriter sdpMatcher
 
-LD_LIBRARY_PATH=${HDF5_LIB}:${LIBBLASR_LIB}:${LIBPBIHDF_LIB}:${LIBPBDATA_LIB}
+LD_LIBRARY_PATH:=${HDF5_LIB}:${LIBBLASR_LIB}:${LIBPBIHDF_LIB}:${LIBPBDATA_LIB}:${LD_LIBRARY_PATH}
 export LD_LIBRARY_PATH
 
 vpath %.cpp ${SRCDIR}
