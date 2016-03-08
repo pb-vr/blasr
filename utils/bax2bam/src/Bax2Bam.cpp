@@ -7,7 +7,7 @@
 #include "SubreadConverter.h"
 #include <pbbam/DataSet.h>
 #include <boost/algorithm/string.hpp>
-#include <boost/scoped_ptr.hpp>
+#include <memory>
 #include <fstream>
 #include <iostream>
 #include <cstdio>
@@ -135,7 +135,7 @@ bool WriteDatasetXmlOutput(const Settings& settings,
 int Bax2Bam::Run(Settings& settings) {
 
     // init conversion mode
-    boost::scoped_ptr<IConverter> converter;
+    std::unique_ptr<IConverter> converter;
     switch (settings.mode) {
         case Settings::HQRegionMode   : converter.reset(new HqRegionConverter(settings)); break;
         case Settings::PolymeraseMode : converter.reset(new PolymeraseReadConverter(settings)); break;

@@ -5,7 +5,6 @@
 
 #include "CCSSequence.hpp"
 #include "HDFCCSReader.hpp"
-#include <boost/scoped_ptr.hpp>
 #include <gtest/gtest.h>
 #include <pbbam/BamFile.h>
 #include <pbbam/BamRecord.h>

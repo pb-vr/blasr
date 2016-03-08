@@ -15,7 +15,6 @@
 #include <pbbam/virtual/VirtualRegionTypeMap.h>
 #include "RegionsAdapter.h"
 #include "IConverter.h"
-#include <boost/scoped_ptr.hpp>
 
 
 namespace Bam2BaxDefaults {

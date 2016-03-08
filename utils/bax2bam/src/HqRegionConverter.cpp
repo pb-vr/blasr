@@ -4,9 +4,9 @@
 
 #include "utils/RegionUtils.hpp"
 #include "HDFRegionTableReader.hpp"
-#include <boost/scoped_ptr.hpp>
 #include <pbbam/BamRecord.h>
 #include <pbbam/BamWriter.h>
+#include <memory>
 #include <set>
 #include <sstream>
 
@@ -32,7 +32,7 @@ bool HqRegionConverter::ConvertFile(HDFBasReader* reader,
     assert(reader);
 
     // read region table info
-    boost::scoped_ptr<HDFRegionTableReader> regionTableReader(new HDFRegionTableReader);
+    std::unique_ptr<HDFRegionTableReader> const regionTableReader(new HDFRegionTableReader);
     RegionTable regionTable;
     std::string fn = filenameForReader_[reader];
     assert(!fn.empty());

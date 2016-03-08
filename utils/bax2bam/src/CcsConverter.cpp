@@ -6,7 +6,6 @@
 
 #include "utils/RegionUtils.hpp"
 #include "HDFRegionTableReader.hpp"
-#include <boost/scoped_ptr.hpp>
 
 #include <pbbam/BamRecord.h>
 #include <pbbam/BamWriter.h>
