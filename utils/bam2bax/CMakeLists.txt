@@ -104,6 +104,10 @@ check_cxx_compiler_flag("-Wunused-but-set-variable" HAS_NO_UNUSED_BUT_SET_VARIAB
 if(HAS_NO_UNUSED_BUT_SET_VARIABLE)
     set(Bam2Bax_CXX_FLAGS "${Bam2Bax_CXX_FLAGS} -Wunused-but-set-variable")
 endif()
+check_cxx_compiler_flag("-Wno-deprecated-declarations" HAS_NO_DEPRECATED_DECLARATIONS)
+if(HAS_NO_DEPRECATED_DECLARATIONS)
+    set(Bam2Bax_CXX_FLAGS "${Bam2Bax_CXX_FLAGS} -Wno-deprecated-declarations")
+endif()
 
 SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${Bam2Bax_LINKER_FLAGS}" )
 
