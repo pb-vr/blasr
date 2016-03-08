@@ -2,6 +2,7 @@
 
 #include <unistd.h> // getcwd
 #include <iostream>
+#include <memory>
 
 #include "HDFBaxWriter.hpp"
 #include "HDFPulseWriter.hpp"
@@ -9,7 +10,6 @@
 #include "Bam2Bax.h"
 #include "Bam2BaxConverter.h"
 #include "IConverter.h"
-#include <boost/scoped_ptr.hpp>
 
 using namespace std;
 
@@ -28,7 +28,7 @@ string CurrentWorkingDir(void)
 int Bam2Bax::Run(Settings& settings) {
 
     bool success = false;
-    boost::scoped_ptr<IConverter> converter;
+    std::unique_ptr<IConverter> converter;
     if (settings.mode == Settings::BaseMode) {
         std::cout << "Converting BAM to bax.h5." << std::endl;
         converter.reset(new Bam2BaxConverter<HDFBaxWriter>(settings));

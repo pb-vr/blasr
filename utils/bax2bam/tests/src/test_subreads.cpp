@@ -6,7 +6,6 @@
 #include "HDFBasReader.hpp"
 #include "alignment/utils/RegionUtils.hpp"
 #include "hdf/HDFRegionTableReader.hpp"
-#include <boost/scoped_ptr.hpp>
 #include <gtest/gtest.h>
 #include <pbbam/BamFile.h>
 #include <pbbam/BamRecord.h>
@@ -184,7 +183,7 @@ TEST(SubreadsTest, EndToEnd_Multiple)
     }
 
     // read region table info
-    boost::scoped_ptr<HDFRegionTableReader> regionTableReader(new HDFRegionTableReader);
+    std::unique_ptr<HDFRegionTableReader> const regionTableReader(new HDFRegionTableReader);
     RegionTable regionTable;
     std::string fn = baxFilenames.front();
     EXPECT_TRUE(regionTableReader->Initialize(fn) != 0);
@@ -319,7 +318,7 @@ TEST(SubreadsTest, EndToEnd_Multiple)
 compare:
             const BamRecordImpl& bamRecordImpl = bamRecord.Impl();
             EXPECT_EQ(4680,bamRecordImpl.Bin());
-            EXPECT_EQ(0,   bamRecordImpl.InsertSize());
+            EXPECT_EQ(0U,   bamRecordImpl.InsertSize());
             EXPECT_EQ(255, bamRecordImpl.MapQuality());
             EXPECT_EQ(-1,  bamRecordImpl.MatePosition());
             EXPECT_EQ(-1,  bamRecordImpl.MateReferenceId());
@@ -398,7 +397,7 @@ compare:
         }
 
 cleanup:
-        EXPECT_GT(numTested, 1);
+        EXPECT_GT(numTested, 1UL);
 
         // cleanup
         baxReader.Close();

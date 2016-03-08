@@ -5,13 +5,12 @@
 #include "utils/RegionUtils.hpp"
 #include "HDFRegionTableReader.hpp"
 
-#include <boost/scoped_ptr.hpp>
-
 #include <pbbam/BamRecord.h>
 #include <pbbam/BamWriter.h>
 
 #include <algorithm>
 #include <deque>
+#include <memory>
 
 #define MAX( A, B )     ( (A)>(B) ? (A) : (B) )
 #define MAX3( A, B, C ) MAX( MAX( A, B ), C )
@@ -131,7 +130,7 @@ bool SubreadConverter::ConvertFile(HDFBasReader* reader,
     BamRecordImpl bamRecord;
 
     // read region table info
-    boost::scoped_ptr<HDFRegionTableReader> regionTableReader(new HDFRegionTableReader);
+    std::unique_ptr<HDFRegionTableReader> const regionTableReader(new HDFRegionTableReader);
     RegionTable regionTable;
     string fn = filenameForReader_[reader];
     assert(!fn.empty());
