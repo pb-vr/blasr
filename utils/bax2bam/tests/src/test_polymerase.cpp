@@ -151,7 +151,7 @@ TEST(PolymeraseTest, EndToEnd_Single)
             firstRecord = false;
 
             const BamRecordImpl& bamRecordImpl = bamRecord.Impl();
-            EXPECT_EQ(4680,bamRecordImpl.Bin());
+            EXPECT_EQ(4680U,bamRecordImpl.Bin());
             EXPECT_EQ(0,   bamRecordImpl.InsertSize());
             EXPECT_EQ(255, bamRecordImpl.MapQuality());
             EXPECT_EQ(-1,  bamRecordImpl.MatePosition());

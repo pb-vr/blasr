@@ -242,7 +242,7 @@ TEST(SubreadsTest, EndToEnd_Multiple)
 
         // compare 1st record from each file
         SMRTSequence baxRecord;
-        UInt holeNumber = 0;
+        auto holeNumber = 0;
         vector<float> hqSnr;
 
         size_t intervalIdx = 0;
@@ -317,8 +317,8 @@ TEST(SubreadsTest, EndToEnd_Multiple)
 
 compare:
             const BamRecordImpl& bamRecordImpl = bamRecord.Impl();
-            EXPECT_EQ(4680,bamRecordImpl.Bin());
-            EXPECT_EQ(0U,   bamRecordImpl.InsertSize());
+            EXPECT_EQ(4680U,bamRecordImpl.Bin());
+            EXPECT_EQ(0,   bamRecordImpl.InsertSize());
             EXPECT_EQ(255, bamRecordImpl.MapQuality());
             EXPECT_EQ(-1,  bamRecordImpl.MatePosition());
             EXPECT_EQ(-1,  bamRecordImpl.MateReferenceId());
