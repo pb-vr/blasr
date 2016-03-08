@@ -156,9 +156,9 @@ TEST(CcsTest, EndToEnd_Multiple)
             goto cleanup;
 
 compare:
-            EXPECT_GT(baxRecord.length, 0);
+            EXPECT_GT(baxRecord.length, 0U);
             const BamRecordImpl& bamRecordImpl = bamRecord.Impl();
-            EXPECT_EQ(4680,bamRecordImpl.Bin());
+            EXPECT_EQ(4680U,bamRecordImpl.Bin());
             EXPECT_EQ(0,   bamRecordImpl.InsertSize());
             EXPECT_EQ(255, bamRecordImpl.MapQuality());
             EXPECT_EQ(-1,  bamRecordImpl.MatePosition());
@@ -208,7 +208,7 @@ compare:
         }
 
 cleanup:
-        EXPECT_GT(numTested, 1);
+        EXPECT_GT(numTested, 1UL);
 
         // cleanup
         baxReader.Close();

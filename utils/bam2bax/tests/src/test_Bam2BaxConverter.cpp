@@ -33,7 +33,7 @@ TEST(Bam2BaxConverter, CreateRegionAnnotation_DefaultRegionTypes)
 {
     int zmw = 12134, beginPos = 0, endPos = 100, score = 770;
 
-    EXPECT_EQ(defaultRegionTypes.size(), 3);
+    EXPECT_EQ(defaultRegionTypes.size(), 3U);
     EXPECT_EQ(defaultRegionTypes[0],  Adapter);
     EXPECT_EQ(defaultRegionTypes[1],  Insert);
     EXPECT_EQ(defaultRegionTypes[2],  HQRegion);
@@ -65,7 +65,7 @@ TEST(Bam2BaxConverter, CreateRegionAnnotation_DefinedRegionTypes)
 {
     int zmw = 12134, beginPos = 0, endPos = 100, score = 770;
 
-    EXPECT_EQ(definedRegionTypes.size(), 4);
+    EXPECT_EQ(definedRegionTypes.size(), 4U);
     EXPECT_EQ(definedRegionTypes[0],  Insert);
     EXPECT_EQ(definedRegionTypes[1],  HQRegion);
     EXPECT_EQ(definedRegionTypes[2],  Adapter);

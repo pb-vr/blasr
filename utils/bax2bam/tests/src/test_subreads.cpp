@@ -318,7 +318,7 @@ TEST(SubreadsTest, EndToEnd_Multiple)
 compare:
             const BamRecordImpl& bamRecordImpl = bamRecord.Impl();
             EXPECT_EQ(4680,bamRecordImpl.Bin());
-            EXPECT_EQ(0,   bamRecordImpl.InsertSize());
+            EXPECT_EQ(0U,   bamRecordImpl.InsertSize());
             EXPECT_EQ(255, bamRecordImpl.MapQuality());
             EXPECT_EQ(-1,  bamRecordImpl.MatePosition());
             EXPECT_EQ(-1,  bamRecordImpl.MateReferenceId());
@@ -397,7 +397,7 @@ compare:
         }
 
 cleanup:
-        EXPECT_GT(numTested, 1);
+        EXPECT_GT(numTested, 1UL);
 
         // cleanup
         baxReader.Close();
