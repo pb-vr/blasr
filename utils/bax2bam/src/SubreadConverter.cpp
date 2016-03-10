@@ -45,7 +45,16 @@ struct SubreadInterval
     { }
 };
 
-static
+namespace {
+
+struct ReadIntervalComparer {
+    bool operator()(const ReadInterval& lhs, const ReadInterval& rhs) const {
+        if (lhs.start == rhs.start)
+            return lhs.end < rhs.end;
+        return lhs.start < rhs.start;
+    }
+};
+
 SubreadInterval ComputeSubreadIntervals(deque<SubreadInterval>* const intervals,
                                         deque<SubreadInterval>* const adapters,
                                         RegionTable& regionTable,
@@ -128,6 +137,8 @@ SubreadInterval ComputeSubreadIntervals(deque<SubreadInterval>* const intervals,
 
     return SubreadInterval(hqStart, hqEnd);
 }
+
+} // anon
 
 bool SubreadConverter::ConvertFile(HDFBasReader* reader,
                                    PacBio::BAM::BamWriter* writer)
