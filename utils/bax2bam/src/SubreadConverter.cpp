@@ -79,6 +79,21 @@ SubreadInterval ComputeSubreadIntervals(deque<SubreadInterval>* const intervals,
     // adapter intervals of this zmw
     vector<ReadInterval> adapterIntervals = zmwRegions.AdapterIntervals();
 
+    // Catch and trim overlapping adapter calls
+    // Shared starts indicate multiple alignments for the same adapter
+    // Unique starts indicate multiple overlapping adapters
+    // Therefore we trim adapter ends and remove any 0-length adapters
+    // such that the number of adapter regions == number of adapters
+    stable_sort(adapterIntervals.begin(), adapterIntervals.end(), ReadIntervalComparer());
+    for (size_t i = 1; i < adapterIntervals.size(); i++) {
+        if (adapterIntervals[i-1].end > adapterIntervals[i].start)
+            adapterIntervals[i-1].end = adapterIntervals[i].start;
+    }
+    adapterIntervals.erase(
+            std::remove_if(adapterIntervals.begin(), adapterIntervals.end(),
+                    [](const ReadInterval& interval) { return interval.start == interval.end; }),
+            adapterIntervals.end());
+
     size_t subreadStart  = hqStart;
     bool   adapterBefore = false;
 
