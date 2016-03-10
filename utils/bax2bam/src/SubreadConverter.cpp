@@ -85,9 +85,9 @@ SubreadInterval ComputeSubreadIntervals(deque<SubreadInterval>* const intervals,
     // Therefore we trim adapter ends and remove any 0-length adapters
     // such that the number of adapter regions == number of adapters
     stable_sort(adapterIntervals.begin(), adapterIntervals.end(), ReadIntervalComparer());
-    for (size_t i = 0; i < adapterIntervals.size() - 1; i++) {
-        if (adapterIntervals[i].end > adapterIntervals[i+1].start)
-            adapterIntervals[i].end = adapterIntervals[i+1].start;
+    for (size_t i = 1; i < adapterIntervals.size(); i++) {
+        if (adapterIntervals[i-1].end > adapterIntervals[i].start)
+            adapterIntervals[i-1].end = adapterIntervals[i].start;
     }
     adapterIntervals.erase(
             std::remove_if(adapterIntervals.begin(), adapterIntervals.end(),
