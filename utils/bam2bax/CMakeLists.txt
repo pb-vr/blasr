@@ -82,7 +82,6 @@ endif()
 include(CheckCXXCompilerFlag)
 set(Bam2Bax_CXX_FLAGS "-g -std=c++11 -Wall")
 
-
 # quash warnings from pbdata
 check_cxx_compiler_flag("-Wno-overloaded-virtual" HAS_NO_OVERLOADED_VIRTUAL)
 if(HAS_NO_OVERLOADED_VIRTUAL)
@@ -100,13 +99,18 @@ check_cxx_compiler_flag("-Wno-uninitialized" HAS_NO_UNINITIALIZED)
 if(HAS_NO_UNINITIALIZED)
     set(Bam2Bax_CXX_FLAGS "${Bam2Bax_CXX_FLAGS} -Wno-uninitialized")
 endif()
-check_cxx_compiler_flag("-Wunused-but-set-variable" HAS_NO_UNUSED_BUT_SET_VARIABLE)
-if(HAS_NO_UNUSED_BUT_SET_VARIABLE)
+check_cxx_compiler_flag("-Wunused-but-set-variable" HAS_UNUSED_BUT_SET_VARIABLE)
+if(HAS_UNUSED_BUT_SET_VARIABLE)
     set(Bam2Bax_CXX_FLAGS "${Bam2Bax_CXX_FLAGS} -Wunused-but-set-variable")
 endif()
 check_cxx_compiler_flag("-Wno-deprecated-declarations" HAS_NO_DEPRECATED_DECLARATIONS)
 if(HAS_NO_DEPRECATED_DECLARATIONS)
     set(Bam2Bax_CXX_FLAGS "${Bam2Bax_CXX_FLAGS} -Wno-deprecated-declarations")
+endif()
+# NOTE: -Wno-unused-local-typedefs used to quash clang warnings w/ Boost
+check_cxx_compiler_flag("-Wno-unused-local-typedef" HAS_NO_UNUSED_LOCAL_TYPEDEF)
+if(HAS_NO_UNUSED_LOCAL_TYPEDEF)
+    set(Bam2Bax_CXX_FLAGS "${Bam2Bax_CXX_FLAGS} -Wno-unused-local-typedef")
 endif()
 
 SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${Bam2Bax_LINKER_FLAGS}" )

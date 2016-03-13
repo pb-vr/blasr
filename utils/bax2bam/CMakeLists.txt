@@ -102,6 +102,11 @@ check_cxx_compiler_flag("-Wno-deprecated-declarations" HAS_NO_DEPRECATED_DECLARA
 if(HAS_NO_DEPRECATED_DECLARATIONS)
     set(Bax2Bam_CXX_FLAGS "${Bax2Bam_CXX_FLAGS} -Wno-deprecated-declarations")
 endif()
+# NOTE: -Wno-unused-local-typedefs used to quash clang warnings w/ Boost
+check_cxx_compiler_flag("-Wno-unused-local-typedef" HAS_NO_UNUSED_LOCAL_TYPEDEF)
+if(HAS_NO_UNUSED_LOCAL_TYPEDEF)
+    set(Bax2Bam_CXX_FLAGS "${Bax2Bam_CXX_FLAGS} -Wno-unused-local-typedef")
+endif()
 
 SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${BAX2BAM_LINKER_FLAGS}" )
 
