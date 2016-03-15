@@ -23,7 +23,7 @@ HDFRegionTableReader *regionTableReader = NULL;
 ReaderAgglomerate *reader = NULL;
 
 const string GetMajorVersion() {
-  return "3";
+  return "5.0";
 }
 
 const string GetVersion(void) {
