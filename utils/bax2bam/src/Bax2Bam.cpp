@@ -117,6 +117,24 @@ bool WriteDatasetXmlOutput(const Settings& settings,
         resources.Add(mainBam);
         dataset.ExternalResources(resources);
 
+        // update TotalLength & NumRecords
+        const BamFile subreadFile{ settings.outputBamFilename };
+        const string subreadPbiFn = subreadFile.PacBioIndexFilename();
+        const PbiRawData subreadsIndex{ subreadPbiFn };
+        const PbiRawBasicData& subreadData = subreadsIndex.BasicData();
+
+        uint64_t totalLength = 0;
+        uint32_t numRecords = subreadsIndex.NumReads();
+        for (uint32_t i = 0; i < numRecords; ++i) {
+            const auto subreadLength = subreadData.qEnd_.at(i) - subreadData.qStart_.at(i);
+            totalLength += subreadLength;
+        }
+
+        DataSetMetadata metadata = dataset.Metadata();
+        metadata.TotalLength(std::to_string(totalLength));
+        metadata.NumRecords(std::to_string(numRecords));
+        dataset.Metadata(metadata);
+
         // save to file 
         string xmlFn = settings.outputXmlFilename; // try user-provided explicit filename first
         if (xmlFn.empty())
