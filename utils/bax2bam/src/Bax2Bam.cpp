@@ -6,6 +6,7 @@
 #include "PolymeraseReadConverter.h"
 #include "SubreadConverter.h"
 #include <pbbam/DataSet.h>
+#include <pbbam/PbiRawData.h>
 #include <boost/algorithm/string.hpp>
 #include <memory>
 #include <fstream>
