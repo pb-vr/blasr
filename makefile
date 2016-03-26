@@ -9,7 +9,7 @@ foo:
 	echo $(MAKEFILE_LIST)
 	echo ${SRCDIR}
 
-CXXFLAGS ?= -O3 -g
+CXXFLAGS ?= -O3 -g -DSHA1_7=\"$(GET_SHA1)\" 
 CXXOPTS += \
 		   -std=c++0x -pedantic \
            -Wall -Wextra -Wno-div-by-zero -Wno-overloaded-virtual \
@@ -28,6 +28,7 @@ override CXXFLAGS += ${CXXOPTS} ${GCXXFLAGS}
 SRCS := Blasr.cpp
 OBJS := ${SRCS:.cpp=.o}
 DEPS := ${SRCS:.cpp=.d}
+GET_SHA1 := $(shell git describe --abbrev=7 --always)
 
 override BLASR_PATH=${SRCDIR}/
 export BLASR_PATH
