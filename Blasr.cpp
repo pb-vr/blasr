@@ -26,12 +26,13 @@ const string GetMajorVersion() {
   return "5.0";
 }
 
+// version format is 3 numbers sparated by dots : Version.Subversion.SHA1
 const string GetVersion(void) {
-  string perforceVersionString("$Change$");
+  string gitVersionString(SHA1_7);  // gitVersionString is first 7 characters of SHA1
   string version = GetMajorVersion();
-  if (perforceVersionString.size() > 12) {
-    version.insert(version.size(), ".");
-    version.insert(version.size(), perforceVersionString, 9, perforceVersionString.size() - 11);
+  if (gitVersionString.size() == 7) {
+    version.append(".");
+    version.append(gitVersionString);
   }
   return version;
 }
