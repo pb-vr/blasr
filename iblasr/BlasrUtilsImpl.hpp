@@ -1093,6 +1093,26 @@ void PrintAlignmentPtrs(vector <T_AlignmentCandidate*> & alignmentPtrs,
     out << endl;
 }
 
+
+void PrintUnaligned(const SMRTSequence & unalignedRead,
+                    ostream & unalignedFilePtr,
+                    const bool noPrintUnalignedSeqs) {
+    if (noPrintUnalignedSeqs) {
+        string s = unalignedRead.GetTitle();
+        SMRTTitle st(s);
+        if (st.isSMRTTitle)
+            unalignedFilePtr << st.ToString() << endl;
+        else
+            //size_t pos = s.rfind("/");
+            //if (pos != string::npos)
+            //    unalignedFilePtr << s.substr(0, pos) << std::endl;
+            //else
+                unalignedFilePtr << s << std::endl;
+    } else
+        unalignedRead.PrintSeq(unalignedFilePtr);
+}
+
+
 // Print all alignments for subreads in allReadAlignments.
 // Input:
 //   allReadAlignments - contains a set of subreads, each of which
@@ -1166,8 +1186,9 @@ void PrintAllReadAlignments(ReadAlignments & allReadAlignments,
       //
       if (params.printUnaligned == true) {
         if (params.nProc == 1) {
-          //allReadAlignments.subreads[subreadIndex].PrintSeq(*mapData->unalignedFilePtr);
-          allReadAlignments.subreads[subreadIndex].PrintSeq(unalignedFilePtr);
+            PrintUnaligned(*sourceSubread,
+                           unalignedFilePtr,
+                           params.noPrintUnalignedSeqs);
         }
         else {
 #ifdef __APPLE__
@@ -1175,8 +1196,9 @@ void PrintAllReadAlignments(ReadAlignments & allReadAlignments,
 #else
           sem_wait(&semaphores.unaligned);
 #endif
-          //allReadAlignments.subreads[subreadIndex].PrintSeq(*mapData->unalignedFilePtr);
-          allReadAlignments.subreads[subreadIndex].PrintSeq(unalignedFilePtr);
+          PrintUnaligned(*sourceSubread,//subreads[subreadIndex],
+                         unalignedFilePtr,
+                         params.noPrintUnalignedSeqs);
 #ifdef __APPLE__
           sem_post(semaphores.unaligned);
 #else
