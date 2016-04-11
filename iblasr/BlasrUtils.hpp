@@ -138,6 +138,13 @@ void PrintAlignments(vector<T_AlignmentCandidate*> alignmentPtrs,
 void PrintAlignmentPtrs(vector <T_AlignmentCandidate*> & alignmentPtrs,
                         ostream & out = cout);
 
+
+// Print an unaligned read, if noPrintUnalignedSeqs is True, print title only;
+// otherwise, print title and sequence of the read.
+void PrintUnaligned(const SMRTSequence & unalignedRead,
+                    ostream & unalignedFilePtr,
+                    const bool noPrintUnalignedSeqs);
+
 // Print all alignments for subreads in allReadAlignments.
 // Input:
 //   allReadAlignments - contains a set of subreads, each of which

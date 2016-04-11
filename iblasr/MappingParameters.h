@@ -143,6 +143,7 @@ public:
     bool useRegionTable;
     bool useHQRegionTable;
     bool printUnaligned;
+    bool noPrintUnalignedSeqs; // print unaligned reads names only.
     string unalignedFileName;
     string metricsFileName;
     string lcpBoundsFileName;
@@ -311,6 +312,7 @@ public:
         useHQRegionTable=true;
         printUnaligned = false;
         unalignedFileName = "";
+        noPrintUnalignedSeqs = false;
         globalChainType = 0;
         metricsFileName = "";
         fullMetricsFileName = "";

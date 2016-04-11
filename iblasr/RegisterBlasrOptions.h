@@ -139,6 +139,8 @@ void RegisterBlasrOptions(CommandLineParser & clp, MappingParameters & params) {
     clp.RegisterFlagOption("ignoreHQRegions", &params.useHQRegionTable, "");
     clp.RegisterFlagOption("computeAlignProbability", &params.computeAlignProbability, "");
     clp.RegisterStringOption("unaligned", &params.unalignedFileName, "");
+    // Print unaligned reads names only
+    clp.RegisterFlagOption("noPrintUnalignedSeqs", &params.noPrintUnalignedSeqs, "");
     clp.RegisterFlagOption("global", &params.doGlobalAlignment, "");
     clp.RegisterIntOption("globalChainType", &params.globalChainType, "", CommandLineParser::NonNegativeInteger);
     clp.RegisterFlagOption("noPrintSubreadTitle", (bool*) &params.printSubreadTitle, "");
@@ -280,6 +282,8 @@ const string BlasrHelp(MappingParameters & params) {
              << "               very verbose titles exist in reference names."<< endl
              << "   -unaligned file" << endl
              << "               Output reads that are not aligned to 'file'" << endl
+             << "   -noPrintUnalignedSeqs" << endl
+             << "               Must be used together with -unaligned, print unaligned read names only." << endl
              << "   -clipping [none|hard|subread|soft] (none)" << endl
              << "               Use no/hard/subread/soft clipping, ONLY for SAM/BAM output."<< endl
              << "   -printSAMQV (false)" << endl
