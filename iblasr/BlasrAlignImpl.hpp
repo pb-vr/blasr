@@ -1492,7 +1492,30 @@ void AlignSubreadToAlignmentTarget(ReadAlignments & allReadAlignments,
             }
 
             *alignmentPtr = exploded;
-            allReadAlignments.AddAlignmentForSeq(subreadIndex, alignmentPtr);
+            //
+            // Check if need to be filtered
+            // For now filtering only in concordant mode
+            // Later add filtration in other modes
+            //
+            if (allReadAlignments.alignMode == ZmwSubreads) {
+                if (params.filterCriteria.Satisfy(alignmentPtr)) {
+                    if (params.verbosity > 3) {
+                        std::cerr << " Filters passed. Adding slave alignment in concordant mode" << std::endl;
+                    }
+                    allReadAlignments.AddAlignmentForSeq(subreadIndex, alignmentPtr);
+                }
+                else {
+                    // delete alignment immediately
+                    if (params.verbosity > 3) {
+                        std::cerr << " Filters failed. Delete alignment immediately" << std::endl;
+                    }
+                    delete alignmentPtr;
+                }
+            }
+            // for all modes except ZmwSubreads no filtering for now
+            else {
+                allReadAlignments.AddAlignmentForSeq(subreadIndex, alignmentPtr);
+            }
         } // End of exploded score <= maxScore.
         if (params.verbosity >= 3) {
             threadOut << "exploded score: " << exploded.score << endl
