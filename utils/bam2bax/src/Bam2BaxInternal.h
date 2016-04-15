@@ -2,6 +2,7 @@
 
 #ifndef _BAM2BAXINTERNAL_H_
 #define _BAM2BAXINTERNAL_H_
+#include <pbbam/EntireFileQuery.h>
 
 //namespace internal
 namespace internal {
