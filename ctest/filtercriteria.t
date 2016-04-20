@@ -27,4 +27,4 @@ Test -minPctSimilarity
   $ echo $?
   0
   $ wc -l $O |cut -f 1 -d ' ' 
-  12
+  14
