@@ -13,6 +13,7 @@
 #include <pbbam/virtual/VirtualRegion.h>
 #include <pbbam/virtual/VirtualRegionType.h>
 #include <pbbam/virtual/VirtualRegionTypeMap.h>
+#include "HDFFile.hpp"
 #include "RegionsAdapter.h"
 #include "IConverter.h"
 

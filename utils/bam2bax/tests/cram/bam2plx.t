@@ -207,7 +207,7 @@ Check ScanData/RunInfo
      DATATYPE  H5T_STRING {
 
   $ h5dump -a /ScanData/RunInfo/MovieName $O_PLX_H5 | grep ":"
-  *"tiny_bam2plx" (glob)
+     (0): "m54006_151021_185942"
   $ h5dump -a /ScanData/RunInfo/MovieName $O_PLX_H5 | grep "DATATYPE"
      DATATYPE  H5T_STRING {
 

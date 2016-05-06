@@ -90,6 +90,7 @@ const char* Settings::Option::baseMode_     = "base";
 const char* Settings::Option::pulseMode_    = "pulse";
 const char* Settings::Option::baseMap_      = "basemap";
 const char* Settings::Option::ignoreQV_     = "ignoreQV";
+const char* Settings::Option::trace_        = "trace";
 const char* Settings::OptionValue::baseMap_ = PacBio::AttributeValues::ScanData::DyeSet::basemap.c_str();
 
 Settings::Settings(void)
@@ -166,6 +167,12 @@ Settings Settings::FromCommandLine(optparse::OptionParser& parser,
             settings.errors_.push_back("missing input *.scraps.bam.");
     } else {
         settings.errors_.push_back("missing input (polymerase.bam or subreads+scraps.bam.");
+    }
+
+    if (options.is_set(Settings::Option::trace_)) {
+        settings.traceFilename = options[Settings::Option::trace_];
+    } else {
+        settings.traceFilename = "";
     }
 
     // output 

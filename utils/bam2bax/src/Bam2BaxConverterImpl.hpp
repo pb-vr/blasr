@@ -41,8 +41,8 @@ bool Bam2BaxConverter<T_HDFWRITER>::ConvertFile(void) {
     // Construct scandata.
     ScanData scandata(acqParams);
     scandata.PlatformID(Sequel) // assume sequel movie 
-            //.MovieName(rg.MovieName()) // rg.MovieName is not trust worthy due to an upstream bug
-            .MovieName(settings_.movieName)
+            .MovieName(rg.MovieName()) // should be reliable now
+            //.MovieName(settings_.movieName)
             .WhenStarted(rg.Date())
             .RunCode(Bam2BaxDefaults::Bax_ScanData_RunCode)  // bam does not contain RunCode
             .NumFrames(Bam2BaxDefaults::Bax_ScanData_NumFrames) // bam does not contain NumFrames
@@ -57,15 +57,24 @@ bool Bam2BaxConverter<T_HDFWRITER>::ConvertFile(void) {
 
     // Regions attribute RegionTypes, which defines supported region types in ORDER.
     std::vector<RegionType> regionTypes = RegionTypeAdapter::ToRegionTypes(Bam2BaxDefaults::Bax_Regions_RegionTypes);
+
+    T_HDFWRITER writer(outfn, 
+            rg.BasecallerVersion(), 
+            scandata.BaseMap(),
+            qvs,
+            Bam2BaxDefaults::Bax_Regions_RegionTypes);
+
+    if (settings_.traceFilename.empty()) {
+        writer.WriteScanData(scandata);
+    } else {
+        HDFFile traceFile;
+        traceFile.Open(settings_.traceFilename, H5F_ACC_RDONLY);
+        writer.CopyObject(traceFile, "/ScanData"); 
+        traceFile.Close();
+    }
        
     if (not settings_.subreadsBamFilename.empty() and 
         not settings_.scrapsBamFilename.empty()) {
-
-        T_HDFWRITER writer(outfn, 
-                           scandata, 
-                           rg.BasecallerVersion(), 
-                           qvs,
-                           Bam2BaxDefaults::Bax_Regions_RegionTypes);
 
         // Stich subreads and scraps in order to reconstruct polymerase reads.
         PacBio::BAM::VirtualPolymeraseReader reader(settings_.subreadsBamFilename,
@@ -83,12 +92,6 @@ bool Bam2BaxConverter<T_HDFWRITER>::ConvertFile(void) {
         for (auto error: writer.Errors()) { AddErrorMessage(error); }
     } else if (not settings_.polymeraseBamFilename.empty()) {
         // Read polymerase reads from polymerase.bam directly.
-        T_HDFWRITER writer(outfn, 
-                           scandata, 
-                           rg.BasecallerVersion(), 
-                           qvs,
-                           Bam2BaxDefaults::Bax_Regions_RegionTypes);
-
         PacBio::BAM::EntireFileQuery query(bamfile);
         for (auto record: query) {
             SMRTSequence smrt;

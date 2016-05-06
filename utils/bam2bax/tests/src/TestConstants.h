@@ -125,7 +125,7 @@ namespace tests {
     // Write seq to outfn
     inline bool write_to(const std::string outfn, const ScanData & sd, const SMRTSequence & seq) {
         std::unique_ptr<HDFBaxWriter> writer;
-        writer.reset(new HDFBaxWriter(outfn, sd, tests::basecallerVersion, tests::QVEnums));
+        writer.reset(new HDFBaxWriter(outfn, tests::basecallerVersion, sd.BaseMap(), tests::QVEnums));
         bool ret = writer->WriteOneZmw(seq);
         writer.reset();
         return ret;
