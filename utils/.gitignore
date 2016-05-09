@@ -6,3 +6,5 @@
 /sawriter
 /sdpMatcher
 /toAfg
+*.swp
+tags

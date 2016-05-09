@@ -11,52 +11,12 @@
 template<class T_HDFWRITER>
 bool Bam2BaxConverter<T_HDFWRITER>::ConvertFile(void) {
 
-    std::string outfn = settings_.outputBaxFilename;
-    std::string infn = settings_.subreadsBamFilename;
-
-    if (infn.empty()) infn = settings_.polymeraseBamFilename;
-
-    PacBio::BAM::BamFile bamfile(infn);
-    PacBio::BAM::BamHeader bamheader = bamfile.Header();
-
-    if (bamheader.ReadGroups().size() != 1) {
-        AddErrorMessage("Bam file must contain reads from exactly one SMRTCell.");
-        return 0;
-    }
-    PacBio::BAM::ReadGroupInfo rg = bamheader.ReadGroups()[0];
 
     // Write metadata.xml to parent directory of Bax.h5.
     if (not settings_.outputMetadataFilename.empty())
         MetadataWriter metaWriter_(settings_.outputMetadataFilename, 
                                    rg, 
                                    settings_.outputAnalysisDirname);
-
-    // Construct AcqParams
-    AcqParams acqParams(Bam2BaxDefaults::Bax_ScanData_AduGain,
-                        Bam2BaxDefaults::Bax_ScanData_CameraGain,
-                        Bam2BaxDefaults::Bax_ScanData_CameraType,
-                        Bam2BaxDefaults::Bax_ScanData_HotStartFrame,
-                        Bam2BaxDefaults::Bax_ScanData_LaserOnFrame);
-
-    // Construct scandata.
-    ScanData scandata(acqParams);
-    scandata.PlatformID(Sequel) // assume sequel movie 
-            .MovieName(rg.MovieName()) // should be reliable now
-            //.MovieName(settings_.movieName)
-            .WhenStarted(rg.Date())
-            .RunCode(Bam2BaxDefaults::Bax_ScanData_RunCode)  // bam does not contain RunCode
-            .NumFrames(Bam2BaxDefaults::Bax_ScanData_NumFrames) // bam does not contain NumFrames
-            //.FrameRate(strtof(rg.FrameRateHz().c_str(), NULL))
-            .FrameRate(Bam2BaxDefaults::Bax_ScanData_FrameRate) // Ignore bam header FrameRate.
-            .SequencingKit(rg.SequencingKit())
-            .BindingKit(rg.BindingKit())
-            .BaseMap(settings_.baseMap);
-
-    // FIXME: pbbam needs to provide an API which returns BaseFeatures in read group
-    std::vector<PacBio::BAM::BaseFeature> qvs = settings_.ignoreQV ? std::vector<PacBio::BAM::BaseFeature>({}) : internal::QVEnumsInFirstRecord(bamfile);
-
-    // Regions attribute RegionTypes, which defines supported region types in ORDER.
-    std::vector<RegionType> regionTypes = RegionTypeAdapter::ToRegionTypes(Bam2BaxDefaults::Bax_Regions_RegionTypes);
 
     T_HDFWRITER writer(outfn, 
             rg.BasecallerVersion(), 
