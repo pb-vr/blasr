@@ -4,7 +4,7 @@
 #include "TestConstants.h"
 
 #include "reads/RegionTable.hpp"
-#include "IConverter.h"
+#include "Converter.h"
 #include <pbbam/virtual/VirtualRegion.h>
 #include <string>
 #include <gtest/gtest.h>

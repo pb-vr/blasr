@@ -1,6 +1,6 @@
-#include "IConverter.h"
+#include "Converter.h"
 
-IConverter::IConverter(Settings & settings)
+Converter::Converter(Settings & settings)
 :settings_(settings) { 
     writer_ = NULL;
     scanData_ = NULL;
@@ -28,16 +28,16 @@ IConverter::IConverter(Settings & settings)
     InitializeWriter(rg.BasecallerVersion(), qvs);
 }
 
-IConverter::~IConverter(void) {
+Converter::~Converter(void) {
     if (scanData_ != NULL) delete scanData_;
     if (writer_ != NULL) delete writer_;
 }
 
-std::vector<std::string> IConverter::Errors(void) const {
+std::vector<std::string> Converter::Errors(void) const {
     return errors_;
 }
 
-bool IConverter::Run() {
+bool Converter::Run() {
     if (settings_.traceFilename.empty()) {
         writer_->WriteScanData(*scanData_);
     } else {
@@ -51,7 +51,7 @@ bool IConverter::Run() {
     return errors_.empty();
 }
 
-void IConverter::MockScanData(PacBio::BAM::ReadGroupInfo& rg) {
+void Converter::MockScanData(PacBio::BAM::ReadGroupInfo& rg) {
     // Construct AcqParams
     AcqParams acqParams(Bam2BaxDefaults::Bax_ScanData_AduGain,
                         Bam2BaxDefaults::Bax_ScanData_CameraGain,
@@ -72,7 +72,7 @@ void IConverter::MockScanData(PacBio::BAM::ReadGroupInfo& rg) {
              .BaseMap(settings_.baseMap);
 }
 
-void IConverter::InitializeWriter(const std::string& bcvers, 
+void Converter::InitializeWriter(const std::string& bcvers, 
         const std::vector<PacBio::BAM::BaseFeature>& qvs) 
     {
     std::string outfn = settings_.outputBaxFilename;

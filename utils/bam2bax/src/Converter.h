@@ -45,10 +45,10 @@ namespace Bam2BaxDefaults {
     static const std::vector<std::string> Bax_Regions_RegionTypes = PacBio::AttributeValues::Regions::regiontypes;
 }
 
-class IConverter {
+class Converter {
 public:
-    IConverter(Settings & settings);
-    ~IConverter(void);
+    Converter(Settings & settings);
+    ~Converter(void);
 
 public:
     std::vector<std::string> Errors(void) const;

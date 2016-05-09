@@ -14,7 +14,7 @@ include_directories(
 set(SOURCES
     Settings.h
     Settings.cpp
-    IConverter.h
+    Converter.h
     Converter.cpp
     Bam2BaxInternal.h
     RegionTypeAdapter.h

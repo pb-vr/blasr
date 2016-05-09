@@ -5,17 +5,16 @@
 #include <memory>
 
 #include "Bam2Bax.h"
-#include "IConverter.h"
+#include "Converter.h"
 
 using namespace std;
 
 int Bam2Bax::Run(Settings& settings) {
 
     bool success = false;
-    std::unique_ptr<IConverter> converter;
-    converter.reset(new IConverter(settings));
+    Converter converter(settings);
 
-    if (converter->Run()) {
+    if (converter.Run()) {
         success = true;
     }
 
@@ -23,7 +22,7 @@ int Bam2Bax::Run(Settings& settings) {
     if (success)
         return EXIT_SUCCESS;
     else {
-        for (const string& e : converter->Errors())
+        for (const string& e : converter.Errors())
             cerr << "ERROR: " << e << endl;
         return EXIT_FAILURE;
     }
