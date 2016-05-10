@@ -127,6 +127,7 @@ namespace tests {
         std::unique_ptr<HDFBaxWriter> writer;
         writer.reset(new HDFBaxWriter(outfn, tests::basecallerVersion, sd.BaseMap(), tests::QVEnums));
         bool ret = writer->WriteOneZmw(seq);
+        writer->WriteScanData(sd);
         writer.reset();
         return ret;
     }

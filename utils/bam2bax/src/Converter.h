@@ -64,6 +64,7 @@ protected:
     Settings& settings_;
     ScanData* scanData_;
     HDFWriterBase* writer_;
+    PacBio::BAM::BamFile* bamfile_;
     std::vector<std::string> errors_;
 
 private:

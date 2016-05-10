@@ -42,10 +42,10 @@ TEST(HDFBaxWriter, WriteOneZmw_EndToEnd)
     EXPECT_EQ(seq2.zmwData.holeNumber, tests::holeNumber);
     EXPECT_EQ(seq2.zmwData.holeStatus, tests::holeStatus);
 
-    EXPECT_EQ(seq2.HQRegionSnr('A'), tests::snra); 
-    EXPECT_EQ(seq2.HQRegionSnr('C'), tests::snrc); 
-    EXPECT_EQ(seq2.HQRegionSnr('G'), tests::snrg); 
-    EXPECT_EQ(seq2.HQRegionSnr('T'), tests::snrt); 
+    EXPECT_EQ(tests::snra, seq2.HQRegionSnr('A'));
+    EXPECT_EQ(tests::snrc, seq2.HQRegionSnr('C'));
+    EXPECT_EQ(tests::snrg, seq2.HQRegionSnr('G'));
+    EXPECT_EQ(tests::snrt, seq2.HQRegionSnr('T'));
 
     EXPECT_TRUE(tests::CmpData<QualityValueVector<unsigned char>>(seq.deletionQV,  seq2.deletionQV,    len));
     EXPECT_TRUE(tests::CmpData<Nucleotide *>(seq.deletionTag, seq2.deletionTag,   len));
@@ -84,10 +84,10 @@ TEST(HDFBaxWriter, WriteOneZmw_EndToEnd_RandomBaseMap)
     EXPECT_EQ(seq2.zmwData.holeNumber, tests::holeNumber);
     EXPECT_EQ(seq2.zmwData.holeStatus, tests::holeStatus);
 
-    EXPECT_EQ(seq2.HQRegionSnr('A'), tests::snra); 
-    EXPECT_EQ(seq2.HQRegionSnr('C'), tests::snrc); 
-    EXPECT_EQ(seq2.HQRegionSnr('G'), tests::snrg); 
-    EXPECT_EQ(seq2.HQRegionSnr('T'), tests::snrt); 
+    EXPECT_EQ(tests::snra, seq2.HQRegionSnr('A'));
+    EXPECT_EQ(tests::snrc, seq2.HQRegionSnr('C'));
+    EXPECT_EQ(tests::snrg, seq2.HQRegionSnr('G'));
+    EXPECT_EQ(tests::snrt, seq2.HQRegionSnr('T'));
 
     EXPECT_TRUE(tests::CmpData<QualityValueVector<unsigned char>>(seq.deletionQV,  seq2.deletionQV,    len));
     EXPECT_TRUE(tests::CmpData<Nucleotide *>(seq.deletionTag, seq2.deletionTag,   len));

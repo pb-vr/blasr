@@ -9,8 +9,8 @@ Converter::Converter(Settings & settings)
 
     if (infn.empty()) infn = settings_.polymeraseBamFilename;
 
-    PacBio::BAM::BamFile bamfile(infn);
-    PacBio::BAM::BamHeader bamheader = bamfile.Header();
+    bamfile_ = new PacBio::BAM::BamFile(infn);
+    PacBio::BAM::BamHeader bamheader = bamfile_->Header();
 
     if (bamheader.ReadGroups().size() != 1) {
         AddErrorMessage("Bam file must contain reads from exactly one SMRTCell.");
@@ -20,10 +20,7 @@ Converter::Converter(Settings & settings)
     MockScanData(rg);
 
     // FIXME: pbbam needs to provide an API which returns BaseFeatures in read group
-    std::vector<PacBio::BAM::BaseFeature> qvs = settings_.ignoreQV ? std::vector<PacBio::BAM::BaseFeature>({}) : internal::QVEnumsInFirstRecord(bamfile);
-
-    // Regions attribute RegionTypes, which defines supported region types in ORDER.
-    std::vector<RegionType> regionTypes = RegionTypeAdapter::ToRegionTypes(Bam2BaxDefaults::Bax_Regions_RegionTypes);
+    std::vector<PacBio::BAM::BaseFeature> qvs = settings_.ignoreQV ? std::vector<PacBio::BAM::BaseFeature>({}) : internal::QVEnumsInFirstRecord(*bamfile_);
 
     InitializeWriter(rg.BasecallerVersion(), qvs);
 }
@@ -31,6 +28,7 @@ Converter::Converter(Settings & settings)
 Converter::~Converter(void) {
     if (scanData_ != NULL) delete scanData_;
     if (writer_ != NULL) delete writer_;
+    delete bamfile_;
 }
 
 std::vector<std::string> Converter::Errors(void) const {
@@ -46,6 +44,43 @@ bool Converter::Run() {
         writer_->CopyObject(traceFile, "/ScanData"); 
         // XXX: setup the inverse gain if writing pulses
         traceFile.Close();
+    }
+
+    // Regions attribute RegionTypes, which defines supported region types in ORDER.
+    std::vector<RegionType> regionTypes = 
+        RegionTypeAdapter::ToRegionTypes(Bam2BaxDefaults::Bax_Regions_RegionTypes);
+
+    if (not settings_.subreadsBamFilename.empty() and 
+        not settings_.scrapsBamFilename.empty()) {
+
+        // Stich subreads and scraps in order to reconstruct polymerase reads.
+        PacBio::BAM::VirtualPolymeraseReader reader(settings_.subreadsBamFilename,
+                                                    settings_.scrapsBamFilename);
+        while(reader.HasNext()) {
+            // FIXME: pbbam should not crash when reading internal pulse features.
+            const PacBio::BAM::VirtualPolymeraseBamRecord & record = reader.Next();
+            SMRTSequence smrt;
+            smrt.Copy(record, true);
+            std::vector<RegionAnnotation> ras = RegionsAdapter::ToRegionAnnotations(record, regionTypes);
+            if (not writer_->WriteOneZmw(smrt, ras) or not writer_->Errors().empty()) { break; }
+            writer_->Flush();
+        }
+        if (not settings_.ignoreQV) writer_->WriteFakeDataSets();
+        for (auto error: writer_->Errors()) { AddErrorMessage(error); }
+    } else if (not settings_.polymeraseBamFilename.empty()) {
+        // Read polymerase reads from polymerase.bam directly.
+        PacBio::BAM::EntireFileQuery query(*bamfile_);
+        for (auto record: query) {
+            SMRTSequence smrt;
+            smrt.Copy(record, true);
+            RegionAnnotation ra(record.HoleNumber(), 
+                                RegionTypeAdapter::ToRegionTypeIndex(PacBio::BAM::VirtualRegionType::HQREGION, regionTypes),
+                                0, 0, 0);
+            std::vector<RegionAnnotation> ras({ra});
+            if (not writer_->WriteOneZmw(smrt, ras) or not writer_->Errors().empty()) { break; }
+        }
+        if (not settings_.ignoreQV) writer_->WriteFakeDataSets();
+        for (auto error: writer_->Errors()) { AddErrorMessage(error); }
     }
 
     return errors_.empty();
