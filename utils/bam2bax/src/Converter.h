@@ -71,5 +71,6 @@ private:
     void MockScanData(PacBio::BAM::ReadGroupInfo& rg);
     void InitializeWriter(const std::string& bcvers, 
                           const std::vector<PacBio::BAM::BaseFeature>& qvs);
+    void SetInverseGain(HDFFile& traceFile);
 };
 #endif

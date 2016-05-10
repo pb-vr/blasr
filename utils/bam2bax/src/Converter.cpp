@@ -42,7 +42,9 @@ bool Converter::Run() {
         HDFFile traceFile;
         traceFile.Open(settings_.traceFilename, H5F_ACC_RDONLY);
         writer_->CopyObject(traceFile, "/ScanData"); 
-        // XXX: setup the inverse gain if writing pulses
+        if (settings_.mode == Settings::PulseMode) {
+            SetInverseGain(traceFile);
+        }
         traceFile.Close();
     }
 
@@ -125,4 +127,14 @@ void Converter::InitializeWriter(const std::string& bcvers,
         std::cerr << "UNKNOWN mode." << settings_.mode << std::endl;
         // XXX: Throw initialization exception
     }
+}
+
+void Converter::SetInverseGain(HDFFile& traceFile) {
+    HDFPulseWriter* pw = (HDFPulseWriter*) &writer_;
+    H5::Group acqGrp = traceFile.hdfFile.openGroup("/ScanData/AcqParams");
+    H5::Attribute aduAttr = acqGrp.openAttribute("AduGain");
+    float igain;
+    H5::DataType* dt = new H5::DataType(H5::PredType::IEEE_F32LE);
+    aduAttr.read(*dt, &igain);
+    pw->SetInverseGain(igain);
 }
