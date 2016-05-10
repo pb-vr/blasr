@@ -130,11 +130,11 @@ void Converter::InitializeWriter(const std::string& bcvers,
 }
 
 void Converter::SetInverseGain(HDFFile& traceFile) {
-    HDFPulseWriter* pw = (HDFPulseWriter*) &writer_;
     H5::Group acqGrp = traceFile.hdfFile.openGroup("/ScanData/AcqParams");
     H5::Attribute aduAttr = acqGrp.openAttribute("AduGain");
     float igain;
     H5::DataType* dt = new H5::DataType(H5::PredType::IEEE_F32LE);
     aduAttr.read(*dt, &igain);
+    HDFPulseWriter* pw = static_cast<HDFPulseWriter*>(writer_);
     pw->SetInverseGain(igain);
 }
