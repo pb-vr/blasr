@@ -221,6 +221,8 @@ Settings Settings::FromCommandLine(optparse::OptionParser& parser,
          cerr << " scraps    : " << settings.scrapsBamFilename << endl;
     if (not settings.polymeraseBamFilename.empty())
          cerr << " polymerase: " << settings.polymeraseBamFilename << endl;
+    if (not settings.traceFilename.empty())
+         cerr << " trace     : " << settings.traceFilename << endl;
     cerr << "Output h5  : " << settings.outputBaxFilename << endl
          << "Output xml : " << settings.outputMetadataFilename << endl;
 
