@@ -47,7 +47,7 @@ namespace Bam2BaxDefaults {
 
 class Converter {
 public:
-    Converter(Settings & settings);
+    Converter(Settings const& settings);
     ~Converter(void);
 
 public:
@@ -61,7 +61,7 @@ protected:
 
 protected:
     // protected variables
-    Settings& settings_;
+    Settings const& settings_;
     ScanData* scanData_;
     HDFWriterBase* writer_;
     PacBio::BAM::BamFile* bamfile_;

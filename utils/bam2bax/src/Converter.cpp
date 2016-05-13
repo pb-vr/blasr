@@ -1,6 +1,6 @@
 #include "Converter.h"
 
-Converter::Converter(Settings & settings)
+Converter::Converter(Settings const& settings)
 :settings_(settings) { 
     writer_ = NULL;
     scanData_ = NULL;
@@ -125,7 +125,7 @@ void Converter::InitializeWriter(const std::string& bcvers,
             scanData_->BaseMap(), qvs, Bam2BaxDefaults::Bax_Regions_RegionTypes);
     } else {
         std::cerr << "UNKNOWN mode." << settings_.mode << std::endl;
-        // XXX: Throw initialization exception
+        throw std::exception();
     }
 }
 
