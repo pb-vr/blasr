@@ -90,6 +90,7 @@ const char* Settings::Option::baseMode_     = "base";
 const char* Settings::Option::pulseMode_    = "pulse";
 const char* Settings::Option::baseMap_      = "basemap";
 const char* Settings::Option::ignoreQV_     = "ignoreQV";
+const char* Settings::Option::trace_        = "trace";
 const char* Settings::OptionValue::baseMap_ = PacBio::AttributeValues::ScanData::DyeSet::basemap.c_str();
 
 Settings::Settings(void)
@@ -168,6 +169,12 @@ Settings Settings::FromCommandLine(optparse::OptionParser& parser,
         settings.errors_.push_back("missing input (polymerase.bam or subreads+scraps.bam.");
     }
 
+    if (options.is_set(Settings::Option::trace_)) {
+        settings.traceFilename = options[Settings::Option::trace_];
+    } else {
+        settings.traceFilename = "";
+    }
+
     // output 
     settings.outputBaxPrefix = options[Settings::Option::output_];
     if (settings.outputBaxPrefix.empty()) { // if output prefix not set.
@@ -214,6 +221,8 @@ Settings Settings::FromCommandLine(optparse::OptionParser& parser,
          cerr << " scraps    : " << settings.scrapsBamFilename << endl;
     if (not settings.polymeraseBamFilename.empty())
          cerr << " polymerase: " << settings.polymeraseBamFilename << endl;
+    if (not settings.traceFilename.empty())
+         cerr << " trace     : " << settings.traceFilename << endl;
     cerr << "Output h5  : " << settings.outputBaxFilename << endl
          << "Output xml : " << settings.outputMetadataFilename << endl;
 

@@ -23,6 +23,10 @@ int main(int argc, char* argv[])
            .dest(Settings::Option::input_)
 	       .metavar("movie.subreads.bam movie.scraps.bam | movie.polymerase.bam") 
            .help("Input a movie.polymerase.bam. Or a movie.subreads.bam and a movie.scraps.bam");
+    ioGroup.add_option("--trace")
+            .dest(Settings::Option::trace_)
+            .metavar("movie.trc.h5")
+            .help("(Optional but recommended) Input trace file to copy ScanData from");
     ioGroup.add_option("-o")
            .dest(Settings::Option::output_)
 	       .metavar("STRING")

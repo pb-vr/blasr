@@ -3,6 +3,7 @@
 #ifndef _REGIONS_ADAPTER_H_
 #define _REGIONS_ADAPTER_H_
 
+#include "pbdata/reads/RegionAnnotation.hpp"
 #include "RegionTypeAdapter.h"
 
 class RegionsAdapter {

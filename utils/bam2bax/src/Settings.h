@@ -29,6 +29,7 @@ public:
         static const char* pulseMode_;
         static const char* ignoreQV_;
         static const char* baseMap_;
+        static const char* trace_;
     };
 
     // default option value
@@ -43,6 +44,9 @@ public:
     std::string subreadsBamFilename;
     std::string scrapsBamFilename;
     std::string polymeraseBamFilename;
+    
+    // recommended, but optional input
+    std::string traceFilename;
 
     //output
     std::string outputBaxPrefix;
