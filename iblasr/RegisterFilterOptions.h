@@ -18,37 +18,37 @@ void RegisterFilterOptions(CommandLineParser & clp, int & minAlnLength,
 
     HitPolicy hp("randombest", ScoreSign::NEGATIVE);
 
-    clp.RegisterIntOption("minAlnLength", &minAlnLength,
+    clp.RegisterIntOption("-minAlnLength", &minAlnLength,
                           fc.MinAlnLengthHelp(),
                           CommandLineParser::PositiveInteger);
-    clp.RegisterIntOption("minAlignLength", &minAlnLength,
-                          "Alias of -minAlnLength",
+    clp.RegisterIntOption("-minAlignLength", &minAlnLength,
+                          "Alias of --minAlnLength",
                           CommandLineParser::PositiveInteger);
-    clp.RegisterIntOption("minLength", &minAlnLength,
-                          "Alias of -minAlnLength",
+    clp.RegisterIntOption("-minLength", &minAlnLength,
+                          "Alias of --minAlnLength",
                           CommandLineParser::PositiveInteger);
 
-    clp.RegisterFloatOption("minPctSimilarity", &minPctSimilarity,
+    clp.RegisterFloatOption("-minPctSimilarity", &minPctSimilarity,
                             fc.MinPctSimilarityHelp(),
                             CommandLineParser::PositiveFloat);
-    clp.RegisterFloatOption("minPctIdentity", &minPctSimilarity,
-                            "Alias of -minPctSimilarity",
+    clp.RegisterFloatOption("-minPctIdentity", &minPctSimilarity,
+                            "Alias of --minPctSimilarity",
                             CommandLineParser::PositiveFloat);
 
-    clp.RegisterFloatOption("minPctAccuracy", &minPctAccuracy,
+    clp.RegisterFloatOption("-minPctAccuracy", &minPctAccuracy,
                             fc.MinPctAccuracyHelp(),
                             CommandLineParser::PositiveFloat);
-    clp.RegisterFloatOption("minAccuracy", &minPctAccuracy,
-                            "Alias of -minPctAccuracy",
+    clp.RegisterFloatOption("-minAccuracy", &minPctAccuracy,
+                            "Alias of --minPctAccuracy",
                             CommandLineParser::PositiveFloat);
 
-    clp.RegisterStringOption("hitPolicy", &hitPolicyStr, hp.Help());
+    clp.RegisterStringOption("-hitPolicy", &hitPolicyStr, hp.Help());
 
-    clp.RegisterIntOption("scoreSign", &scoreSignInt,
+    clp.RegisterIntOption("-scoreSign", &scoreSignInt,
                           fc.ScoreSignHelp(),
                           CommandLineParser::Integer);
 
-    clp.RegisterIntOption("scoreCutoff", &scoreCutoff,
+    clp.RegisterIntOption("-scoreCutoff", &scoreCutoff,
                           fc.ScoreCutoffHelp(),
                           CommandLineParser::Integer);
 }
