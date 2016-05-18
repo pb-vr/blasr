@@ -23,7 +23,7 @@ HDFRegionTableReader *regionTableReader = NULL;
 ReaderAgglomerate *reader = NULL;
 
 const string GetMajorVersion() {
-  return "5.0";
+  return "5.1";
 }
 
 // version format is 3 numbers sparated by dots : Version.Subversion.SHA1
