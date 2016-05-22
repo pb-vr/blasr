@@ -795,16 +795,16 @@ void BuildLookupTablesAndMakeSane(
         //
         // Get sequence for this alignment from baseFile
         //
-        Nucleotide * seq = new Nucleotide[table.readLength]; 
+        Nucleotide * seq = new Nucleotide[table.readLength];
         baseFile.CopyArray(baseFile.baseCalls, table.readStart, table.readLength, seq);
         
         string readSequence;
         readSequence.resize(table.queryEnd - table.queryStart);
-        copy((char*) (seq + table.queryStart), 
+        copy((char*) (seq + table.queryStart),
              (char*) (seq + table.queryEnd), 
              readSequence.begin());
-        delete seq;
-        
+        delete []seq;
+
         //
         // Do a sanity check to make sure the pulses and the alignment
         // make sense.  The main check is to see if the query sequence
