@@ -558,7 +558,8 @@ public:
             useRandomSeed = true;
         }
         if (printSAM) {
-            printFormat = SAM;
+            cerr << "ERROR: --sam is no longer supported, use --bam, then translate from .bam to .sam" << endl;
+            exit(1);
         }
         //
         // Parse the clipping.
