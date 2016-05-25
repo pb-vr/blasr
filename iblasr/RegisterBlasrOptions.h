@@ -261,10 +261,11 @@ const string BlasrHelp(MappingParameters & params) {
              << "   --out out (terminal)  " << endl
              << "               Write output to 'out'." << endl
 #ifdef USE_PBBAM
-             << "   --bam        Write output in PacBio BAM format. This is the preferred output format." << endl
+             << "   --bam       Write output in PacBio BAM format. This is the preferred output format." << endl
              << "               Input query reads must be in PacBio BAM format." << endl
 #endif
-             << "   --sam        Write output in SAM format." << endl
+             << "   --sam       Write output in SAM format. Starting from version 5.2 is no longer supported" << endl
+             << "               Use --bam, then translate from .bam to .sam" << endl
              << "   -m t           " << endl
              << "               If not printing SAM, modify the output of the alignment." << endl
              << "                t=" << StickPrint <<   " Print blast like output with |'s connecting matched nucleotides." << endl
