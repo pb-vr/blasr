@@ -28,9 +28,9 @@ Convert polymerase bam to plx.h5
   $ $SAMTOOLS view -bS $I_PL_SAM -o $I_PL_BAM 1>/dev/null 2>/dev/null && echo $?
   0
 
-Old bam input should be rejected
-  $ $BAM2PLX $I_PL_BAM -o $O_PREFIX 2>&1 |tail -1
-  ERROR:* (glob)
+#Old bam input should be rejected
+#  $ $BAM2PLX $I_PL_BAM -o $O_PREFIX 2>&1 |tail -1
+#  ERROR:* (glob)
 
 ===================================================================
 Convert subreads.bam + scraps.bam to plx.h5
