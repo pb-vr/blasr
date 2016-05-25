@@ -30,10 +30,10 @@ const string GetMajorVersion() {
 const string GetVersion(void) {
   string gitVersionString(SHA1_7);  // gitVersionString is first 7 characters of SHA1
   string version = GetMajorVersion();
-  if (gitVersionString.size() == 7) {
+  // if (gitVersionString.size() == 7) {
     version.append(".");
     version.append(gitVersionString);
-  }
+  // }
   return version;
 }
 
