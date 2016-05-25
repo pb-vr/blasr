@@ -26,6 +26,7 @@ set(SOURCES
     OptionParser.h
     OptionParser.cpp
     MetadataWriter.h
+    MetadataWriter.cpp
 )
 
 set(BAM2BAX_SOURCES

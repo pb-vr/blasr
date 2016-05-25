@@ -19,6 +19,12 @@ Converter::Converter(Settings const& settings)
     PacBio::BAM::ReadGroupInfo rg = bamheader.ReadGroups()[0];
     MockScanData(rg);
 
+    // Write metadata.xml to parent directory of Bax.h5.
+    if (not settings_.outputMetadataFilename.empty())
+        MetadataWriter metaWriter_(settings_.outputMetadataFilename,
+                                   rg,
+                                   settings_.outputAnalysisDirname);
+
     // FIXME: pbbam needs to provide an API which returns BaseFeatures in read group
     std::vector<PacBio::BAM::BaseFeature> qvs = settings_.ignoreQV ? std::vector<PacBio::BAM::BaseFeature>({}) : internal::QVEnumsInFirstRecord(*bamfile_);
 

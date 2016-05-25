@@ -19,6 +19,7 @@
 #include "HDFPulseWriter.hpp"
 #include "RegionsAdapter.h"
 #include "Settings.h"
+#include "MetadataWriter.h"
 #include "Bam2BaxInternal.h"
 
 namespace Bam2BaxDefaults {
