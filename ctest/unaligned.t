@@ -2,7 +2,7 @@ Set up
   $ . $TESTDIR/setup.sh
 
 Test dataset.xml as input
-  $ $EXEC $DATDIR/test_dataset/chunking.subreadset.xml $DATDIR/ecoli_reference.fasta -unaligned $OUTDIR/unaligned.txt -noPrintUnalignedSeqs -concordant 1>/dev/null && echo $?
+  $ $EXEC $DATDIR/test_dataset/chunking.subreadset.xml $DATDIR/ecoli_reference.fasta --unaligned $OUTDIR/unaligned.txt --noPrintUnalignedSeqs --concordant 1>/dev/null && echo $?
   [INFO]* (glob)
   [INFO]* (glob)
   0
@@ -13,7 +13,7 @@ Test dataset.xml as input
   m150404_101626_42267_c100807920800000001823174110291514_s1_p0/480/12033_13456
   m150404_101626_42267_c100807920800000001823174110291514_s1_p0/480/13519_14067
 
-  $ $EXEC $DATDIR/ecoli_subset.fasta $DATDIR/ecoli_reference.fasta -unaligned $OUTDIR/unaligned.txt -noPrintUnalignedSeqs 1>/dev/null && echo $?
+  $ $EXEC $DATDIR/ecoli_subset.fasta $DATDIR/ecoli_reference.fasta --unaligned $OUTDIR/unaligned.txt --noPrintUnalignedSeqs 1>/dev/null && echo $?
   [INFO]* (glob)
   [INFO]* (glob)
   0

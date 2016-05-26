@@ -13,7 +13,7 @@ Set up
   $ X=$STDDIR/hitpolicy_all.m4
 
 Test hitpolicy all 
-  $ $EXEC $I $R -out $O -m 4 -hitPolicy all
+  $ $EXEC $I $R --out $O -m 4 --hitPolicy all
   [INFO]* (glob)
   [INFO]* (glob)
   $ echo $?
@@ -24,7 +24,7 @@ Test hitpolicy all
 Test hitpolicy allbest 
   $ O=$OUTDIR/hitpolicy_allbest.m4
   $ X=$STDDIR/hitpolicy_allbest.m4
-  $ $EXEC $I $R -out $O -m 4 -hitPolicy allbest && sort $O > $TMP1 && mv $TMP1 $O
+  $ $EXEC $I $R --out $O -m 4 --hitPolicy allbest && sort $O > $TMP1 && mv $TMP1 $O
   [INFO]* (glob)
   [INFO]* (glob)
   $ echo $?
@@ -37,10 +37,10 @@ Test hitpolicy random
   $ O=$OUTDIR/hitpolicy_random.m4
   $ O2=$OUTDIR/hitpolicy_random_2.m4
   $ X=$STDDIR/hitpolicy_random.m4
-  $ $EXEC $I $R -out $O -m 4 -hitPolicy random -randomSeed 1
+  $ $EXEC $I $R --out $O -m 4 --hitPolicy random --randomSeed 1
   [INFO]* (glob)
   [INFO]* (glob)
-  $ $EXEC $I $R -out $O2 -m 4 -hitPolicy random -randomSeed 1
+  $ $EXEC $I $R --out $O2 -m 4 --hitPolicy random --randomSeed 1
   [INFO]* (glob)
   [INFO]* (glob)
   $ sort $O > $TMP1 && mv $TMP1 $O
@@ -52,10 +52,10 @@ Test hitpolicy randombest bam inputs, nproc > 1, fixed seed
   $ O=$OUTDIR/hitpolicy_randombest_bam_in.m4
   $ O2=$OUTDIR/hitpolicy_randombest_bam_in_2.m4
   $ X=$STDDIR/hitpolicy_randombest_bam_in.m4
-  $ $EXEC $I $R -out $O -m 4 -hitPolicy randombest -randomSeed 1 -nproc 10
+  $ $EXEC $I $R --out $O -m 4 --hitPolicy randombest --randomSeed 1 --nproc 10
   [INFO]* (glob)
   [INFO]* (glob)
-  $ $EXEC $I $R -out $O2 -m 4 -hitPolicy randombest -randomSeed 1 -nproc 10
+  $ $EXEC $I $R --out $O2 -m 4 --hitPolicy randombest --randomSeed 1 --nproc 10
   [INFO]* (glob)
   [INFO]* (glob)
   $ sort $O > $TMP1 && mv $TMP1 $O
@@ -67,7 +67,7 @@ Test hitpolicy randombest bax inputs, nproc > 1, fixed seed
   $ I=$DATDIR/tiny_bax.fofn
   $ O=$OUTDIR/hitpolicy_randombest_bax_in.m4
   $ X=$STDDIR/hitpolicy_randombest_bax_in.m4
-  $ $EXEC $I $R -out $O -m 4 -hitPolicy randombest -randomSeed 1 -nproc 10
+  $ $EXEC $I $R --out $O -m 4 --hitPolicy randombest --randomSeed 1 --nproc 10
   [INFO]* (glob)
   [INFO]* (glob)
   $ sort $O > $TMP1 && mv $TMP1 $O
@@ -78,7 +78,7 @@ Test hitpolicy randombest fasta inputs, nproc > 1, fixed seed
   $ I=$DATDIR/tiny_fasta.fofn
   $ O=$OUTDIR/hitpolicy_randombest_fasta_in.m4
   $ X=$STDDIR/hitpolicy_randombest_fasta_in.m4
-  $ $EXEC $I $R -out $O -m 4 -hitPolicy randombest -randomSeed 1 -nproc 10
+  $ $EXEC $I $R --out $O -m 4 --hitPolicy randombest --randomSeed 1 --nproc 10
   [INFO]* (glob)
   [INFO]* (glob)
   $ sort $O > $TMP1 && mv $TMP1 $O
@@ -88,7 +88,7 @@ Test hitpolicy randombest fasta inputs, nproc > 1, fixed seed
 Test hitpolicy leftmost
   $ O=$OUTDIR/hitpolicy_leftmost.m4
   $ X=$STDDIR/hitpolicy_leftmost.m4
-  $ $EXEC $I $R -out $O -m 4 -hitPolicy leftmost -nproc 10
+  $ $EXEC $I $R --out $O -m 4 --hitPolicy leftmost --nproc 10
   [INFO]* (glob)
   [INFO]* (glob)
   $ # target is lambda x 6, leftmost -> only map to the very first x.

@@ -4,11 +4,11 @@ Set up
 Test generating bam output 
 
 Input is bam, clipping=soft and subread should produce identical results
-  $ $EXEC $DATDIR/test_bam/tiny_bam.fofn $DATDIR/lambda_ref.fasta -bam -out $OUTDIR/tiny_bam_in_soft.bam -clipping soft
+  $ $EXEC $DATDIR/test_bam/tiny_bam.fofn $DATDIR/lambda_ref.fasta --bam --out $OUTDIR/tiny_bam_in_soft.bam --clipping soft
   [INFO]* (glob)
   [INFO]* (glob)
 
-  $ $EXEC $DATDIR/test_bam/tiny_bam.fofn $DATDIR/lambda_ref.fasta -bam -out $OUTDIR/tiny_bam_in_subread.bam -clipping subread 
+  $ $EXEC $DATDIR/test_bam/tiny_bam.fofn $DATDIR/lambda_ref.fasta --bam --out $OUTDIR/tiny_bam_in_subread.bam --clipping subread 
   [INFO]* (glob)
   [INFO]* (glob)
 
