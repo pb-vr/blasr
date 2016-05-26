@@ -1,8 +1,8 @@
 Set up
   $ . $TESTDIR/setup.sh
 
-Test -useccsall with bestn = 1
-  $ $EXEC $DATDIR/ccstest.fofn $DATDIR/ccstest_ref.fasta -bestn 1 -useccsall -sam -out $OUTDIR/useccsall.sam -holeNumbers 76772
+Test --useccsall with bestn = 1
+  $ $EXEC $DATDIR/ccstest.fofn $DATDIR/ccstest_ref.fasta --bestn 1 --useccsall --sam --out $OUTDIR/useccsall.sam --holeNumbers 76772
   [INFO]* (glob)
   [INFO]* (glob)
   $ sed -n '9,$ p' $OUTDIR/useccsall.sam |cut -f 1-4 > $TMP1
