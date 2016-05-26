@@ -115,15 +115,15 @@ Check PulseCalls/MeanSignal
      DATATYPE  H5T_STD_U16LE
      DATASPACE  SIMPLE { ( 15581, 4 ) / ( H5S_UNLIMITED, 4 ) }
      DATA {
-     (0,0): 0, 0, 0, 112,
-     (1,0): 0, 75, 0, 0,
-     (2,0): 0, 0, 0, 65,
-     (3,0): 0, 60, 0, 0,
-     (4,0): 0, 0, 0, 62,
+     (0,0): 0, 0, 0, 11,
+     (1,0): 0, 8, 0, 0,
+     (2,0): 0, 0, 0, 7,
+     (3,0): 0, 6, 0, 0,
+     (4,0): 0, 0, 0, 6,
 
 Check PulseCalls/MidSignal
   $ h5dump -d /PulseData/PulseCalls/MidSignal $O_PLX_H5 |grep "(0):"
-     (0): 0, 0, 0, 51, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 82, 0, 82,
+     (0): 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 8, 0,
 
 Check PulseCalls/WidthInFrames
   $ h5dump -d /PulseData/PulseCalls/WidthInFrames $O_PLX_H5 | grep "(0):"

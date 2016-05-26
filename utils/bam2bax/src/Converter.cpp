@@ -7,8 +7,6 @@ Converter::Converter(Settings const& settings)
 
     std::string infn = settings_.subreadsBamFilename;
 
-    if (infn.empty()) infn = settings_.polymeraseBamFilename;
-
     bamfile_ = new PacBio::BAM::BamFile(infn);
     PacBio::BAM::BamHeader bamheader = bamfile_->Header();
 
@@ -72,20 +70,6 @@ bool Converter::Run() {
             std::vector<RegionAnnotation> ras = RegionsAdapter::ToRegionAnnotations(record, regionTypes);
             if (not writer_->WriteOneZmw(smrt, ras) or not writer_->Errors().empty()) { break; }
             writer_->Flush();
-        }
-        if (not settings_.ignoreQV) writer_->WriteFakeDataSets();
-        for (auto error: writer_->Errors()) { AddErrorMessage(error); }
-    } else if (not settings_.polymeraseBamFilename.empty()) {
-        // Read polymerase reads from polymerase.bam directly.
-        PacBio::BAM::EntireFileQuery query(*bamfile_);
-        for (auto record: query) {
-            SMRTSequence smrt;
-            smrt.Copy(record, true);
-            RegionAnnotation ra(record.HoleNumber(), 
-                                RegionTypeAdapter::ToRegionTypeIndex(PacBio::BAM::VirtualRegionType::HQREGION, regionTypes),
-                                0, 0, 0);
-            std::vector<RegionAnnotation> ras({ra});
-            if (not writer_->WriteOneZmw(smrt, ras) or not writer_->Errors().empty()) { break; }
         }
         if (not settings_.ignoreQV) writer_->WriteFakeDataSets();
         for (auto error: writer_->Errors()) { AddErrorMessage(error); }

@@ -21,8 +21,8 @@ int main(int argc, char* argv[])
     auto ioGroup = optparse::OptionGroup(parser, "Input/output files");
     ioGroup.add_option("")
            .dest(Settings::Option::input_)
-	       .metavar("movie.subreads.bam movie.scraps.bam | movie.polymerase.bam") 
-           .help("Input a movie.polymerase.bam. Or a movie.subreads.bam and a movie.scraps.bam");
+	       .metavar("movie.subreads.bam movie.scraps.bam") 
+           .help("A movie.subreads.bam and a movie.scraps.bam");
     ioGroup.add_option("-o")
            .dest(Settings::Option::output_)
 	       .metavar("STRING")
