@@ -8,7 +8,7 @@ Test blasr with input bam which has:
 and then check if output is determined.
 
 (1)
-  $ name=iq--dq--sub
+  $ name=iq-dq-sub
   $ infile=$DATDIR/test_bam/$name.subreads.bam
   $ outfile=$OUTDIR/$name.m4
   $ stdfile=$STDDIR/$name.m4
@@ -21,7 +21,7 @@ and then check if output is determined.
   $ diff $outfile $stdfile
 
 (2)
-  $ name=iq--dq
+  $ name=iq-dq
   $ infile=$DATDIR/test_bam/$name.subreads.bam
   $ outfile=$OUTDIR/$name.m4
   $ stdfile=$STDDIR/$name.m4
@@ -34,7 +34,7 @@ and then check if output is determined.
   $ diff $outfile $stdfile
 
 (3)
-  $ name=no--iq--dq
+  $ name=no-iq-dq
   $ infile=$DATDIR/test_bam/$name.subreads.bam
   $ outfile=$OUTDIR/$name.m4
   $ stdfile=$STDDIR/$name.m4

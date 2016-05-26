@@ -2,10 +2,12 @@ Set up
   $ . $TESTDIR/setup.sh
 
 Test --concordant
+  $ rm -rf $OUTDIR/concordant_subset.bam
   $ rm -rf $OUTDIR/concordant_subset.sam
-  $ $EXEC $DATDIR/ecoli_lp.fofn $DATDIR/ecoli_reference.fasta --concordant --refineConcordantAlignments --sam --out $OUTDIR/concordant_subset.sam --nproc 12 --holeNumbers 1--10000 --sa $DATDIR/ecoli_reference.sa
+  $ $EXEC $DATDIR/ecoli_lp.fofn $DATDIR/ecoli_reference.fasta --concordant --refineConcordantAlignments --bam --out $OUTDIR/concordant_subset.bam --nproc 12 --holeNumbers 1--10000 --sa $DATDIR/ecoli_reference.sa
   [INFO]* (glob)
   [INFO]* (glob)
+  $ $SAMTOOLS view $OUTDIR/concordant_subset.bam > $OUTDIR/concordant_subset.sam
   $ sed -n 6,110864p $OUTDIR/concordant_subset.sam > $OUTDIR/tmp1 
   $ sort $OUTDIR/tmp1 > $OUTDIR/tmp11
   $ sed -n 6,110864p $STDDIR/$UPDATEDATE/concordant_subset.sam > $OUTDIR/tmp2
