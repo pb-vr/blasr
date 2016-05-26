@@ -65,18 +65,6 @@ diff input with output
   $ diff $I_SR_SAM.tmp $O_SR_SAM.tmp || echo I.subreads.bam and O.subreads.bam are not identical
   $ diff $I_SC_SAM.tmp $O_SC_SAM.tmp || echo I.subreads.bam and O.subreads.bam are not identical
 
-
-polymerase.bam to bax.h5
-  $ $BAM2BAX /pbi/dept/secondary/siv/testdata/bam2bax/bam2plx/small.polymerase.bam -o Analysis_Results/polymerase 1>/dev/null 2>/dev/null && echo $?
-  0
-
-  $ h5ls -r Analysis_Results/polymerase.bax.h5 |grep PulseData/Regions |wc -l
-  1
-
-  $ h5dump -d PulseData/Regions Analysis_Results/polymerase.bax.h5 |grep '133229, 2, 0, 0, 0' |wc -l
-  1
-
-
 ZMW with no HQ region
   $ $BAM2BAX /pbi/dept/secondary/siv/testdata/bam2bax/all_lq/all_lq.subreads.bam /pbi/dept/secondary/siv/testdata/bam2bax/all_lq/all_lq.scraps.bam -o Analysis_Results/all_lq 1>/dev/null 2>/dev/null && echo $?
   0

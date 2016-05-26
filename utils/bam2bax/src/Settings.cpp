@@ -154,11 +154,7 @@ Settings Settings::FromCommandLine(optparse::OptionParser& parser,
 
     // input
     settings.inputBamFilenames = parser.args();
-    if (settings.inputBamFilenames.size() == 1) {
-        settings.polymeraseBamFilename = settings.inputBamFilenames[0];
-        if (settings.polymeraseBamFilename.find("polymerase.bam") == std::string::npos)
-            settings.errors_.push_back("missing input *.polymerase.bam.");
-    } else if (settings.inputBamFilenames.size() == 2) {
+    if (settings.inputBamFilenames.size() == 2) {
         settings.subreadsBamFilename = settings.inputBamFilenames[0];
         settings.scrapsBamFilename   = settings.inputBamFilenames[1];
         if (settings.subreadsBamFilename.find("subreads.bam") == std::string::npos)
@@ -166,7 +162,7 @@ Settings Settings::FromCommandLine(optparse::OptionParser& parser,
         if (settings.scrapsBamFilename.find("scraps.bam") == std::string::npos)
             settings.errors_.push_back("missing input *.scraps.bam.");
     } else {
-        settings.errors_.push_back("missing input (polymerase.bam or subreads+scraps.bam.");
+        settings.errors_.push_back("missing input subreads+scraps.bam.");
     }
 
     if (options.is_set(Settings::Option::trace_)) {
@@ -180,8 +176,6 @@ Settings Settings::FromCommandLine(optparse::OptionParser& parser,
     if (settings.outputBaxPrefix.empty()) { // if output prefix not set.
         if (not settings.subreadsBamFilename.empty()) {
             settings.outputBaxPrefix = internal::GetMovienameFromFilename(settings.subreadsBamFilename);
-        } else if (not settings.polymeraseBamFilename.empty()) {
-            settings.outputBaxPrefix = internal::GetMovienameFromFilename(settings.polymeraseBamFilename);
         }
     }
 
@@ -219,8 +213,6 @@ Settings Settings::FromCommandLine(optparse::OptionParser& parser,
          cerr << " subreads  : " << settings.subreadsBamFilename << endl;
     if (not settings.scrapsBamFilename.empty())
          cerr << " scraps    : " << settings.scrapsBamFilename << endl;
-    if (not settings.polymeraseBamFilename.empty())
-         cerr << " polymerase: " << settings.polymeraseBamFilename << endl;
     if (not settings.traceFilename.empty())
          cerr << " trace     : " << settings.traceFilename << endl;
     cerr << "Output h5  : " << settings.outputBaxFilename << endl

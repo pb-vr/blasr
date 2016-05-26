@@ -50,20 +50,6 @@ bool Bam2BaxConverter<T_HDFWRITER>::ConvertFile(void) {
         }
         if (not settings_.ignoreQV) writer.WriteFakeDataSets();
         for (auto error: writer.Errors()) { AddErrorMessage(error); }
-    } else if (not settings_.polymeraseBamFilename.empty()) {
-        // Read polymerase reads from polymerase.bam directly.
-        PacBio::BAM::EntireFileQuery query(bamfile);
-        for (auto record: query) {
-            SMRTSequence smrt;
-            smrt.Copy(record, true);
-            RegionAnnotation ra(record.HoleNumber(), 
-                                RegionTypeAdapter::ToRegionTypeIndex(PacBio::BAM::VirtualRegionType::HQREGION, regionTypes),
-                                0, 0, 0);
-            std::vector<RegionAnnotation> ras({ra});
-            if (not writer.WriteOneZmw(smrt, ras) or not writer.Errors().empty()) { break; }
-        }
-        if (not settings_.ignoreQV) writer.WriteFakeDataSets();
-        for (auto error: writer.Errors()) { AddErrorMessage(error); }
     }
             
     return errors_.empty();
