@@ -22,6 +22,14 @@ PacBio::BAM::BamWriter * bamWriterPtr = NULL;
 HDFRegionTableReader *regionTableReader = NULL;
 ReaderAgglomerate *reader = NULL;
 
+// Add comment to version history for each version change !
+//
+// Version history
+//
+// 5.0 - a new major version number
+// 5.1 - transiotion to POSIX notation - double sashes before multi-character flags
+// 5.2 - --sam no longer supported
+//
 const string GetMajorVersion() {
   return "5.2";
 }
