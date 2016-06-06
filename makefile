@@ -9,7 +9,7 @@ foo:
 	echo $(MAKEFILE_LIST)
 	echo ${SRCDIR}
 
-GET_SHA1 := $(shell git describe --always --dirty='*')
+GET_SHA1 := $(shell git -C ${SRCDIR} describe --always --dirty='*')
 CXXFLAGS += -O3 -g -DSHA1_7=\"${GET_SHA1}\"
 CXXOPTS += \
 		   -std=c++0x -pedantic \
