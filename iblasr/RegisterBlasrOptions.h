@@ -465,12 +465,12 @@ const string BlasrDiscussion(void) {
     ss << "NAME" << endl
        << "         blasr - Map SMRT Sequences to a reference genome."<< endl << endl
        << "SYNOPSIS" << endl
-       << "         blasr reads.bam genome.fasta -bam -out out.bam" << endl << endl
+       << "         blasr reads.bam genome.fasta --bam --out out.bam" << endl << endl
        << "         blasr reads.fasta genome.fasta " << endl << endl
-       << "         blasr reads.fasta genome.fasta -sa genome.fasta.sa" << endl << endl
-       << "         blasr reads.bax.h5 genome.fasta [-sa genome.fasta.sa] " << endl << endl
-       << "         blasr reads.bax.h5 genome.fasta -sa genome.fasta.sa -maxScore -100 -minMatch 15 ... " << endl << endl
-       << "         blasr reads.bax.h5 genome.fasta -sa genome.fasta.sa -nproc 24 -out alignment.out ... " << endl << endl
+       << "         blasr reads.fasta genome.fasta --sa genome.fasta.sa" << endl << endl
+       << "         blasr reads.bax.h5 genome.fasta [--sa genome.fasta.sa] " << endl << endl
+       << "         blasr reads.bax.h5 genome.fasta --sa genome.fasta.sa --maxScore 100 --minMatch 15 ... " << endl << endl
+       << "         blasr reads.bax.h5 genome.fasta --sa genome.fasta.sa --nproc 24 --out alignment.out ... " << endl << endl
        << "DESCRIPTION " << endl
        << "  blasr is a read mapping program that maps reads to positions " << endl
        << "  in a genome by clustering short exact matches between the read and" << endl
