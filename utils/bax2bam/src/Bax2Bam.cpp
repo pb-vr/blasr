@@ -38,17 +38,76 @@ bool WriteDatasetXmlOutput(const Settings& settings,
     assert(errors);
 
     try {
+
+        // determine output details based on mode
+        // initialize with SUBREAD data (most common)
+        DataSet::TypeEnum outputDataSetType;
+        string outputDataSetMetaType;
+        string outputTimestampPrefix;
+        string outputBamFileType;
+        string outputScrapsFileType;
+        string outputXmlSuffix;
+
+        switch(settings.mode)
+        {
+            case Settings::SubreadMode :
+            {
+                outputDataSetType = DataSet::SUBREAD;
+                outputDataSetMetaType = "PacBio.DataSet.SubreadSet";
+                outputTimestampPrefix = "pacbio_dataset_subreadset-";
+                outputBamFileType = "PacBio.SubreadFile.SubreadBamFile";
+                outputScrapsFileType = "PacBio.SubreadFile.ScrapsBamFile";
+                outputXmlSuffix = ".subreadset.xml";
+            }
+
+            case Settings::CCSMode :
+            {
+                outputDataSetType = DataSet::CONSENSUS_READ;
+                outputDataSetMetaType = "PacBio.DataSet.ConsensusReadSet";
+                outputTimestampPrefix = "pacbio_dataset_consensusreadset-";
+                outputBamFileType = "PacBio.ConsensusReadFile.ConsensusReadBamFile";
+                outputScrapsFileType = "";
+                outputXmlSuffix = ".consensusreadset.xml";
+                break;
+
+            }
+            case Settings::HQRegionMode :
+            {
+                outputDataSetType = DataSet::SUBREAD;
+                outputDataSetMetaType = "PacBio.DataSet.SubreadSet";
+                outputTimestampPrefix = "pacbio_dataset_subreadset-";
+                outputBamFileType = "PacBio.SubreadFile.HqRegionBamFile";
+                outputScrapsFileType = "PacBio.SubreadFile.HqScrapsBamFile";;
+                outputXmlSuffix = ".subreadset.xml";
+                break;
+            }
+            case Settings::PolymeraseMode :
+            {
+                outputDataSetType = DataSet::SUBREAD;
+                outputDataSetMetaType = "PacBio.DataSet.SubreadSet";
+                outputTimestampPrefix = "pacbio_dataset_subreadset-";
+                outputBamFileType = "PacBio.SubreadFile.PolymeraseBamFile";
+                outputScrapsFileType = "PacBio.SubreadFile.PolymeraseScrapsBamFile";
+                outputXmlSuffix = ".subreadset.xml";
+                break;
+            }
+
+            default:
+                assert(false); // should already be checked upstream
+                throw std::runtime_error("unknown mode selected");
+        }
+
         DataSet dataset(settings.datasetXmlFilename);
         assert(dataset.Type() == DataSet::HDF_SUBREAD);
 
         // change type
-        dataset.Type(DataSet::SUBREAD);
-        dataset.MetaType("PacBio.DataSet.SubreadSet");
+        dataset.Type(outputDataSetType);
+        dataset.MetaType(outputDataSetMetaType);
 
         time_t currentTime = time(NULL);
         //const string& timestamp = CurrentTimestamp();
         dataset.CreatedAt(ToIso8601(currentTime));
-        dataset.TimeStampedName(string{"pacbio_dataset_subreadset-"}+ToDataSetFormat(currentTime));
+        dataset.TimeStampedName(outputTimestampPrefix+ToDataSetFormat(currentTime));
 
         // change files: remove BAX, add BAM
         std::vector<ExternalResource> toRemove;
@@ -86,7 +145,7 @@ bool WriteDatasetXmlOutput(const Settings& settings,
 
         // Combine the scheme and filepath and store in the dataset
         mainBamFilepath = scheme + mainBamFilepath;
-        ExternalResource mainBam{ "PacBio.SubreadFile.SubreadBamFile", mainBamFilepath };
+        ExternalResource mainBam{ outputBamFileType, mainBamFilepath };
         FileIndex mainPbi{ "PacBio.Index.PacBioIndex", mainBamFilepath + ".pbi" };
         mainBam.FileIndices().Add(mainPbi);
 
@@ -108,7 +167,7 @@ bool WriteDatasetXmlOutput(const Settings& settings,
                 scrapsBamFilepath.append(settings.scrapsBamFilename);
             }
 
-            ExternalResource scrapsBam{ "PacBio.SubreadFile.ScrapsBamFile", scrapsBamFilepath };
+            ExternalResource scrapsBam{ outputScrapsFileType, scrapsBamFilepath };
             FileIndex scrapsPbi{ "PacBio.Index.PacBioIndex", scrapsBamFilepath + ".pbi" };
             scrapsBam.FileIndices().Add(scrapsPbi);
             mainBam.ExternalResources().Add(scrapsBam);
@@ -139,7 +198,7 @@ bool WriteDatasetXmlOutput(const Settings& settings,
         // save to file 
         string xmlFn = settings.outputXmlFilename; // try user-provided explicit filename first
         if (xmlFn.empty())
-            xmlFn = settings.outputBamPrefix + ".dataset.xml"; // prefix set w/ moviename elsewhere if not user-provided
+            xmlFn = settings.outputBamPrefix + outputXmlSuffix; // prefix set w/ moviename elsewhere if not user-provided
         dataset.Save(xmlFn);
         return true;
 
