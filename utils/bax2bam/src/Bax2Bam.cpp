@@ -58,6 +58,7 @@ bool WriteDatasetXmlOutput(const Settings& settings,
                 outputBamFileType = "PacBio.SubreadFile.SubreadBamFile";
                 outputScrapsFileType = "PacBio.SubreadFile.ScrapsBamFile";
                 outputXmlSuffix = ".subreadset.xml";
+                break;
             }
 
             case Settings::CCSMode :
