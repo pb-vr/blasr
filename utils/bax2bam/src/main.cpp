@@ -102,6 +102,16 @@ int main(int argc, char* argv[])
                       );
     parser.add_option_group(bamModeGroup);
 
+    auto additionalGroup = optparse::OptionGroup(parser, "Additional options");
+    additionalGroup.add_option("--allowUnrecognizedChemistryTriple")
+                   .dest(Settings::Option::allowUnsupportedChem_)
+                   .action("store_true")
+                   .help("By default, bax2bam only allows the conversion of files "
+                         "with chemistries that are supported in SMRT Analysis 3. "
+                         "Set this flag to disable the strict check and allow "
+                         "generation of BAM files containing legacy chemistries.");
+    parser.add_option_group(additionalGroup);
+
     // parse command line
     Settings settings = Settings::FromCommandLine(parser, argc, argv);
     if (!settings.errors.empty()) {

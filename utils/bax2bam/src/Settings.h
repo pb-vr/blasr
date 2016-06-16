@@ -30,6 +30,7 @@ public:
         static const char* internalMode_;
         static const char* outputXml_;
         static const char* sequelPlatform_;
+        static const char* allowUnsupportedChem_;
     };
 
 public:
@@ -55,6 +56,9 @@ public:
 
     // platform
     bool isSequelInput;
+
+    // chemistry checking?
+    bool isIgnoringChemistryCheck;
 
     // features
     bool usingDeletionQV;

@@ -88,11 +88,13 @@ const char* Settings::Option::ccsMode_        = "ccsMode";
 const char* Settings::Option::internalMode_   = "internalMode";
 const char* Settings::Option::outputXml_      = "outputXml";
 const char* Settings::Option::sequelPlatform_ = "sequelPlatform";
+const char* Settings::Option::allowUnsupportedChem_  = "allowUnsupportedChem";
 
 Settings::Settings(void)
     : mode(Settings::SubreadMode)
     , isInternal(false)
     , isSequelInput(false)
+    , isIgnoringChemistryCheck(false)
     , usingDeletionQV(true)
     , usingDeletionTag(true)
     , usingInsertionQV(true)
@@ -189,6 +191,10 @@ Settings Settings::FromCommandLine(optparse::OptionParser& parser,
     // internal file mode
     settings.isInternal = options.is_set(Settings::Option::internalMode_) ? options.get(Settings::Option::internalMode_)
                                                                           : false;
+
+    // strict/relaxed chemistry check
+    settings.isIgnoringChemistryCheck = options.is_set(Settings::Option::allowUnsupportedChem_) ? options.get(Settings::Option::allowUnsupportedChem_)
+                                                                                                : false;
 
     // platform
     settings.isSequelInput = options.is_set(Settings::Option::sequelPlatform_) ? options.get(Settings::Option::sequelPlatform_)
