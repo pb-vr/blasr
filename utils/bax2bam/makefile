@@ -1,13 +1,14 @@
 .PHONY=all
 
 SRCDIR:=$(dir $(realpath $(lastword $(MAKEFILE_LIST))))
--include ${CURDIR}/../../defines.mk
+include ${CURDIR}/../../defines.mk
 include ${SRCDIR}/../../rules.mk
 
 all: ${CURDIR}/src/* ${CURDIR}/tests/src/*
 	@mkdir -p ${CURDIR}/build && \
 	 cd ${CURDIR}/build && \
-		cmake -DPacBioBAM_INCLUDE_DIRS=${PBBAM_INC} \
+		cmake -DBOOST_ROOT=${BOOST_ROOT} \
+          -DPacBioBAM_INCLUDE_DIRS=${PBBAM_INC} \
           -DHTSLIB_INCLUDE_DIRS=${HTSLIB_INC} \
           -DPacBioBAM_LIBRARIES=${PBBAM_LIB}/libpbbam${SH_LIB_EXT} \
           -DHTSLIB_LIBRARIES=${HTSLIB_LIB}/libhts${SH_LIB_EXT} \

@@ -7,7 +7,8 @@ include ${SRCDIR}/../../rules.mk
 all: ${CURDIR}/src/*.cpp ${CURDIR}/src/*.h  ${CURDIR}/tests/src/*.cpp ${CURDIR}/tests/src/*.h
 	@mkdir -p ${CURDIR}/build && \
 	 cd ${CURDIR}/build && \
-		cmake -DPacBioBAM_INCLUDE_DIRS=${PBBAM_INC} \
+		cmake -DBOOST_ROOT=${BOOST_ROOT} \
+          -DPacBioBAM_INCLUDE_DIRS=${PBBAM_INC} \
           -DHTSLIB_INCLUDE_DIRS=${HTSLIB_INC} \
           -DPacBioBAM_LIBRARIES=${PBBAM_LIB}/libpbbam${SH_LIB_EXT} \
           -DHTSLIB_LIBRARIES=${HTSLIB_LIB}/libhts${SH_LIB_EXT} \
