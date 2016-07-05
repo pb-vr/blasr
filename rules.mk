@@ -33,5 +33,5 @@ LDLIBS+= \
 # We repeat LIBPBIHDF_LIBFLAGS because of a circular dependency. See #77.
 
 CPPFLAGS+=$(patsubst %,-I%,${INCDIRS})
-CPPFLAGS+=$(patsubst %,-isystem%,${SYSINCDIRS})
+CPPFLAGS+=$(patsubst %,-I%,${SYSINCDIRS})
 LDFLAGS+=$(patsubst %,-L%,${LIBDIRS})
