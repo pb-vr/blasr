@@ -52,6 +52,7 @@ void SumMismatches(SMRTSequence &read,
                    T_AlignmentCandidate &alignment,
                    int mismatchScore,
                    int fullIntvStart, int fullIntvEnd,
+                   MappingParameters &params,
                    int &sum);
 
 //FIXME: move to class T_AlignmentCandidate
