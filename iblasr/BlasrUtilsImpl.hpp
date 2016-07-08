@@ -222,7 +222,7 @@ void StoreMapQVs(SMRTSequence &read,
                 // bug 24363, use updated SumMismatches to compute mismatch score when
                 // no QV is available.
                 SumMismatches(read, *alignmentPtrs[*partIt], 15,
-                        partitionBeginPos[p], partitionEndPos[p], mismatchSum);
+                        partitionBeginPos[p], partitionEndPos[p], params, mismatchSum);
             }
             //
             // Random sequence can be aligned with about 50% similarity due
@@ -345,13 +345,14 @@ void SumMismatches(SMRTSequence &read,
                    T_AlignmentCandidate &alignment,
                    int mismatchScore,
                    int fullIntvStart, int fullIntvEnd,
+                   MappingParameters &params,
                    int &sum)
 {
     int alnStart, alnEnd;
     alignment.GetQIntervalOnForwardStrand(alnStart, alnEnd);
     int p;
     sum = 0;
-    if (read.substitutionQV.Empty() == false) {
+    if (not params.ignoreQualities and read.substitutionQV.Empty() == false) {
         for (p = fullIntvStart; p < alnStart; p++) {
             sum += read.substitutionQV[p];
         }
