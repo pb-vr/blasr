@@ -11,15 +11,15 @@ Set up the executable: samFilter.
   $ TMP2=$OUTDIR/$$.tmp.stdout 
 
   $ rm -f $OUTFILE
-  $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE -minAccuracy 70 -minPctSimilarity 30 -hitPolicy all
+  $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE --minAccuracy 70 --minPctSimilarity 30 --hitPolicy all
   $ tail -n+7 $OUTFILE |sort > $TMP1 
   $ tail -n+7 $STDFILE |sort > $TMP2 
   $ diff $TMP1 $TMP2 
   $ rm $TMP1 $TMP2 
 
-#Test whether minAccuracy and minPctSimilarity can be float.
+#Test whether --minAccuracy and --minPctSimilarity can be float.
 #  $ rm -f $OUTFILE
-#  $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE -minAccuracy 70.0 -minPctSimilarity 30.0 -hitPolicy all
+#  $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE --minAccuracy 70.0 --minPctSimilarity 30.0 --hitPolicy all
 #  $ tail -n+7 $OUTFILE | sort > $TMP1 
 #  $ tail -n+7 $STDFILE | sort > $TMP2 
 #  $ diff $TMP1 $TMP2 
@@ -30,40 +30,40 @@ Set up the executable: samFilter.
   $ STDFILE=$STDDIR/lambda_bax_filter_2.sam
 
   $ rm -f $OUTFILE
-  $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE -hitPolicy allbest
+  $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE --hitPolicy allbest
   $ tail -n+7 $OUTFILE > $TMP1 
   $ tail -n+7 $STDFILE > $TMP2 
   $ diff $TMP1 $TMP2 
   $ rm $TMP1 $TMP2 
 
-#Test samFilter with -hitPolicy random   
+#Test samFilter with --hitPolicy random   
   $ OUTFILE=$OUTDIR/lambda_bax_filter_3.sam
   $ STDFILE=$STDDIR/lambda_bax_filter_3.sam
 
   $ rm -f $OUTFILE
-  $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE -hitPolicy random
+  $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE --hitPolicy random
   $ tail -n+7 $OUTFILE > $TMP1 
   $ tail -n+7 $STDFILE > $TMP2 
   $ diff $TMP1 $TMP2 
   $ rm $TMP1 $TMP2 
 
-#Test samFilter with -hitPolicy randombest   
+#Test samFilter with --hitPolicy randombest   
   $ OUTFILE=$OUTDIR/lambda_bax_filter_4.sam
   $ STDFILE=$STDDIR/lambda_bax_filter_4.sam
 
   $ rm -f $OUTFILE
-  $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE -hitPolicy randombest 
+  $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE --hitPolicy randombest 
   $ tail -n+7 $OUTFILE > $TMP1 
   $ tail -n+7 $STDFILE > $TMP2 
   $ diff $TMP1 $TMP2 
   $ rm $TMP1 $TMP2 
 
 
-# Test samFilter with -hitPolicy leftmost
+# Test samFilter with --hitPolicy leftmost
   $ OUTFILE=$OUTDIR/test_leftmost_out.sam
 
   $ rm -f $OUTFILE
-  $ $EXEC $DATDIR/test_leftmost.sam $DATDIR/test_leftmost_target.fasta $OUTFILE -hitPolicy leftmost 
+  $ $EXEC $DATDIR/test_leftmost.sam $DATDIR/test_leftmost_target.fasta $OUTFILE --hitPolicy leftmost 
   $ tail -n+6 $OUTFILE |cut -f 4 
   1
 
@@ -77,12 +77,12 @@ Set up the executable: samFilter.
   $ diff $TMP1 $TMP2 
   $ rm $TMP1 $TMP2 
 
-#Test samFilter with -holeNumbers
+#Test samFilter with --holeNumbers
   $ OUTFILE=$OUTDIR/lambda_bax_filter_6.sam
   $ STDFILE=$STDDIR/lambda_bax_filter_6.sam
 
   $ rm -f $OUTFILE
-  $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE -holeNumbers 101350-105000,21494 
+  $ $EXEC $DATDIR/lambda_bax.sam $DATDIR/lambda_ref.fasta $OUTFILE --holeNumbers 101350-105000,21494 
   $ tail -n+7 $OUTFILE > $TMP1 
   $ tail -n+7 $STDFILE > $TMP2 
   $ diff $TMP1 $TMP2 

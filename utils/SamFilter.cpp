@@ -271,7 +271,7 @@ int main(int argc, char* argv[]) {
 
     string holeNumberStr;
     Ranges holeNumberRanges;
-    clp.RegisterStringOption("holeNumbers", &holeNumberStr,
+    clp.RegisterStringOption("-holeNumbers", &holeNumberStr,
             "A string of comma-delimited hole number ranges to output hits, "
             "such as '1,2,10-12'. "
             "This requires hit titles to be in SMRT read title format.");
