@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
                                    "    DeletionTag       dt        Y\n"
                                    "    InsertionQV       iq        Y\n"
                                    "    IPD               ip        Y\n"
-                                   "    PulseWidth        pw        N\n"
+                                   "    PulseWidth        pw        Y\n"
                                    "    MergeQV           mq        Y\n"
                                    "    SubstitutionQV    sq        Y\n"
                                    "    SubstitutionTag   st        N\n"

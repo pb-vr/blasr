@@ -40,7 +40,7 @@ Options:
         DeletionTag       dt        Y
         InsertionQV       iq        Y
         IPD               ip        Y
-        PulseWidth        pw        N
+        PulseWidth        pw        Y
         MergeQV           mq        Y
         SubstitutionQV    sq        Y
         SubstitutionTag   st        N

@@ -150,7 +150,8 @@ TEST(SubreadsTest, EndToEnd_Multiple)
     baxReader.IncludeField("MergeQV");
     baxReader.IncludeField("SubstitutionQV");
     baxReader.IncludeField("HQRegionSNR");
-    // not using SubTag or PulseWidth here
+    baxReader.IncludeField("WidthInFrames");
+    // not using SubTag here
 
     string baxBasecallerVersion;
     string baxBindingKit;
@@ -237,6 +238,7 @@ TEST(SubreadsTest, EndToEnd_Multiple)
         EXPECT_EQ("ip", rg.BaseFeatureTag(BaseFeature::IPD));
         EXPECT_EQ("mq", rg.BaseFeatureTag(BaseFeature::MERGE_QV));
         EXPECT_EQ("sq", rg.BaseFeatureTag(BaseFeature::SUBSTITUTION_QV));
+        EXPECT_EQ("pw", rg.BaseFeatureTag(BaseFeature::PULSE_WIDTH));
         EXPECT_FALSE(rg.HasBaseFeature(BaseFeature::SUBSTITUTION_TAG));
         EXPECT_EQ(FrameCodec::V1, rg.IpdCodec());
 
