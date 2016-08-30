@@ -72,3 +72,13 @@ ZMW with no HQ region
   $ h5dump -d /PulseData/Regions Analysis_Results/all_lq.bax.h5 |grep "(0,0): 47775928, 2, 0, 0, 700"
      (0,0): 47775928, 2, 0, 0, 700,
 
+Check ZMW HoleXY
+  $ HOLEXY_PATH=/pbi/dept/secondary/siv/testdata/bam2bax/holexy
+  $ $BAM2BAX $HOLEXY_PATH/rt_m54075_160614_021811_4194561.subreads.bam $HOLEXY_PATH/rt_m54075_160614_021811_4194561.scraps.bam -o Analysis_Results/test_m54075_160614_021811_4194561 1>/dev/null 2>/dev/null && echo $?
+  0
+
+  $ h5dump -d /PulseData/BaseCalls/ZMW/HoleXY $HOLEXY_PATH/poc_m54075_160614_021811_4194561.bax.h5 | grep "(0,0): "
+     (0,0): 64, 257
+  $ h5dump -d /PulseData/BaseCalls/ZMW/HoleXY Analysis_Results/test_m54075_160614_021811_4194561.bax.h5 | grep "(0,0): "
+     (0,0): 64, 257
+
