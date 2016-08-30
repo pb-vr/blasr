@@ -79,6 +79,7 @@ target_link_libraries(test_bax2bam
     ${ZLIB_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT} # quirky pthreads
     ${MY_LIBRT}
+    "-ldl"
 )
 # add_test(test_bax2bam test_bax2bam)
 add_test(

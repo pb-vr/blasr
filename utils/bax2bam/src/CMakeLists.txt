@@ -53,5 +53,7 @@ target_link_libraries(bax2bam
     ${PacBioBAM_LIBRARIES}
     ${HTSLIB_LIBRARIES}
     ${ZLIB_LIBRARIES}
+    ${CMAKE_THREAD_LIBS_INIT}
     ${MY_LIBRT}
+    "-ldl"
 )
