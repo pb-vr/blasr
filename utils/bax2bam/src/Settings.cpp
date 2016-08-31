@@ -234,6 +234,10 @@ Settings Settings::FromCommandLine(optparse::OptionParser& parser,
         }
     }
 
+    // always disable PulseWidth tag in CCS mode
+    if (isCCS)
+        settings.usingPulseWidth = false;
+
 #ifdef DEBUG_SETTINGS
 
     string modeString;

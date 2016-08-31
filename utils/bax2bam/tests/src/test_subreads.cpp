@@ -121,7 +121,7 @@ void ComputeSubreadIntervals(vector<SubreadInterval>* const intervals,
 TEST(SubreadsTest, EndToEnd_Multiple)
 {
     // setup
-    const string movieName = "m140905_042212_sidney_c100564852550000001823085912221377_s1_X0";
+    const string movieName = "m160823_221224_ethan_c010091942559900001800000112311890_s1_p0";
 
     vector<string> baxFilenames;
     baxFilenames.push_back(tests::Data_Dir + "/" + movieName + ".1.bax.h5");
@@ -231,7 +231,7 @@ TEST(SubreadsTest, EndToEnd_Multiple)
         EXPECT_EQ(baxBasecallerVersion, rg.BasecallerVersion());
         EXPECT_EQ(baxBindingKit, rg.BindingKit());
         EXPECT_EQ(baxSequencingKit, rg.SequencingKit());
-        EXPECT_EQ(75, std::stod(rg.FrameRateHz()));
+        EXPECT_FLOAT_EQ(75.00577, std::stof(rg.FrameRateHz()));
         EXPECT_EQ("dq", rg.BaseFeatureTag(BaseFeature::DELETION_QV));
         EXPECT_EQ("dt", rg.BaseFeatureTag(BaseFeature::DELETION_TAG));
         EXPECT_EQ("iq", rg.BaseFeatureTag(BaseFeature::INSERTION_QV));
@@ -253,6 +253,10 @@ TEST(SubreadsTest, EndToEnd_Multiple)
         size_t numTested = 0;
         EntireFileQuery entireFile(bamFile);
         for (BamRecord& bamRecord : entireFile) {
+ 
+            if (numTested > 30)
+                goto cleanup;
+
             if (intervalIdx >= subreadIntervals.size())
             {
                 while (baxReader.GetNext(baxRecord))

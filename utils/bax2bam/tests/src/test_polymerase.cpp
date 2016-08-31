@@ -20,7 +20,7 @@ using namespace PacBio::BAM;
 TEST(PolymeraseTest, EndToEnd_Single)
 {
     // setup
-    const string movieName = "m140905_042212_sidney_c100564852550000001823085912221377_s1_X0";
+    const string movieName = "m160823_221224_ethan_c010091942559900001800000112311890_s1_p0";
 
     vector<string> baxFilenames;
     baxFilenames.push_back(tests::Data_Dir + "/" + movieName + ".1.bax.h5");
@@ -119,7 +119,7 @@ TEST(PolymeraseTest, EndToEnd_Single)
         EXPECT_EQ(baxBasecallerVersion, rg.BasecallerVersion());
         EXPECT_EQ(baxBindingKit, rg.BindingKit());
         EXPECT_EQ(baxSequencingKit, rg.SequencingKit());
-        EXPECT_EQ(75, std::stod(rg.FrameRateHz()));
+        EXPECT_FLOAT_EQ(75.00577, std::stof(rg.FrameRateHz()));
         EXPECT_EQ("dq", rg.BaseFeatureTag(BaseFeature::DELETION_QV));
         EXPECT_EQ("dt", rg.BaseFeatureTag(BaseFeature::DELETION_TAG));
         EXPECT_EQ("iq", rg.BaseFeatureTag(BaseFeature::INSERTION_QV));
@@ -132,7 +132,7 @@ TEST(PolymeraseTest, EndToEnd_Single)
 
         // compare 1st record from each file
         SMRTSequence baxRecord;
-        EXPECT_TRUE(baxReader.GetNext(baxRecord) > 0);
+        EXPECT_TRUE(baxReader.GetReadAt(8, baxRecord) > 0);
 
         vector<float> hqSnr;
         hqSnr.push_back(baxRecord.HQRegionSnr('A'));
@@ -140,10 +140,10 @@ TEST(PolymeraseTest, EndToEnd_Single)
         hqSnr.push_back(baxRecord.HQRegionSnr('G'));
         hqSnr.push_back(baxRecord.HQRegionSnr('T'));
  
-        EXPECT_GT(hqSnr[0], 0);
-        EXPECT_GT(hqSnr[1], 0);
-        EXPECT_GT(hqSnr[2], 0);
-        EXPECT_GT(hqSnr[3], 0);
+        EXPECT_FLOAT_EQ(0.0, hqSnr[0]);
+        EXPECT_FLOAT_EQ(0.0, hqSnr[1]);
+        EXPECT_FLOAT_EQ(0.0, hqSnr[2]);
+        EXPECT_FLOAT_EQ(0.0, hqSnr[3]);
 
         bool firstRecord = true;
         EntireFileQuery entireFile(bamFile);
