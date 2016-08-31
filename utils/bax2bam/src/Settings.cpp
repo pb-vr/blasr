@@ -100,7 +100,7 @@ Settings::Settings(void)
     , usingInsertionQV(true)
     , usingIPD(true)
     , usingMergeQV(true)
-    , usingPulseWidth(false)
+    , usingPulseWidth(true)
     , usingSubstitutionQV(true)
     , usingSubstitutionTag(false)
     , losslessFrames(false)
@@ -233,6 +233,10 @@ Settings Settings::FromCommandLine(optparse::OptionParser& parser,
                 settings.errors.push_back(string("unknown pulse feature: ") + feature);
         }
     }
+
+    // always disable PulseWidth tag in CCS mode
+    if (isCCS)
+        settings.usingPulseWidth = false;
 
 #ifdef DEBUG_SETTINGS
 

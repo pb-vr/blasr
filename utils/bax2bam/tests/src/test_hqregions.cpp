@@ -25,13 +25,13 @@ TEST(HqRegionsTest, EndToEnd_Single)
     const string movieName = "m140905_042212_sidney_c100564852550000001823085912221377_s1_X0";
 
     vector<string> baxFilenames;
-    baxFilenames.push_back(tests::Data_Dir + "/" + movieName + ".1.bax.h5");
+    baxFilenames.push_back(tests::Data_Dir + "/data/" + movieName + ".1.bax.h5");
 
     const string generatedBam = movieName + ".hqregions.bam";
     const string scrapBam = movieName + ".lqregions.bam";
 
-    // run conversion
-    const int result = RunBax2Bam(baxFilenames, "--hqregion");
+    // run conversion (manually disabling PW check... we can restore this later with a BAX that has both HQRegions & PW data)
+    const int result = RunBax2Bam(baxFilenames, "--hqregion --pulsefeatures=\"DeletionQV,DeletionTag,InsertionQV,IPD,MergeQV,SubstitutionQV\"");
     EXPECT_EQ(0, result);
 
     {   // ensure PBIs exist
@@ -51,7 +51,7 @@ TEST(HqRegionsTest, EndToEnd_Single)
     baxReader.IncludeField("MergeQV");
     baxReader.IncludeField("SubstitutionQV");
     baxReader.IncludeField("HQRegionSNR");
-    // not using SubTag or PulseWidth here
+    // not using SubTag or PulseWidth 
 
     string baxBasecallerVersion;
     string baxBindingKit;
@@ -136,7 +136,7 @@ TEST(HqRegionsTest, EndToEnd_Single)
         EXPECT_EQ(baxBasecallerVersion, rg.BasecallerVersion());
         EXPECT_EQ(baxBindingKit, rg.BindingKit());
         EXPECT_EQ(baxSequencingKit, rg.SequencingKit());
-        EXPECT_EQ(75, std::stod(rg.FrameRateHz()));
+        EXPECT_FLOAT_EQ(75.0, std::stof(rg.FrameRateHz()));
         EXPECT_EQ("dq", rg.BaseFeatureTag(BaseFeature::DELETION_QV));
         EXPECT_EQ("dt", rg.BaseFeatureTag(BaseFeature::DELETION_TAG));
         EXPECT_EQ("iq", rg.BaseFeatureTag(BaseFeature::INSERTION_QV));
@@ -293,7 +293,7 @@ TEST(HqRegionsTest, EndToEnd_Single)
         EXPECT_EQ(baxBasecallerVersion, rg.BasecallerVersion());
         EXPECT_EQ(baxBindingKit, rg.BindingKit());
         EXPECT_EQ(baxSequencingKit, rg.SequencingKit());
-        EXPECT_EQ(75, std::stod(rg.FrameRateHz()));
+        EXPECT_FLOAT_EQ(75.0, std::stof(rg.FrameRateHz()));
         EXPECT_EQ("dq", rg.BaseFeatureTag(BaseFeature::DELETION_QV));
         EXPECT_EQ("dt", rg.BaseFeatureTag(BaseFeature::DELETION_TAG));
         EXPECT_EQ("iq", rg.BaseFeatureTag(BaseFeature::INSERTION_QV));
@@ -419,3 +419,4 @@ TEST(HqRegionsTest, EndToEnd_Single)
         RemoveFile(scrapBam + ".pbi");
     });
 }
+

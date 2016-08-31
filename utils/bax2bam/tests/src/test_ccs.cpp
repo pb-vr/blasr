@@ -26,7 +26,7 @@ TEST(CcsTest, EndToEnd_Multiple)
     const string movieName = "m131018_081703_42161_c100585152550000001823088404281404_s1_p0";
 
     vector<string> baxFilenames;
-    baxFilenames.push_back(tests::Data_Dir + "/" + movieName + ".1.ccs.h5");
+    baxFilenames.push_back(tests::Data_Dir + "/data/" + movieName + ".1.ccs.h5");
 
     const string generatedBam = movieName + ".ccs.bam";
 

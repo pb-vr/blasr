@@ -77,6 +77,8 @@ if (NOT ZLIB_LIBRARIES OR NOT ZLIB_INCLUDE_DIRS)
     find_package(ZLIB REQUIRED)
 endif()
 
+find_package(Threads)
+
 # shared CXX flags for src & tests
 include(CheckCXXCompilerFlag)
 set(Bax2Bam_CXX_FLAGS "-g -std=c++11 -Wall")
