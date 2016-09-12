@@ -24,6 +24,7 @@ using namespace std;
 #include <libconfig.h>
 #ifdef USE_PBBAM
 #include <pbbam/BamWriter.h>
+#include <pbbam/SamWriter.h>
 #endif
 
 #include <CCSSequence.hpp>

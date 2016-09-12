@@ -16,7 +16,7 @@ using namespace std;
 MappingSemaphores semaphores;
 ostream *outFilePtr = NULL;
 #ifdef USE_PBBAM
-PacBio::BAM::BamWriter * bamWriterPtr = NULL;
+PacBio::BAM::IRecordWriter * bamWriterPtr = NULL; // use IRecordWriter for both SAM ands BAM
 #endif
 
 HDFRegionTableReader *regionTableReader = NULL;
@@ -29,9 +29,10 @@ ReaderAgglomerate *reader = NULL;
 // 5.0 - a new major version number
 // 5.1 - transiotion to POSIX notation - double sashes before multi-character flags
 // 5.2 - --sam no longer supported
+// 5.3 - --sam supported via pbbam/IRecordWriter 
 //
 const string GetMajorVersion() {
-  return "5.2";
+  return "5.3";
 }
 
 // version format is 3 numbers sparated by dots : Version.Subversion.SHA1
@@ -1294,12 +1295,23 @@ int main(int argc, char* argv[]) {
               commandLineString);
       string headerString = shp.ToString();// SAM/BAM header
       if (params.printSAM) {
+      // this is not going to be executed since sam is printed via bam
           *outFilePtr << headerString;
       } else if (params.printBAM) {
+      // here both bam and sam are handled
 #ifdef USE_PBBAM
           PacBio::BAM::BamHeader header = PacBio::BAM::BamHeader(headerString);
-      // Both file name and SAMHeader are required in order to create a BamWriter.
-      bamWriterPtr = new PacBio::BAM::BamWriter(params.outFileName, header);
+          // Create bam header
+          // Both file name and SAMHeader are required in order to create a BamWriter.
+          // sam_via_bam changes
+          if (params.sam_via_bam)
+          {
+             bamWriterPtr = new PacBio::BAM::SamWriter(params.outFileName, header);
+          }
+          else
+          {
+             bamWriterPtr = new PacBio::BAM::BamWriter(params.outFileName, header);
+          }
 #else
       REQUIRE_PBBAM_ERROR();
 #endif
@@ -1516,7 +1528,9 @@ int main(int argc, char* argv[]) {
 #ifdef USE_PBBAM
           assert(bamWriterPtr);
           try {
-              bamWriterPtr->TryFlush();
+              if (!params.sam_via_bam) {  // no need to flush for SAM , but need to understand why 
+                 bamWriterPtr->TryFlush();
+              }
               delete bamWriterPtr;
               bamWriterPtr = NULL;
           } catch (std::exception e) {
