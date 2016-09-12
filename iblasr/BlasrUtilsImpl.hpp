@@ -954,7 +954,7 @@ void PrintAlignment(T_AlignmentCandidate &alignment,
                     ostream &outFile
 #ifdef USE_PBBAM
                     , SMRTSequence & subread
-                    , PacBio::BAM::BamWriter * bamWriterPtr
+                    , PacBio::BAM::IRecordWriter * bamWriterPtr
 #endif
                     ) {
    try {
@@ -1014,7 +1014,7 @@ void PrintAlignments(vector<T_AlignmentCandidate*> alignmentPtrs,
                      AlignmentContext alignmentContext,
 #ifdef USE_PBBAM
                      SMRTSequence &subread,
-                     PacBio::BAM::BamWriter * bamWriterPtr,
+                     PacBio::BAM::IRecordWriter * bamWriterPtr,
 #endif
                      MappingSemaphores & semaphores) {
   if (params.nProc > 1) {
@@ -1131,7 +1131,7 @@ void PrintAllReadAlignments(ReadAlignments & allReadAlignments,
                             MappingParameters & params,
                             vector<SMRTSequence> & subreads,
 #ifdef USE_PBBAM
-                            PacBio::BAM::BamWriter * bamWriterPtr,
+                            PacBio::BAM::IRecordWriter * bamWriterPtr,
 #endif
                             MappingSemaphores & semaphores)
 {

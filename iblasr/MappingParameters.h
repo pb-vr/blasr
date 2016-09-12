@@ -88,6 +88,7 @@ public:
     bool printSAM;
     bool cigarUseSeqMatch;
     bool printBAM;
+    bool sam_via_bam;    // for SAM output via pbbam using IRecordWriter
     bool storeMapQV;
     bool useRandomSeed;
     int  randomSeed;
@@ -271,6 +272,7 @@ public:
         readsFileIndex = 0;
         printSAM = false;
         printBAM = false;
+        sam_via_bam = false;
         useRandomSeed = false;
         randomSeed = 0;
         placeRandomly = false;
@@ -557,10 +559,6 @@ public:
         if (randomSeed != 0) {
             useRandomSeed = true;
         }
-        if (printSAM) {
-            cerr << "ERROR: --sam is no longer supported, use --bam, then translate from .bam to .sam" << endl;
-            exit(1);
-        }
         //
         // Parse the clipping.
         //
@@ -581,7 +579,43 @@ public:
             exit(1);
         }
 
-        if (printBAM) {
+        if (printSAM) {         // since sam is printed via bam we need to use ifndef USE_PBBAM here
+#ifndef USE_PBBAM
+            REQUIRE_PBBAM_ERROR();
+#else
+            printSAM = false;
+            printBAM = true;
+            sam_via_bam = true; // set to true for constructors and to avoid entering if (printBAM
+            cigarUseSeqMatch = true; // ALWAYS true for BAM
+            printFormat = BAM;               // Not sure for sam_via_bam
+            samQVList.SetDefaultQV();
+            printSAMQV = true;
+            if (clipping != SAMOutput::soft) {
+                // Only support two clipping methods: soft or subread.
+                clipping = SAMOutput::subread;
+            }
+            // Turn on fa fa -> bam pipe
+            /*
+            if (queryFileType != FileType::PBBAM and queryFileType != FileType::PBDATASET and not enableHiddenPaths) {
+                // bax|fasta|fastq -> bam paths are turned off by default
+                cout << "ERROR, could not output alignments in BAM unless input reads are in PacBio BAM or DATASET files." << endl;
+                exit(1);
+            }
+            */
+            if (outFileName == "") {
+                cout << "ERROR, SAM output file must be specified." << endl;
+                exit(1);
+            }
+            // VR Need to see what happens if printing SAM
+            // VR Check with Derek regarding sam_via_bam
+            if (outputByThread) {
+                cout << "ERROR, could not output alignments by threads in BAM format." << endl;
+                exit(1);
+            }
+#endif
+        }
+
+        if (printBAM && !sam_via_bam) { // Need to check settings for SAM, 
 #ifndef USE_PBBAM
             REQUIRE_PBBAM_ERROR();
 #else
@@ -606,6 +640,8 @@ public:
                 cout << "ERROR, BAM output file must be specified." << endl;
                 exit(1);
             }
+            // VR Need to see what happens if printing SAM
+            // VR Check with Derek regarding sam_via_bam
             if (outputByThread) {
                 cout << "ERROR, could not output alignments by threads in BAM format." << endl;
                 exit(1);
