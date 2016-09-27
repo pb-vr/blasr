@@ -83,8 +83,8 @@ void RegisterBlasrOptions(CommandLineParser & clp, MappingParameters & params) {
     clp.RegisterIntOption("-maxScore", &params.maxScore, "", CommandLineParser::Integer);
     clp.RegisterStringOption("-bwt", &params.bwtFileName, "");
     clp.RegisterIntOption("m", &params.printFormat, "", CommandLineParser::NonNegativeInteger);
-    clp.RegisterFlagOption("-sam", &params.printSAM, "");
 #ifdef USE_PBBAM
+    clp.RegisterFlagOption("-sam", &params.printSAM, "");
     clp.RegisterFlagOption("-bam", &params.printBAM, "");
 #endif
     clp.RegisterStringOption("-clipping", &params.clippingString, "");
