@@ -1,4 +1,7 @@
 FAST_CTESTS := \
+ctest/fastMaxInterval.t \
+ctest/aggressiveIntervalCut.t \
+ctest/multipart.t \
 ctest/affineAlign.t            ctest/bamOut.t           ctest/ccsH5.t           ctest/filtercriteria.t  ctest/m0-5.t \
 ctest/fofn.t \
 ctest/alignScore.t             ctest/hitpolicy.t       ctest/noSplitSubreads.t \
@@ -16,9 +19,6 @@ SLOW_CTESTS := ctest/bug25328.t
 
 
 # sidelined because of changes in directories
-#
-# needed to restore  /mnt/data3/vol53/2450598/0001
-# FAST ctest/aggressiveIntervalCut.t ctest/multipart.t ctest/fastMaxInterval.t
 #
 # needed to restore  /mnt/data3/vol53/2450530/0014
 # SLOW ctest/useccsallLargeGenome.t
