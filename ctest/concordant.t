@@ -17,7 +17,7 @@ Test --concordant FMR1 case (the 'typical subread' is selected as template for c
   [INFO]* (glob)
   [INFO]* (glob)
   $ diff $OUTDIR/FMR1_zmw_37927.m4 $STDDIR/$UPDATEDATE/FMR1_zmw_37927.m4
-  
+
 #History
 #2014_05_28  --> changelist 135254, use MAX_BAND_SIZE to contrain GuidedAlign
 #2014_08_21  --> changelist 138516, added YS, YE, ZM tags.
