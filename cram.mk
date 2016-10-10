@@ -1,4 +1,5 @@
 FAST_CTESTS := \
+ctest/ecoli.t \
 ctest/fastMaxInterval.t \
 ctest/aggressiveIntervalCut.t \
 ctest/multipart.t \
@@ -14,7 +15,6 @@ MILD_CTESTS := \
 SLOW_CTESTS := ctest/bug25328.t
 
 # XXX: following tests sidelined, needs bam input after --sam option removed
-# FAST: ctest/ecoli.t
 # MILD: ctest/useccsallBestN1.t
 
 

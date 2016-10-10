@@ -14,8 +14,8 @@ Test blasr with --bam
   [INFO]* (glob)
 
   $ $SAMTOOLS view $OUTDIR/ecoli_subset.bam > $OUTDIR/ecoli_subset.sam
-  $ sed -n '5,$ p' $OUTDIR/ecoli_subset.sam | sort | cut -f 1--11 > $TMP1
-  $ sed -n '5,$ p' $STDDIR/$UPDATEDATE/ecoli_subset.sam | sort | cut -f 1--11 > $TMP2
+  $ sed -n '5,$ p' $OUTDIR/ecoli_subset.sam | sort | cut -f 1-11 > $TMP1
+  $ sed -n '5,$ p' $STDDIR/2016_10_10/ecoli_subset.sam | sort | cut -f 1-11 > $TMP2
   $ diff $TMP1 $TMP2
   $ rm $TMP1 $TMP2
 # 2015_03_08 --> changelist 148101, 148080 updated read group id; 148100 updated TLEN
