@@ -9,13 +9,13 @@ ctest/bamIn.t                  ctest/open_fail.t       ctest/verbose.t         c
 
 
 MILD_CTESTS := \
-	ctest/bug25766.t ctest/holeNumbers.t
+	ctest/concordant.t ctest/bug25766.t ctest/holeNumbers.t
 
 SLOW_CTESTS := ctest/bug25328.t
 
 # XXX: following tests sidelined, needs bam input after --sam option removed
 # FAST: ctest/ecoli.t
-# MILD: ctest/useccsallBestN1.t ctest/concordant.t 
+# MILD: ctest/useccsallBestN1.t
 
 
 # sidelined because of changes in directories

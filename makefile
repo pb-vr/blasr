@@ -76,6 +76,10 @@ cramfast: blasr utils
 	${MAKE} -f cram.mk cramfast
 	${MAKE} -C utils cramfast
 
+crammild: blasr utils
+	${MAKE} -f cram.mk crammild
+	${MAKE} -C utils crammild
+
 gtest: blasr
 	# This requires the submodule to be configured with gtest.
 	${MAKE} -C libcpp gtest
